@@ -1,3 +1,8 @@
+import { VPEntity} from "./petRepresentation"
+import {VPet} from "./petModel"
+import { VPActivity } from "./petRepresentation"
+
+
 export class VPGroup extends VPEntity{
     entities : Array<VPEntity> = []
     constructor (name : string){

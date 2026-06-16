@@ -1,9 +1,3 @@
-import { VPActivity, VPActivityDict } from "./interactions"
-
-interface VPRelationshipDict {
-    [key : string] : VPRelationship
-}
-
 export class VPEntity {
     name : string 
     relationships : VPRelationshipDict = {}
@@ -12,6 +6,22 @@ export class VPEntity {
     }
 }
 
+//--------------------relationships--------------------
+export class VPRelationship{
+    otherEntity : VPEntity
+    friendliness : number
+    constructor (ent : VPEntity, initFriendliness : number = 0){
+        this.otherEntity = ent
+        this.friendliness = initFriendliness
+    }
+}
+
+interface VPRelationshipDict {
+    [key : string] : VPRelationship
+}
+
+
+// -------------------Traits--------------------
 export class VPTrait{
     value : number
     constructor (value : number = 1){
@@ -42,12 +52,27 @@ export class VPStats{
     stress : VPStat = new VPStat()
 }
 
+// --------------------Interactions--------------------
+export interface VPEvent {
+    eventName : string,
+    statAffected ?: VPStat,
+    personalityAffected ?: VPTrait
+    relationshipAffected ?: VPRelationship
+    changeInValue : number
+}
 
-export class VPRelationship{
-    otherEntity : VPEntity
-    friendliness : number
-    constructor (ent : VPEntity, initFriendliness : number = 0){
-        this.otherEntity = ent
-        this.friendliness = initFriendliness
-    }
+export interface VPEventDict {
+    [key : string] : VPEvent
+}
+
+export interface VPActivity {
+    activityName : string,
+    statAffected : VPStat,
+    changeInValuePerTick : number,
+    maxTicks : number
+    associatedEvent ?: VPEvent
+}
+
+export interface VPActivityDict {
+    [key : string] : VPActivity
 }

@@ -37,19 +37,26 @@ export class VPPersonality{
 }
 
 export class VPStat{
+    name : string
     value : number
-    constructor (value : number = 0){
+    constructor (name : string, value : number = 0){
+        this.name = name
         this.value = value
     }
 }
 
 export class VPStats{
-    hunger : VPStat = new VPStat()
-    height : VPStat = new VPStat(30)
-    weight : VPStat = new VPStat(10)
-    boredom : VPStat = new VPStat()
-    happiness : VPStat = new VPStat(100)
-    stress : VPStat = new VPStat()
+    hunger : VPStat = new VPStat("Hunger")
+    energy : VPStat = new VPStat("Energy", 0)
+    height : VPStat = new VPStat("Height", 30)
+    weight : VPStat = new VPStat("Weight", 10)
+    boredom : VPStat = new VPStat("Boredom")
+    happiness : VPStat = new VPStat("Happiness", 100)
+    stress : VPStat = new VPStat("Stress")
+
+    getAllStats() : Array<VPStat>{
+        return [this.hunger, this.energy, this.height, this.weight, this.boredom, this.happiness, this.stress]
+    }
 }
 
 // --------------------Interactions--------------------
@@ -65,12 +72,17 @@ export interface VPEventDict {
     [key : string] : VPEvent
 }
 
+export interface VPTag {
+    tagName : string,
+}
+
 export interface VPActivity {
-    activityName : string,
-    statAffected : VPStat,
-    changeInValuePerTick : number,
+    name : string,
+    statAffected : Array<VPStat>,
+    perTick : Array<number>,
     maxTicks : number
-    associatedEvent ?: VPEvent
+    tags : Array<VPTag>
+    events ?: Array<VPEvent>
 }
 
 export interface VPActivityDict {

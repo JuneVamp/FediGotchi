@@ -1,0 +1,53 @@
+{
+    "ActivityTags" : {
+        "Alone" : {
+            "personalityRelationship" : {
+                "Neuroticism" : -1,
+                "Dominance" : -1,
+                "Impulsiveness" : -1,
+                "Extraversion" : -1,
+                "Agreeableness" : -1
+            }
+        }
+    },
+
+    "Activities" : {
+        "types" : {
+            "pet_pet" :  ["Talk", "Play"] ,
+            "pet_item": ["Read"],
+            "pet_item_pet": ["ReadTogether"]
+        },
+        "list" : {
+            "Talk": {
+                "statAffected" : ["Boredom", "Energy"],
+                "perTick" : [1, -1],
+                "maxTicks" : 10,
+                "tags" : ["Social"],
+                "events" : []
+            },
+            "Play": {
+                "statAffected" : ["Boredom", "Energy"],
+                "perTick" : [1, -2],
+                "maxTicks" : 10,
+                "tags" : ["Social"],
+                "events" : []
+            },
+            "Read": {
+                "statAffected" : ["Boredom", "Energy"],
+                "perTick" : [1, -1],
+                "maxTicks" : 10,
+                "tags" : ["Alone"],
+                "events" : []
+            }
+        }
+    },
+
+    "Items" : {
+        "Ball" : {
+            "activity" : "Play"
+        },
+        "Book" : {
+            "activity" : "Read"
+        }
+    }
+}

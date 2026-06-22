@@ -1,5 +1,8 @@
 import { VPItem, VPEnvironment } from "./otherModels"
 import { VPet } from "./petModel"
+import {Hono} from "hono"
+
+const app = new Hono()
 
 var pet1 = new VPet("Alice")
 var pet2 = new VPet("Britney")
@@ -21,3 +24,10 @@ setInterval(() => {
   console.log(`Pet2 - Boredom: ${pet2.stats.boredom.value}, boredomTimer: ${pet2.tempBoredomTimer}, Energy: ${pet2.stats.energy.value}`)
 
 }, 1000)
+
+
+app.get('/', (c) => {
+  return c.text('Hello Hono!')
+})
+
+export default app

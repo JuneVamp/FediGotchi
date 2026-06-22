@@ -36,10 +36,15 @@
     // Recommended Options
     "strict": true,
     "jsx": "react-jsx",
+    "jsxImportSource": "hono/jsx",
     // "verbatimModuleSyntax": true,
     "isolatedModules": true,
     "noUncheckedSideEffectImports": true,
     "moduleDetection": "force",
     "skipLibCheck": true,
+
+    // other options
+    "allowImportingTsExtensions": true,
+    "rewriteRelativeImportExtensions": true
   }
 }

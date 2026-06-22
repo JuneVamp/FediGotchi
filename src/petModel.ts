@@ -131,4 +131,12 @@ export class VPet extends VPEntity {
             this.initiateActivity()
         }
     }
+
+    // -------------View Methods--------------------
+
+}
+
+export interface PetView{
+    name : string
+    imageSrc : string
 }

@@ -4,6 +4,15 @@ import { VPEnvironment, VPItem } from "./otherModels"
 import { parseActivity } from "./parser"
 import { weighted_random, getRandomInt } from "./utils"
 
+export interface PetView{
+    name : string
+    imageSrc : string
+    environmentName : string
+    boredom : number
+    currentActivityName : string
+    currentActivityPartnerN : string
+}
+
 export class VPet extends VPEntity {
     personality : VPPersonality = new VPPersonality()
     stats : VPStats = new VPStats()
@@ -11,6 +20,14 @@ export class VPet extends VPEntity {
     currentActivity ?: VPActivity
     knownActivitesPetxPet : Array<VPActivity> = []
     tempBoredomTimer : number = 0
+    tempPetView : PetView = {
+        name : this.name,
+        imageSrc : `../assets/images/pets/${this.name.toLowerCase()}.png`,
+        environmentName : this.environment ? this.environment.name : "No Environment",
+        boredom : this.stats.boredom.value,
+        currentActivityName : this.currentActivity ? this.currentActivity.name : "No Activity",
+        currentActivityPartnerN : "No Partner"
+    }
 
     constructor (name : string){
         super(name)
@@ -133,10 +150,11 @@ export class VPet extends VPEntity {
     }
 
     // -------------View Methods--------------------
+    getView() : PetView{
+        this.tempPetView.environmentName = this.environment ? this.environment.name : "No Environment"
+        this.tempPetView.boredom = this.stats.boredom.value
+        this.tempPetView.currentActivityName = this.currentActivity ? this.currentActivity.name : "No Activity"
+        return this.tempPetView
+    }
 
-}
-
-export interface PetView{
-    name : string
-    imageSrc : string
 }

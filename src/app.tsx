@@ -1,11 +1,14 @@
 import { VPItem, VPEnvironment } from "./otherModels"
 import { VPet } from "./petModel"
 import {Hono} from "hono"
+import { Layout, PetListComponent } from "./views"
+import { serveStatic } from "@hono/node-server/serve-static"
 
 const app = new Hono()
+app.get("/assets/*", serveStatic({root : './'}))
 
 var pet1 = new VPet("Alice")
-var pet2 = new VPet("Britney")
+var pet2 = new VPet("Brice")
 
 var item1 = VPItem.fromStringData("Ball")
 var item2 = VPItem.fromStringData("Book")
@@ -28,6 +31,15 @@ setInterval(() => {
 
 app.get('/', (c) => {
   return c.text('Hello Hono!')
+})
+
+app.get("/pet", async (c) => {
+
+  return c.html(
+    <Layout>
+      <PetListComponent pets = {environment.getAllPets().map(pet => pet.getView())}></PetListComponent>
+    </Layout>
+  )
 })
 
 export default app

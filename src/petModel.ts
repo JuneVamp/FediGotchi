@@ -11,6 +11,7 @@ export interface PetView{
     boredom : number
     currentActivityName : string
     currentActivityPartnerN : string
+    getModel(): VPet
 }
 
 export class VPet extends VPEntity {
@@ -26,7 +27,8 @@ export class VPet extends VPEntity {
         environmentName : this.environment ? this.environment.name : "No Environment",
         boredom : this.stats.boredom.value,
         currentActivityName : this.currentActivity ? this.currentActivity.name : "No Activity",
-        currentActivityPartnerN : "No Partner"
+        currentActivityPartnerN : "No Partner",
+        getModel : () => this
     }
 
     constructor (name : string){
@@ -102,6 +104,7 @@ export class VPet extends VPEntity {
 
     doActivity(activity : VPActivity, activityPartner : VPEntity | VPItem){
         console.log(`${this.name} is doing ${activity.name} with ${activityPartner.name}`)
+        this.tempBoredomTimer = 0
         this.currentActivity = activity
     }
 
@@ -142,9 +145,8 @@ export class VPet extends VPEntity {
     }
 
     afterTickTemp(){
-        this.tempBoredomTimer += getRandomInt(2)
+        this.tempBoredomTimer += (Math.floor(getRandomInt(10)/3) < 2) ? 1 : 0
         if (this.tempBoredomTimer >= 10) {
-            this.tempBoredomTimer = 0
             this.initiateActivity()
         }
     }

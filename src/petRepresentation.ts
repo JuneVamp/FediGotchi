@@ -81,6 +81,7 @@ export interface VPActivity {
     statAffected : Array<VPStat>,
     perTick : Array<number>,
     maxTicks : number
+    entitiesInvolved : Array<VPEntity>
     tags : Array<VPTag>
     events ?: Array<VPEvent>
 }

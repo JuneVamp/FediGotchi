@@ -19,22 +19,28 @@
         },
         "list" : {
             "Talk": {
-                "statAffected" : ["Boredom", "Energy"],
-                "perTick" : [1, -1],
+                "statAffected" : {
+                    "Boredom" : 1,
+                    "Energy" : -1
+                },
                 "maxTicks" : 10,
                 "tags" : ["Social"],
                 "events" : []
             },
             "Play": {
-                "statAffected" : ["Boredom", "Energy"],
-                "perTick" : [1, -2],
+                "statAffected" : {
+                    "Boredom" : 1,
+                    "Energy" : -2
+                },
                 "maxTicks" : 10,
                 "tags" : ["Social"],
                 "events" : []
             },
             "Read": {
-                "statAffected" : ["Boredom", "Energy"],
-                "perTick" : [1, -1],
+                "statAffected" : {
+                    "Boredom" : 1,
+                    "Energy" : -1
+                },
                 "maxTicks" : 10,
                 "tags" : ["Alone"],
                 "events" : []

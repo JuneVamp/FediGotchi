@@ -1,4 +1,4 @@
-import { VPActivity, VPEntity, VPStat } from "./petRepresentation";
+import { VPActivity, VPEntity} from "./petRepresentation";
 import jsonData from "./data.json" 
 import { VPItem } from "./otherModels";
 
@@ -6,8 +6,7 @@ export function parseActivity(activityName : string) : VPActivity {
 
     var activity : VPActivity = {
         name : "-1",
-        statAffected : [new VPStat("-1")],
-        perTick : [0],
+        statAffected : {},
         maxTicks : -1,
         entitiesInvolved : [],
         tags : []
@@ -16,8 +15,7 @@ export function parseActivity(activityName : string) : VPActivity {
     for (const [key, value] of Object.entries(jsonData.Activities.list)) {
         if (key === activityName) {
             activity.name = key
-            activity.statAffected = value.statAffected.map((statName : string) => new VPStat(statName))
-            activity.perTick = value.perTick
+            activity.statAffected = value.statAffected
             activity.maxTicks = value.maxTicks
             break;
         }

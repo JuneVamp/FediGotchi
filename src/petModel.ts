@@ -1,4 +1,4 @@
-import { VPActivity, VPPersonality, VPStat, VPStats } from "./petRepresentation"
+import { createDefaultStats, VPActivity, VPPersonality, VPStats } from "./petRepresentation"
 import { VPEntity } from "./petRepresentation"
 import { VPEnvironment, VPItem } from "./otherModels"
 import { parseActivity } from "./parser"
@@ -16,17 +16,26 @@ export interface PetView{
 
 export class VPet extends VPEntity {
     personality : VPPersonality = new VPPersonality()
-    stats : VPStats = new VPStats()
+    stats : VPStats = createDefaultStats()
     environment ?: VPEnvironment
     currentActivity ?: VPActivity
+
+    // HACK 7
     knownActivitesPetxPet : Array<VPActivity> = []
-    tempBoredomTimer : number = 0
+    timeBetweenActivityInitiation : number = 10
+
     activityTickTimer : number = -1
+    perTickStatChangesDict : VPStats = {
+        "hunger" : 1,
+        "boredom" : 1,
+    }
+
+
     tempPetView : PetView = {
         name : this.name,
         imageSrc : `../assets/images/pets/${this.name.toLowerCase()}.png`,
         environmentName : this.environment ? this.environment.name : "No Environment",
-        boredom : this.stats.boredom.value,
+        boredom : this.stats.boredom,
         currentActivityName : this.currentActivity ? this.currentActivity.name : "No Activity",
         currentActivityPartnerName : "No Partner",
         getModel : () => this
@@ -104,8 +113,9 @@ export class VPet extends VPEntity {
     }
 
     doActivity(activity : VPActivity, activityPartner : VPEntity | VPItem){
-        console.log(`${this.name} is doing ${activity.name} with ${activityPartner.name}`)
-        this.tempBoredomTimer = 0
+        // console.log(`${this.name} is doing ${activity.name} with ${activityPartner.name}`)
+        this.timeBetweenActivityInitiation = 0
+
         if (!activity.entitiesInvolved.includes(this)) {
             activity.entitiesInvolved.push(this)
         }
@@ -113,7 +123,7 @@ export class VPet extends VPEntity {
     }
 
     willingToActivity(activity : VPActivity) : number{
-        //TODO
+        //TODO 9 randomness
         return 100
     }
 
@@ -141,27 +151,54 @@ export class VPet extends VPEntity {
 
     //---------------------Tick Methods--------------------
     tick(){
-        this.stats.getAllStats().forEach((stat : VPStat) => {
-            stat.value += 1
-        })
-        // emit tick event
-        this.afterTickTemp()
+        //TODO 8 emit tick event
+
+        this.perTickStatChanges()
+        this.processInitiations()
+        this.processActivityTick()
     }
 
-    afterTickTemp(){
-        this.tempBoredomTimer += (Math.floor(getRandomInt(10)/3) < 2) ? 1 : 0
-        if (this.tempBoredomTimer >= 10) {
-            this.initiateActivity()
+    perTickStatChanges(){
+        this.processStatChanges(this.perTickStatChangesDict)
+    }
+
+    processInitiations(){
+        if (!this.currentActivity && this.environment) {
+            // TODO 9 randomness
+            if (this.timeBetweenActivityInitiation >= 10) {
+                this.initiateActivity()
+            } else {
+                this.timeBetweenActivityInitiation ++
+            }
         }
     }
 
     processActivityTick(){
         if (this.currentActivity) {
+
+            this.processStatChanges(this.currentActivity.statAffected)
+
             this.activityTickTimer ++;
-            for(let i=0; i<this.currentActivity.statAffected.length; i++){
-                this.currentActivity.statAffected[i]
-                this.currentActivity.perTick[i]
-                this.stats[]
+            if (this.activityTickTimer >= this.currentActivity.maxTicks) {
+                this.currentActivity = undefined
+                this.activityTickTimer = -1
+            }
+        }
+    }
+
+    processStatChanges(statChanges : VPStats){
+        for (const [statName, changeInValue] of Object.entries(statChanges)) {
+            if (this.stats.hasOwnProperty(statName)) {
+                this.stats[statName] += changeInValue
+            }
+        }
+
+        // clamp
+        for (const [statName, value] of Object.entries(this.stats)) {
+            if (value < 0) {
+                this.stats[statName] = 0
+            } else if (value > 100) {
+                this.stats[statName] = 100
             }
         }
     }
@@ -169,7 +206,7 @@ export class VPet extends VPEntity {
     // -------------View Methods--------------------
     getView() : PetView{
         this.tempPetView.environmentName = this.environment ? this.environment.name : "No Environment"
-        this.tempPetView.boredom = this.stats.boredom.value
+        this.tempPetView.boredom = this.stats.boredom
         this.tempPetView.currentActivityName = this.currentActivity ? this.currentActivity.name : "No Activity"
         if (this.currentActivity) {
             var partner = this.currentActivity.entitiesInvolved.find(ent => ent !== this)

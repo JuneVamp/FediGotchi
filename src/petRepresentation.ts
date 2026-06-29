@@ -36,60 +36,53 @@ export class VPPersonality{
 	agreeableness : VPTrait = new VPTrait()
 }
 
-export class VPStat{
-    name : string
-    value : number
-    constructor (name : string, value : number = 0){
-        this.name = name
-        this.value = value
-    }
-}
-
 export class VPStats{
-    hunger : VPStat = new VPStat("Hunger")
-    energy : VPStat = new VPStat("Energy", 0)
-    height : VPStat = new VPStat("Height", 30)
-    weight : VPStat = new VPStat("Weight", 10)
-    boredom : VPStat = new VPStat("Boredom")
-    happiness : VPStat = new VPStat("Happiness", 100)
-    stress : VPStat = new VPStat("Stress")
+    [key: string] : number
+}
 
-    getAllStats() : Array<VPStat>{
-        return [this.hunger, this.energy, this.height, this.weight, this.boredom, this.happiness, this.stress]
+export function createDefaultStats() : VPStats {
+    return {
+        "hunger" : 0,
+        "energy" : 0,
+        "height" : 30,
+        "weight" : 10,
+        "boredom" : 0,
+        "happiness" : 100,
+        "stress" : 0
     }
 }
+
 
 // --------------------Interactions--------------------
 export interface VPEvent {
     eventName : string,
-    statAffected ?: VPStat,
+    statAffected ?: string,
     personalityAffected ?: VPTrait
     relationshipAffected ?: VPRelationship
     changeInValue : number
 }
 
-export interface VPEventDict {
-    [key : string] : VPEvent
-}
+// export interface VPEventDict {
+//     [key : string] : VPEvent
+// }
 
 export interface VPTag {
     tagName : string,
 }
 
-export interface VPActivityInterface {
-    name : string,
-    statAffected : Array<VPStat>,
-    perTick : Array<number>,
-    maxTicks : number
-    entitiesInvolved : Array<VPEntity>
-    tags : Array<VPTag>
-    events ?: Array<VPEvent>
-}
+// export interface VPActivityInterface {
+//     name : string,
+//     statAffected : Array<string>,
+//     perTick : Array<number>,
+//     maxTicks : number
+//     entitiesInvolved : Array<VPEntity>
+//     tags : Array<VPTag>
+//     events ?: Array<VPEvent>
+// }
 
-export class VPActivity implements VPActivityInterface {
+export class VPActivity {
     name : string
-    statAffected : Array<VPStat>
-    perTick : Array<number>
+    statAffected : VPStats
     maxTicks : number
     entitiesInvolved : Array<VPEntity>
     tags : Array<VPTag>
@@ -98,7 +91,6 @@ export class VPActivity implements VPActivityInterface {
     constructor(activity : VPActivity){
         this.name = activity.name
         this.statAffected = activity.statAffected
-        this.perTick = activity.perTick
         this.maxTicks = activity.maxTicks
         this.entitiesInvolved = activity.entitiesInvolved
         this.tags = activity.tags
@@ -106,6 +98,6 @@ export class VPActivity implements VPActivityInterface {
     }
 }
 
-export interface VPActivityDict {
-    [key : string] : VPActivity
-}
+// export interface VPActivityDict {
+//     [key : string] : VPActivity
+// }

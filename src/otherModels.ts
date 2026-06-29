@@ -1,7 +1,7 @@
 import { VPEntity} from "./petRepresentation"
-import {VPet} from "./petModel"
+import {VPet} from "./pet"
 import { VPActivity } from "./petRepresentation"
-import {parseActivity, parseItem} from "./parser"
+import {parseActivityFromName, parseEnvironmentFromName, parseItemFromName} from "./parser"
 
 
 export class VPGroup extends VPEntity{
@@ -30,7 +30,7 @@ export class VPItem {
     }
 
     static fromStringData(itemName : string) : VPItem{
-        return parseItem(itemName)
+        return parseItemFromName(itemName)
     }
 }
 
@@ -43,6 +43,10 @@ export class VPEnvironment {
         this.name = name
         this.items = items
         this.pets = pets
+    }
+    
+    static fromStringData(envName : string) : VPEnvironment{
+        return parseEnvironmentFromName(envName)
     }
 
     addPet(pet : VPet){

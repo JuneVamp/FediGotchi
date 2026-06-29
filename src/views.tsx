@@ -1,5 +1,5 @@
 import { FC , useEffect, useState} from "hono/jsx";
-import { PetView } from "./petModel.ts";
+import { PetView } from "./pet.ts";
 
 export const Layout: FC = (props) => (
   <html lang="en">

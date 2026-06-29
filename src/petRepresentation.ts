@@ -85,6 +85,7 @@ export class VPActivity {
     statAffected : VPStats
     maxTicks : number
     entitiesInvolved : Array<VPEntity>
+    entityLimit : {min : number, max : number} = {min : 1, max : 1}
     tags : Array<VPTag>
     events ?: Array<VPEvent>
 
@@ -93,6 +94,7 @@ export class VPActivity {
         this.statAffected = activity.statAffected
         this.maxTicks = activity.maxTicks
         this.entitiesInvolved = activity.entitiesInvolved
+        this.entityLimit = activity.entityLimit
         this.tags = activity.tags
         this.events = activity.events
     }

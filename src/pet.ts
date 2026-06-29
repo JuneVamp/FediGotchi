@@ -1,7 +1,7 @@
 import { createDefaultStats, VPActivity, VPPersonality, VPStats } from "./petRepresentation"
 import { VPEntity } from "./petRepresentation"
 import { VPEnvironment, VPItem } from "./otherModels"
-import { parseActivity } from "./parser"
+import { parseActivityFromName } from "./parser"
 import { weighted_random, getRandomInt } from "./utils"
 
 export interface PetView{
@@ -43,8 +43,10 @@ export class VPet extends VPEntity {
 
     constructor (name : string){
         super(name)
+
+        // HACK 7 why did i do this again?
         this.knownActivitesPetxPet = ["Play", "Talk"].map((activityName : string) => {
-            return parseActivity(activityName)
+            return parseActivityFromName(activityName)
         });
     }
 
@@ -128,7 +130,7 @@ export class VPet extends VPEntity {
     }
 
 
-    // async methods
+    // --------------------async methods--------------------
     receiveActivityRequest(activity : VPActivity, activityPartner : VPEntity | VPItem) : Promise<boolean>{
         console.log(`Received activity request for ${activity.name} from ${activityPartner.name}`)
         return new Promise((resolve, reject) => {

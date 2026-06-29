@@ -76,7 +76,7 @@ export interface VPTag {
     tagName : string,
 }
 
-export interface VPActivity {
+export interface VPActivityInterface {
     name : string,
     statAffected : Array<VPStat>,
     perTick : Array<number>,
@@ -84,6 +84,26 @@ export interface VPActivity {
     entitiesInvolved : Array<VPEntity>
     tags : Array<VPTag>
     events ?: Array<VPEvent>
+}
+
+export class VPActivity implements VPActivityInterface {
+    name : string
+    statAffected : Array<VPStat>
+    perTick : Array<number>
+    maxTicks : number
+    entitiesInvolved : Array<VPEntity>
+    tags : Array<VPTag>
+    events ?: Array<VPEvent>
+
+    constructor(activity : VPActivity){
+        this.name = activity.name
+        this.statAffected = activity.statAffected
+        this.perTick = activity.perTick
+        this.maxTicks = activity.maxTicks
+        this.entitiesInvolved = activity.entitiesInvolved
+        this.tags = activity.tags
+        this.events = activity.events
+    }
 }
 
 export interface VPActivityDict {

@@ -33,23 +33,23 @@ export const PetComponent: FC<PetViewProps> = ({pet}) => (
     <div>{"environment: " + pet.environmentName}</div>
     <div>{"boredom: " + pet.boredom}</div>
     <div>{"current activity: " + pet.currentActivityName}</div>
-    <div>{"current activity partner: " + pet.currentActivityPartnerN}</div>
+    <div>{"current activity partner: " + pet.currentActivityPartnerName}</div>
   </>
 );
 
 export const PetListComponent: FC<{pets : Array<PetView>}> = ({pets}) => {
-    const [petViews, setPetViews] = useState<Array<PetView>>(pets)
+    // const [petViews, setPetViews] = useState<Array<PetView>>(pets)
 
-    useEffect(() => {
-        const interval = setInterval(() => {
-            setPetViews(pets.map(pet => pet.getModel().getView()))
-        }, 1000);
-        return () => clearInterval(interval);
-    }, [pets])
+    // useEffect(() => {
+    //     const interval = setInterval(() => {
+    //         setPetViews(pets.map(pet => pet.getModel().getView()))
+    //     }, 1000);
+    //     return () => clearInterval(interval);
+    // }, [pets])
 
     return (
     <>
-        {petViews.map((pet : PetView) => (
+        {pets.map((pet : PetView) => (
             <PetComponent pet = {pet}></PetComponent>
         ))}
     </>

@@ -10,7 +10,7 @@ export interface PetView{
     environmentName : string
     boredom : number
     currentActivityName : string
-    currentActivityPartnerN : string
+    currentActivityPartnerName : string
     getModel(): VPet
 }
 
@@ -21,13 +21,14 @@ export class VPet extends VPEntity {
     currentActivity ?: VPActivity
     knownActivitesPetxPet : Array<VPActivity> = []
     tempBoredomTimer : number = 0
+    activityTickTimer : number = -1
     tempPetView : PetView = {
         name : this.name,
         imageSrc : `../assets/images/pets/${this.name.toLowerCase()}.png`,
         environmentName : this.environment ? this.environment.name : "No Environment",
         boredom : this.stats.boredom.value,
         currentActivityName : this.currentActivity ? this.currentActivity.name : "No Activity",
-        currentActivityPartnerN : "No Partner",
+        currentActivityPartnerName : "No Partner",
         getModel : () => this
     }
 
@@ -105,6 +106,9 @@ export class VPet extends VPEntity {
     doActivity(activity : VPActivity, activityPartner : VPEntity | VPItem){
         console.log(`${this.name} is doing ${activity.name} with ${activityPartner.name}`)
         this.tempBoredomTimer = 0
+        if (!activity.entitiesInvolved.includes(this)) {
+            activity.entitiesInvolved.push(this)
+        }
         this.currentActivity = activity
     }
 
@@ -135,7 +139,7 @@ export class VPet extends VPEntity {
         })
     }
 
-    //---------------------Other Methods--------------------
+    //---------------------Tick Methods--------------------
     tick(){
         this.stats.getAllStats().forEach((stat : VPStat) => {
             stat.value += 1
@@ -151,11 +155,28 @@ export class VPet extends VPEntity {
         }
     }
 
+    processActivityTick(){
+        if (this.currentActivity) {
+            this.activityTickTimer ++;
+            for(let i=0; i<this.currentActivity.statAffected.length; i++){
+                this.currentActivity.statAffected[i]
+                this.currentActivity.perTick[i]
+                this.stats[]
+            }
+        }
+    }
+
     // -------------View Methods--------------------
     getView() : PetView{
         this.tempPetView.environmentName = this.environment ? this.environment.name : "No Environment"
         this.tempPetView.boredom = this.stats.boredom.value
         this.tempPetView.currentActivityName = this.currentActivity ? this.currentActivity.name : "No Activity"
+        if (this.currentActivity) {
+            var partner = this.currentActivity.entitiesInvolved.find(ent => ent !== this)
+            this.tempPetView.currentActivityPartnerName = partner ? partner.name : "No Partner"
+        } else {
+            this.tempPetView.currentActivityPartnerName = "No Partner"
+        }
         return this.tempPetView
     }
 

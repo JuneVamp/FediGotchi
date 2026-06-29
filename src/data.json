@@ -22,8 +22,8 @@
         "list" : {
             "Talk": {
                 "statAffected" : {
-                    "Boredom" : 1,
-                    "Energy" : -1
+                    "boredom" : -2,
+                    "energy" : -1
                 },
                 "maxTicks" : 10,
                 "entityLimit" : {"min" : 2, "max" : 3},
@@ -32,8 +32,8 @@
             },
             "Play": {
                 "statAffected" : {
-                    "Boredom" : 1,
-                    "Energy" : -2
+                    "boredom" : -2,
+                    "energy" : -2
                 },
                 "maxTicks" : 10,
                 "entityLimit" : {"min" : 2, "max" : 4},
@@ -42,7 +42,7 @@
             },
             "Read": {
                 "statAffected" : {
-                    "Boredom" : 1
+                    "boredom" : -2
                 },
                 "maxTicks" : 10,
                 "entityLimit" : {"min" : 1, "max" : 1},
@@ -51,8 +51,8 @@
             },
             "ReadTogether": {
                 "statAffected" : {
-                    "Boredom" : 1,
-                    "Energy" : -1
+                    "boredom" : -2,
+                    "energy" : -1
                 },
                 "maxTicks" : 10,
                 "entityLimit" : {"min" : 2, "max" : 2},
@@ -61,16 +61,16 @@
             },
             "Eat": {
                 "statAffected" : {
-                    "Hunger" : 3
+                    "hunger" : -3
                 },
-                "maxTicks" : 5,
+                "maxTicks" : 15,
                 "entityLimit" : {"min" : 1, "max" : 1},
                 "tags" : ["Alone"],
                 "events" : []
             },
             "Sleep": {
                 "statAffected" : {
-                    "Energy" : 3
+                    "energy" : 3
                 },
                 "maxTicks" : 10,
                 "entityLimit" : {"min" : 1, "max" : 1},

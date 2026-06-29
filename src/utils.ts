@@ -22,3 +22,12 @@ export function weighted_random(options: Array<{item : any, weight : number}>) :
 export function getRandomInt(max : number) : number {
   return Math.floor(Math.random() * max);
 }
+
+// Source - https://stackoverflow.com/a/1026087
+// Posted by Steve Harrison, modified by community. See post 'Timeline' for change history
+// Retrieved 2026-06-29, License - CC BY-SA 4.0
+
+export function capitalizeFirstLetter(val : string) : string {
+    val = val.toLowerCase()
+    return String(val).charAt(0).toUpperCase() + String(val).slice(1);
+}

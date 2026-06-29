@@ -28,6 +28,7 @@ export function parseActivityFromName(activityName : string) : VPActivity {
     if (activity.name === "-1") {
         throw new Error(`Activity ${activityName} not found in data.json`)
     }
+    console.log(activity)
 
     return activity
 }

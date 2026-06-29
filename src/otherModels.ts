@@ -21,7 +21,10 @@ export class VPUser extends VPEntity{
         var activity : VPActivity = VPActivity.fromStringData(activityName)
 
         return new Promise((resolve) => {
-            pet.receiveActivityRequest(activity, this).then((accepted : boolean) => {resolve(accepted)})
+            pet.receiveActivityRequest(activity, this).then((accepted : boolean) => {
+                activity.entitiesInvolved.push(this)
+                resolve(accepted)
+            })
         });
     }
 }

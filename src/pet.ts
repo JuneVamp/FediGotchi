@@ -11,6 +11,7 @@ export interface PetView{
     boredom : number
     currentActivityName : string
     currentActivityPartnerName : string
+    stats : VPStats
     getModel(): VPet
 }
 
@@ -28,6 +29,8 @@ export class VPet extends VPEntity {
     perTickStatChangesDict : VPStats = {
         "hunger" : 1,
         "boredom" : 1,
+        "happiness" : -1,
+        "energy" : -1
     }
 
 
@@ -38,6 +41,7 @@ export class VPet extends VPEntity {
         boredom : this.stats.boredom,
         currentActivityName : this.currentActivity ? this.currentActivity.name : "No Activity",
         currentActivityPartnerName : "No Partner",
+        stats : this.stats,
         getModel : () => this
     }
 
@@ -102,7 +106,7 @@ export class VPet extends VPEntity {
 
     acceptActivity(activity : VPActivity, activityPartner : VPEntity | VPItem) : boolean{
         if (this.currentActivity) {
-            console.log(`${this.name} is already doing ${this.currentActivity.name}, cannot accept ${activity.name}`)
+            // console.log(`${this.name} is already doing ${this.currentActivity.name}, cannot accept ${activity.name}`)
             return false
         }
 
@@ -122,6 +126,7 @@ export class VPet extends VPEntity {
             activity.entitiesInvolved.push(this)
         }
         this.currentActivity = activity
+        // console.log("Current Activity: ", this.currentActivity)
     }
 
     willingToActivity(activity : VPActivity) : number{
@@ -132,14 +137,14 @@ export class VPet extends VPEntity {
 
     // --------------------async methods--------------------
     receiveActivityRequest(activity : VPActivity, activityPartner : VPEntity | VPItem) : Promise<boolean>{
-        console.log(`Received activity request for ${activity.name} from ${activityPartner.name}`)
+        // console.log(`Received activity request for ${activity.name} from ${activityPartner.name}`)
         return new Promise((resolve, reject) => {
             resolve(this.acceptActivity(activity, activityPartner))
         })
     }
 
     sendActivityRequest(activity : VPActivity, activityPartner : VPEntity | VPItem) : Promise<boolean>{
-        console.log(`Sending activity request for ${activity.name} to ${activityPartner.name}`)
+        // console.log(`Sending activity request for ${activity.name} to ${activityPartner.name}`)
         return new Promise((resolve, reject) => {
             if (activityPartner instanceof VPet) {
                 activityPartner.receiveActivityRequest(activity, this).then((accepted : boolean) => {
@@ -155,9 +160,14 @@ export class VPet extends VPEntity {
     tick(){
         //TODO 8 emit tick event
 
-        this.perTickStatChanges()
+        // console.log(this.currentActivity ? `${this.name} is doing ${this.currentActivity.name}` : `${this.name} is not doing any activity`)
+        if (!this.currentActivity) {
+            this.perTickStatChanges()
+        } else {
+            this.processActivityTick()
+        }
+
         this.processInitiations()
-        this.processActivityTick()
     }
 
     perTickStatChanges(){
@@ -176,7 +186,7 @@ export class VPet extends VPEntity {
     }
 
     processActivityTick(){
-        if (this.currentActivity) {
+        if (this.currentActivity) { // TODO 9 not needed
 
             this.processStatChanges(this.currentActivity.statAffected)
 
@@ -192,6 +202,8 @@ export class VPet extends VPEntity {
         for (const [statName, changeInValue] of Object.entries(statChanges)) {
             if (this.stats.hasOwnProperty(statName)) {
                 this.stats[statName] += changeInValue
+            } else {
+                console.warn(`Stat ${statName} does not exist on ${this.name}`)
             }
         }
 
@@ -216,6 +228,7 @@ export class VPet extends VPEntity {
         } else {
             this.tempPetView.currentActivityPartnerName = "No Partner"
         }
+        this.tempPetView.stats = this.stats
         return this.tempPetView
     }
 

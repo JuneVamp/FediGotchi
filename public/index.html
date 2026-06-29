@@ -8,7 +8,7 @@
       <title>Microblog</title>
       <link
         rel="stylesheet"
-        href="src/styles/style.css"
+        href="styles/style.css"
       />
     </head>
 
@@ -26,15 +26,31 @@
                 const container = document.getElementById("pets");
 
                 container.innerHTML = pets.map(pet => `
-                    <div class="pet">
+                    <div class="pet" id="pet-${pet.name}">
                         <img src="${pet.imageSrc}">
-                        <div>Name: ${pet.name}</div>
-                        <div>Activity: ${pet.currentActivityName}</div>
-                        <div>Activity Partner: ${pet.currentActivityPartnerName}</div>
-                        <div>Environment: ${pet.environmentName}</div>
+                        <div class="pet-name">${pet.name}</div>
+                        <div class="pet-activity">is doing 
+                            <keyword> ${pet.currentActivityName}</keyword> with 
+                            <keyword> ${pet.currentActivityPartnerName} </keyword> in 
+                            <keyword> ${pet.environmentName} </keyword> </div>
+                        <div class="stats"></div>
+                        <div class="user-actions">
+                            <button onclick="userAskPetToDoActivity('userJune', '${pet.name}', 'play')">Play</button>
+                            <button onclick="userAskPetToDoActivity('userJune', '${pet.name}', 'eat')">Eat</button>
+                            <button onclick="userAskPetToDoActivity('userJune', '${pet.name}', 'sleep')">Sleep</button>
+                        </div>
                     </div>
-                    <button onclick="askPetToDoActivity('${pet.name} ', 'play')">Play</button>
                 `).join("");
+
+                for (const pet of pets) {
+                    const statsContainer = document.querySelector(`#pet-${pet.name} .stats`);
+                    statsContainer.innerHTML = `
+                        <div>Hunger: ${pet.stats.hunger}</div>
+                        <div>Energy: ${pet.stats.energy}</div>
+                        <div>Happiness: ${pet.stats.happiness}</div>
+                        <div>Boredom: ${pet.stats.boredom}</div>
+                    `;
+                }
             }
 
             updatePets();

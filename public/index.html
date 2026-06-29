@@ -1,0 +1,44 @@
+  <html lang="en">
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1" />
+      <meta name="color-scheme" content="light dark" />
+      <!-- {/* <meta http-equiv="Refresh" content="1" /> */} -->
+
+      <title>Microblog</title>
+      <link
+        rel="stylesheet"
+        href="src/styles/style.css"
+      />
+    </head>
+
+    <body>
+        <div id="root"></div>
+        <script src = "client.js"></script>
+        <div id="pets"></div>
+
+        <script type="module">
+            async function updatePets() {
+                const response = await fetch("/api/pets");
+                const jsonResponse = await response.json();
+                const pets = jsonResponse.pets;
+
+                const container = document.getElementById("pets");
+
+                container.innerHTML = pets.map(pet => `
+                    <div class="pet">
+                        <img src="${pet.imageSrc}">
+                        <div>Name: ${pet.name}</div>
+                        <div>Activity: ${pet.currentActivityName}</div>
+                        <div>Activity Partner: ${pet.currentActivityPartnerName}</div>
+                        <div>Environment: ${pet.environmentName}</div>
+                    </div>
+                    <button onclick="askPetToDoActivity('${pet.name} ', 'play')">Play</button>
+                `).join("");
+            }
+
+            updatePets();
+            setInterval(updatePets, 1000);
+        </script>
+    </body>
+  </html>

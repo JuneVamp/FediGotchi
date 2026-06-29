@@ -33,17 +33,51 @@ setInterval(() => {
 }, 1000)
 
 
-app.get('/', (c) => {
-  return c.text('Hello Hono!')
+app.get("/*", serveStatic({root : './public'}))
+
+// app.get('/', (c) => {
+//   return c.text('Hello Hono!')
+// })
+
+app.get("/api/pets", async (c) => {
+  const allPets = parkEnvironment.getAllPets().map(pet => pet.getView())
+
+  return c.json({
+    pets: allPets
+  })
 })
 
-app.get("/pet", async (c) => {
+app.post("/api/pets/:petName/activities/:activityName", async (c) => {
+  const petName = c.req.param("petName")
+  const activityName = c.req.param("activityName")
+  const pet = parkEnvironment.getAllPets().find(pet => pet.name === petName)
+  if (!pet) {
+    return c.json({
+      message: `Pet ${petName} not found`
+    }, 404)
+  }
+  user1.askPetToDoActivity(pet, activityName).then((accepted : boolean) => {
+    if (accepted) {
+      console.log(`${petName} accepted the activity ${activityName}`)
+    } else {
+      console.log(`${petName} rejected the activity ${activityName}`)
+    }
+  })
 
-  return c.html(
-    <Layout>
-      <PetListComponent pets = {parkEnvironment.getAllPets().map(pet => pet.getView())}></PetListComponent>
-    </Layout>
-  )
+  return c.json({
+    message: `Activity request sent to ${petName} for ${activityName}`
+  })
 })
+
+
+
+// app.get("/pet", async (c) => {
+
+//   return c.html(
+//     <Layout>
+//       <PetListComponent pets = {parkEnvironment.getAllPets().map(pet => pet.getView())}></PetListComponent>
+//     </Layout>
+//   )
+// })
 
 export default app

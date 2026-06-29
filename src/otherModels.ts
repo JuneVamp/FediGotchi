@@ -16,6 +16,14 @@ export class VPUser extends VPEntity{
         super(name)
     }
 
+    // ----------------- async methods -----------------
+    askPetToDoActivity(pet : VPet, activityName : string, itemName ?: string) : Promise<boolean> {
+        var activity : VPActivity = VPActivity.fromStringData(activityName)
+
+        return new Promise((resolve) => {
+            pet.receiveActivityRequest(activity, this).then((accepted : boolean) => {resolve(accepted)})
+        });
+    }
 }
 
 export class VPItem {

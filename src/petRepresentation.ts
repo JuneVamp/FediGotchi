@@ -1,3 +1,5 @@
+import { parseActivityFromName } from "./parser"
+
 export class VPEntity {
     name : string 
     relationships : VPRelationshipDict = {}
@@ -97,6 +99,10 @@ export class VPActivity {
         this.entityLimit = activity.entityLimit
         this.tags = activity.tags
         this.events = activity.events
+    }
+
+    static fromStringData(activityName : string) : VPActivity{
+        return parseActivityFromName(activityName)
     }
 }
 

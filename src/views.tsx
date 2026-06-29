@@ -7,7 +7,7 @@ export const Layout: FC = (props) => (
       <meta charset="utf-8" />
       <meta name="viewport" content="width=device-width, initial-scale=1" />
       <meta name="color-scheme" content="light dark" />
-      <meta http-equiv="Refresh" content="1" />
+      {/* <meta http-equiv="Refresh" content="1" /> */}
 
       <title>Microblog</title>
       <link
@@ -38,18 +38,20 @@ export const PetComponent: FC<PetViewProps> = ({pet}) => (
 );
 
 export const PetListComponent: FC<{pets : Array<PetView>}> = ({pets}) => {
-    // const [petViews, setPetViews] = useState<Array<PetView>>(pets)
+    const [petViews, setPetViews] = useState<Array<PetView>>(pets)
 
-    // useEffect(() => {
-    //     const interval = setInterval(() => {
-    //         setPetViews(pets.map(pet => pet.getModel().getView()))
-    //     }, 1000);
-    //     return () => clearInterval(interval);
-    // }, [pets])
+    useEffect(() => {
+        const interval = setInterval(() => {
+            setPetViews(petViews.map(pet => pet.getModel().getView()))
+            console.log("updated pet views")
+        }, 1000);
+
+        return () => clearInterval(interval);
+    }, [petViews])
 
     return (
     <>
-        {pets.map((pet : PetView) => (
+        {petViews.map((pet : PetView) => (
             <PetComponent pet = {pet}></PetComponent>
         ))}
     </>

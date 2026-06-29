@@ -1,4 +1,4 @@
-import { VPItem, VPEnvironment } from "./otherModels"
+import { VPItem, VPEnvironment, VPUser } from "./otherModels"
 import { VPet } from "./pet"
 import {Hono} from "hono"
 import { Layout, PetListComponent } from "./views"
@@ -7,6 +7,9 @@ import { serveStatic } from "@hono/node-server/serve-static"
 const app = new Hono()
 app.get("/assets/*", serveStatic({root : './'}))
 
+
+var user1 = new VPUser("UserJune")
+  
 var pet1 = new VPet("Alice")
 var pet2 = new VPet("Brice")
 var pet3 = new VPet("Cami")

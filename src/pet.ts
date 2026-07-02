@@ -227,3 +227,7 @@ export class VPet extends VPEntity {
     }
 
 }
+
+// export class VPetFederationView {
+//     uniqueName : string
+// }

@@ -4,7 +4,7 @@ import app from "./app.tsx";
 // import "./logging.ts";
 
 const server = serve({
-  port: 8000,
+  port: 3251,
   fetch: app.fetch.bind(app),
 });
 

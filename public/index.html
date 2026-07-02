@@ -19,7 +19,7 @@
 
         <script type="module">
             async function updatePets() {
-                const response = await fetch("/api/pets");
+                const response = await fetch("fediflock/api/pets");
                 const jsonResponse = await response.json();
                 const pets = jsonResponse.pets;
 

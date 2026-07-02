@@ -1,5 +1,5 @@
 function userAskPetToDoActivity(userName, petName, activity) {
-    fetch(`/api/pets/${petName}/post`, {
+    fetch(`fediflock/api/pets/${petName}/post`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json"

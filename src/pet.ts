@@ -12,8 +12,10 @@ export interface PetView{
     boredom : number
     currentActivityName : string
     currentActivityPartnerName : string
-    stats : VPStats
-    getModel(): VPet
+    stats : VPStats,
+    remoteRef : VPetRemoteRef
+    environmentRemoteRef ?: VPEnvironmentRemoteRef
+    activityPartnerRemoteRef ?: VPetRemoteRef | VPUserRemoteRef | VPItem
 }
 
 export enum petState {
@@ -52,8 +54,8 @@ export class VPet extends VPEntity {
         currentActivityName : this.currentActivity ? this.currentActivity.name : "null",
         currentActivityPartnerName : "null",
         stats : this.stats,
-        getModel : () => this
-    }
+        remoteRef : new VPetRemoteRef(this.name, "")
+        }
 
     remoteRef : VPetRemoteRef 
 
@@ -293,6 +295,14 @@ export class VPet extends VPEntity {
             this.tempPetView.currentActivityPartnerName = "null"
         }
         this.tempPetView.stats = this.stats
+        this.tempPetView.remoteRef = this.remoteRef
+        this.tempPetView.environmentRemoteRef = this.environment
+        this.tempPetView.activityPartnerRemoteRef = this.currentActivity ? this.currentActivity.entitiesInvolved.find((ent) => {
+            if (ent instanceof VPetRemoteRef) {
+                return !ent.checkEqual(this.remoteRef)
+            }
+            return false
+        }) : undefined
         return this.tempPetView
     }
 

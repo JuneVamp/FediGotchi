@@ -1,4 +1,5 @@
 import { VPItem } from "./otherModels"
+import { PetView } from "./pet"
 import { VPActivity } from "./petRepresentation"
 
 export class VPEntityRemoteRef {
@@ -42,12 +43,15 @@ export class VPetRemoteRef extends VPEntityRemoteRef {
         return this.id === other.id && this.serverURL === other.serverURL
     }
 
+    async getView() : Promise<PetView> {
+        const data = await this.getRequest("view");
+        return data.petView as PetView;
+    }
+
     // NOTE these methods are so i dont have to write a long swtich statement
     // instead they can be handled by the server
     async sendActivityRequest(activity : VPActivity, activityPartner : VPetRemoteRef | VPUserRemoteRef, activityID : string) : Promise<any> {
         const activityJson = activity.toJson();
-        // const activityID = activityPartner.id + "@" + activityPartner.serverURL + 
-
         const data = await this.postRequest("activity-request", {
             activity: activityJson,
             activityPartnerType: activityPartner.entityType,
@@ -58,14 +62,6 @@ export class VPetRemoteRef extends VPEntityRemoteRef {
 
         return data.accepted;
     }
-
-    // async cancelActivityRequest(activityID : string) : Promise<any> {
-    //     const data = await this.postRequest("cancel-activity-request", {
-    //         activityID: activityID
-    //     })
-    //     return data;
-    // }
-
 
     async setEnvironment(environment : VPEnvironmentRemoteRef) : Promise<any> {
         await this.postRequest("set-environment", {
@@ -115,14 +111,3 @@ export class VPUserRemoteRef extends VPEntityRemoteRef {
         super(id, "user", serverUrl)
     }
 }
-
-// export class VPActivityRemoteRef {
-//     id : string
-//     entityType : string = "VPActivity"
-//     serverUrl : string
-    
-//     constructor(id : string, serverUrl : string){
-//         this.id = id
-//         this.serverUrl = serverUrl
-//     }
-// }

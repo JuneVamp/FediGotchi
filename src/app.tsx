@@ -48,10 +48,10 @@ const remoteServerUrl = "https://utensil-ahoy-ferocity.ngrok-free.dev"
 
 const remotePark = new VPEnvironmentRemoteRef("Park", remoteServerUrl, "Remote Park")
 
-remotePark.addPet(pet1.getRemoteRef())
-remotePark.addPet(pet2.getRemoteRef())
-// parkEnvironment.addPet(pet1.getRemoteRef())
-// parkEnvironment.addPet(pet2.getRemoteRef())
+// remotePark.addPet(pet1.getRemoteRef())
+// remotePark.addPet(pet2.getRemoteRef())
+parkEnvironment.addPet(pet1.getRemoteRef())
+parkEnvironment.addPet(pet2.getRemoteRef())
 parkEnvironment.addPet(pet3.getRemoteRef())
 parkEnvironment.addPet(pet4.getRemoteRef())
 
@@ -79,6 +79,12 @@ app.get("/federation/me", async (c) => {
 app.get("/api/pets", async (c) => {
   return c.json({
     pets: Array.from(pets.values()).map(pet => { return pet.getView(); })
+  })
+})
+
+app.get("/api/environments", async (c) => {
+  return c.json({
+    environments: Array.from(environments.values()).map(env => { return env.getRemoteRef(); })
   })
 })
 
@@ -142,14 +148,14 @@ app.post("/pets/:petId/set-environment", async (c) => {
 // --------- environments -------
 app.get("/environments/:environmentId", async (c) => {
   const environmentId = c.req.param("environmentId")!
-  const environment = environments.get(capitalizeFirstLetter(environmentId))
+  const environment = environments.get(environmentId.toLowerCase())
   if (!environment) {
     return c.json({
       message: `Environment ${environmentId} not found`
     }, 404)
   }
   return c.json({
-    environement: environment.getRemoteRef()
+    environment: environment.getRemoteRef()
   })
 })
 

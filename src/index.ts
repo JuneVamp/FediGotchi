@@ -1,10 +1,11 @@
 import { behindProxy } from "x-forwarded-fetch";
 import { serve } from "@hono/node-server";
 import { getConnInfo } from "@hono/node-server/conninfo"
+import {SERVER_PORT} from "./serverConfig.ts"
 import app from "./app.tsx";
 // import "./logging.ts";
 
-const port = parseInt(process.argv[2] || "3251", 10);
+const port = parseInt(process.argv[2] || SERVER_PORT.toString(), 10);
 
 const server = serve({
   port: port,

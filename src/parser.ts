@@ -21,7 +21,6 @@ export function parseActivityFromName(activityName : string) : VPActivity {
     if (activity.name === "-1") {
         throw new Error(`Activity ${activityName} not found in data.json`)
     }
-    console.log(activity)
 
     return activity
 }
@@ -46,7 +45,7 @@ export function parseItemFromName(itemName : string) : VPItem {
 
 // HACK 3 : will not get the "live version"
 export function parseEnvironmentFromName(envName : string) : VPEnvironment {
-    var env : VPEnvironment = new VPEnvironment("1","")
+    var env : VPEnvironment = new VPEnvironment("-1","")
 
     for (const [key, value] of Object.entries(jsonData.Environments.list)) {
         if (key === envName) {
@@ -56,7 +55,7 @@ export function parseEnvironmentFromName(envName : string) : VPEnvironment {
         }
     }
 
-    if (env.name === "1") {
+    if (env.name == "-1") {
         throw new Error(`Environment ${envName} not found in data.json`)
     }
     return env

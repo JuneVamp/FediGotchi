@@ -130,15 +130,19 @@ export class VPActivity {
         }
     }
 
-    fromJson(jsonData : any) : VPActivity {
-        this.name = jsonData.name;
-        this.statAffected = jsonData.statAffected;
-        this.maxTicks = jsonData.maxTicks;
-        this.entityLimit = jsonData.entityLimit;
-        this.tags = jsonData.tags;
-        return this;
+    static fromJson(jsonData : any) : VPActivity {
+        const activity = new VPActivity({
+            name: jsonData.name,
+            statAffected: jsonData.statAffected,
+            maxTicks: jsonData.maxTicks,
+            entitiesInvolved: jsonData.entitiesInvolved || [],
+            entityLimit: jsonData.entityLimit || {min: 1, max: 1},
+            tags: jsonData.tags || []
+        });
+        return activity;
     }
 }
+
 
 // export interface VPActivityDict {
 //     [key : string] : VPActivity

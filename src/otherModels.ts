@@ -3,6 +3,7 @@ import {VPet} from "./pet"
 import { VPActivity } from "./petRepresentation"
 import {parseActivityFromName, parseEnvironmentFromName, parseItemFromName} from "./parser"
 import { VPEnvironmentRemoteRef, VPetRemoteRef, VPUserRemoteRef } from "./remoteRefs"
+import { SERVER_URL } from "./serverConfig"
 
 
 export class VPGroup extends VPEntity{
@@ -51,32 +52,30 @@ export class VPItem {
 export class VPEnvironment {
     name : string
     items : Array<VPItem> = []
-    pets : Array<VPet> = []
+    pets : Array<VPetRemoteRef> = []
     remoteRef : VPEnvironmentRemoteRef 
 
-    constructor (name : string, serverUrl : string, items : Array<VPItem> = [], pets : Array<VPet> = []){
+    constructor (name : string, serverUrl : string = "", items : Array<VPItem> = []){
         this.name = name
         this.items = items
-        this.pets = pets
         
-        this.remoteRef = new VPEnvironmentRemoteRef(this.name, serverUrl)
+        this.remoteRef = new VPEnvironmentRemoteRef(this.name, SERVER_URL)
     }
     
     static fromStringData(envName : string) : VPEnvironment{
         return parseEnvironmentFromName(envName)
     }
 
-    addPet(pet : VPet){
+    addPet(pet : VPetRemoteRef){
         this.pets.push(pet)
-        // TODO 2 tell the pet that it is in this environment
-        // pet.environment = this
+        pet.setEnvironment(this.getRemoteRef())
     }
 
-    removePet(pet : VPet){
+    removePet(pet : VPetRemoteRef){
         this.pets = this.pets.filter(p => p !== pet)
     }
 
-    getAllPets() : Array<VPet>{
+    getAllPets() : Array<VPetRemoteRef>{
         return this.pets
     }
 
@@ -90,5 +89,13 @@ export class VPEnvironment {
 
     getAllItems() : Array<VPItem>{
         return this.items
+    }
+
+
+    //------------------ remote methods -----------------
+    getRemoteRef() : VPEnvironmentRemoteRef{
+        this.remoteRef.id = this.name
+        this.remoteRef.displayName = this.name
+        return this.remoteRef
     }
 }

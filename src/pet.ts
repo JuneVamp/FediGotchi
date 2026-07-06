@@ -62,9 +62,9 @@ export class VPet extends VPEntity {
     //---------------------Activity Methods--------------------
     initiateActivity(){
         // TODO 5 Solo item activities
-        // TODO 2 Get activites from environment
         // TODO 8 ask user
         if (!this.environment) {
+            console.log(`${this.name} is not in an environment, cannot initiate activity`)
             return
         }
 
@@ -102,6 +102,7 @@ export class VPet extends VPEntity {
         this.environment.getAllPets().then((pets) => {
             const eligiblePets = pets.filter((pet) => !pet.checkEqual(this.remoteRef))
             if (eligiblePets.length === 0) {
+                console.log(`No eligible pets for ${this.name} to do activity ${selectedActivity.name}`) 
                 return
             }
 
@@ -114,16 +115,20 @@ export class VPet extends VPEntity {
                 })
             )
 
+
             this.sendActivityRequest(selectedActivity, selectedActivityPartner).then((accepted : boolean) => {
+                console.log(`${this.name} is initiating activity ${selectedActivity.name} with ${selectedActivityPartner.id}`)
                 if (accepted) {
                     this.doActivity(selectedActivity, selectedActivityPartner)
+                } else {
+                    console.log(`${this.name}'s activity request for ${selectedActivity.name} with ${selectedActivityPartner.id} was rejected`)
                 }
             })
         })
 
     }
 
-    acceptActivity(activity : VPActivity, activityPartner : VPetRemoteRef | VPItem) : boolean{
+    acceptActivity(activity : VPActivity, activityPartner : VPetRemoteRef | VPUserRemoteRef | VPItem) : boolean{
         if (this.currentActivity) {
             return false
         }
@@ -136,7 +141,7 @@ export class VPet extends VPEntity {
         return true
     }
 
-    doActivity(activity : VPActivity, activityPartner : VPetRemoteRef | VPItem){
+    doActivity(activity : VPActivity, activityPartner : VPetRemoteRef | VPUserRemoteRef | VPItem){
         this.timeBetweenActivityInitiation = 0
 
         activity.entitiesInvolved.push(this.remoteRef)
@@ -153,7 +158,7 @@ export class VPet extends VPEntity {
 
     // --------------------async methods--------------------
 
-    receiveActivityRequest(activity : VPActivity, activityPartner : VPetRemoteRef | VPItem) : Promise<boolean>{
+    receiveActivityRequest(activity : VPActivity, activityPartner : VPetRemoteRef| VPUserRemoteRef | VPItem) : Promise<boolean>{
         return new Promise((resolve, reject) => {
             resolve(this.acceptActivity(activity, activityPartner))
         })
@@ -190,6 +195,7 @@ export class VPet extends VPEntity {
     }
 
     processInitiations(){
+        // console.log(`${this.name} is processing initiations, current activity: ${this.currentActivity ? this.currentActivity.name : "none"}`)
         if (!this.currentActivity && this.environment) {
             // TODO 9 randomness
             if (this.timeBetweenActivityInitiation >= 10) {
@@ -259,6 +265,11 @@ export class VPet extends VPEntity {
         }
         this.tempPetView.stats = this.stats
         return this.tempPetView
+    }
+
+    getRemoteRef() : VPetRemoteRef{
+        this.remoteRef.id = this.name
+        return this.remoteRef
     }
 
 }

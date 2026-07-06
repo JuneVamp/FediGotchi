@@ -4,15 +4,16 @@ import { VPActivity } from "./petRepresentation"
 export class VPEntityRemoteRef {
     id : string
     entityType : string
-    serverUrl : string
-    constructor(id : string, entityType : string, serverUrl : string){
+    serverURL : string
+    constructor(id : string, entityType : string, serverURL : string){
         this.id = id
         this.entityType = entityType
-        this.serverUrl = serverUrl
+        this.serverURL = serverURL
     }
 
     async postRequest(endpoint : string, body : any) : Promise<any> {
-        const response = await fetch(`${this.serverUrl}/${this.entityType.toLowerCase()}s/${this.id}/${endpoint}`, {
+        // console.log("Making request to " + `${this.serverURL}/${this.entityType.toLowerCase()}s/${this.id}/${endpoint}`)
+        const response = await fetch(`${this.serverURL}/${this.entityType.toLowerCase()}s/${this.id}/${endpoint}`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -23,9 +24,13 @@ export class VPEntityRemoteRef {
     }
 
     async getRequest(endpoint : string) : Promise<any> {
-        const response = await fetch(`${this.serverUrl}/${this.entityType.toLowerCase()}s/${this.id}/${endpoint}`);
+        const response = await fetch(`${this.serverURL}/${this.entityType.toLowerCase()}s/${this.id}/${endpoint}`);
         return response.json();
     }
+
+    // static fromJson(json : any) : VPEntityRemoteRef {
+    //     return new VPEntityRemoteRef(json.id, json.entityType, json.serverURL)
+    // }
 }
 
 export class VPetRemoteRef extends VPEntityRemoteRef {
@@ -34,18 +39,27 @@ export class VPetRemoteRef extends VPEntityRemoteRef {
     }
 
     checkEqual(other : VPetRemoteRef) : boolean {
-        return this.id === other.id && this.serverUrl === other.serverUrl
+        return this.id === other.id && this.serverURL === other.serverURL
     }
 
-    // HACK 8 why would this not accept boolean
+    // NOTE these methods are so i dont have to write a long swtich statement
+    // instead they can be handled by the server
     async sendActivityRequestToThis(activity : VPActivity, activityPartner : VPetRemoteRef | VPUserRemoteRef) : Promise<any> {
         const activityJson = activity.toJson();
 
         this.postRequest("activity-request", {
             activity: activityJson,
+            activityPartnerType: activityPartner.entityType,
             activityPartnerId: activityPartner.id,
-            activityPartnerServerUrl: activityPartner.serverUrl
-        }).then((data : any) => { return data.accepted; });
+            activityPartnerServerUrl: activityPartner.serverURL
+        }).then((data : any) => { return data.accepted as boolean; });
+    }
+
+    async setEnvironment(environment : VPEnvironmentRemoteRef) : Promise<any> {
+        this.postRequest("set-environment", {
+            environmentId: environment.id,
+            environmentServerUrl: environment.serverURL
+        }).then((data : any) => { return data.success as boolean; });
     }
 }
 
@@ -59,15 +73,15 @@ export class VPEnvironmentRemoteRef extends VPEntityRemoteRef {
 
     //TODO 10 change to use the post method in VPEntityRemoteRef
     async getAllPets() : Promise<Array<VPetRemoteRef>> {
-        const response = await fetch(`${this.serverUrl}/environments/${this.id}/pets`);
+        const response = await fetch(`${this.serverURL}/environments/${this.id}/pets`);
         const data : any = await response.json();
         return data.pets.map((petData : any) => {
-            return new VPetRemoteRef(petData.id, this.serverUrl)
+            return new VPetRemoteRef(petData.id, this.serverURL)
         });
     }
 
     async getAllItems() : Promise<Array<VPItem>> {
-        const response = await fetch(`${this.serverUrl}/environments/${this.id}/items`);
+        const response = await fetch(`${this.serverURL}/environments/${this.id}/items`);
         const data : any = await response.json();
         return data.items.map((itemData : any) => {
             return itemData as VPItem;

@@ -23,16 +23,31 @@ var environments = new Map<string, VPEnvironment>()
 
 var user1 = new VPUser("userJune")
 users.set(user1.name, user1)
-  
-var pet1 = new VPet("Alice", SERVER_URL)
-var pet2 = new VPet("Brice", SERVER_URL)
-var pet3 = new VPet("Cami", SERVER_URL)
-var pet4 = new VPet("Dani", SERVER_URL)
 
-pets.set(pet1.name.toLowerCase(), pet1)
-pets.set(pet2.name.toLowerCase(), pet2)
-pets.set(pet3.name.toLowerCase(), pet3)
-pets.set(pet4.name.toLowerCase(), pet4)
+
+// get 6 random pets from the assets/images/beings folder and add them to the pets map
+var fs = require('fs');
+var path = require('path');
+var petImagesPath = path.join(__dirname, '../assets/images/beings');
+var petImageFiles = fs.readdirSync(petImagesPath).filter((file : string) => file.endsWith('.png'));
+var randomPetImageFiles = petImageFiles.sort(() => 0.5 - Math.random()).slice(0, 6);
+randomPetImageFiles.forEach((file : string) => {
+    var petName = capitalizeFirstLetter(file.replace('.png', ''));
+    var pet = new VPet(petName, SERVER_URL);
+    pets.set(pet.name.toLowerCase(), pet);
+});
+
+
+  
+// var pet1 = new VPet("Alice", SERVER_URL)
+// var pet2 = new VPet("Brice", SERVER_URL)
+// var pet3 = new VPet("Cami", SERVER_URL)
+// var pet4 = new VPet("Dani", SERVER_URL)
+
+// pets.set(pet1.name.toLowerCase(), pet1)
+// pets.set(pet2.name.toLowerCase(), pet2)
+// pets.set(pet3.name.toLowerCase(), pet3)
+// pets.set(pet4.name.toLowerCase(), pet4)
 
 var homeEvironment = VPEnvironment.fromStringData("Home") 
 var parkEnvironment = VPEnvironment.fromStringData("Park")
@@ -45,27 +60,31 @@ environments.set(parkEnvironment.name.toLowerCase(), parkEnvironment)
 environments.set(schoolEnvironment.name.toLowerCase(), schoolEnvironment)
 
 const remoteServerUrl = "https://utensil-ahoy-ferocity.ngrok-free.dev"
+const serverDistrubutions = [SERVER_URL, remoteServerUrl]
 
+var useRemotePark : boolean = false
 const remotePark = new VPEnvironmentRemoteRef("Park", remoteServerUrl, "Remote Park")
 
-// remotePark.addPet(pet1.getRemoteRef())
-// remotePark.addPet(pet2.getRemoteRef())
-parkEnvironment.addPet(pet1.getRemoteRef())
-parkEnvironment.addPet(pet2.getRemoteRef())
-parkEnvironment.addPet(pet3.getRemoteRef())
-parkEnvironment.addPet(pet4.getRemoteRef())
+if (useRemotePark) {
+  pets.forEach(pet => {
+    if (Math.random() < 0.5) {
+      remotePark.addPet(pet.getRemoteRef())
+    }
+    else {
+      parkEnvironment.addPet(pet.getRemoteRef())
+    }
+  })
+} else {
+  pets.forEach(pet => {
+    parkEnvironment.addPet(pet.getRemoteRef())
+  })
+}
 
-
-pet1.tick()
-pet2.tick()
-pet3.tick()
-pet4.tick()
 
 setInterval(() => {
-  pet1.tick()
-  pet2.tick()
-  pet3.tick()
-  pet4.tick()
+  for (const pet of pets.values()) {
+    pet.tick()
+  }
 
 }, 1000)
 

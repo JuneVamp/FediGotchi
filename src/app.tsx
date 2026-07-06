@@ -42,10 +42,17 @@ environments.set(homeEvironment.name.toLowerCase(), homeEvironment)
 environments.set(parkEnvironment.name.toLowerCase(), parkEnvironment)
 environments.set(schoolEnvironment.name.toLowerCase(), schoolEnvironment)
 
+// const remoteServerUrl = "https://conclave.cs.tsukuba.ac.jp/fediflock/"
+
+// const remotePark = new VPEnvironmentRemoteRef("Park", remoteServerUrl, "Remote Park")
+
+// remotePark.addPet(pet1.getRemoteRef())
+// remotePark.addPet(pet2.getRemoteRef())
 parkEnvironment.addPet(pet1.getRemoteRef())
 parkEnvironment.addPet(pet2.getRemoteRef())
 parkEnvironment.addPet(pet3.getRemoteRef())
 parkEnvironment.addPet(pet4.getRemoteRef())
+
 
 pet1.tick()
 pet2.tick()
@@ -176,6 +183,23 @@ app.get("/environments/:environmentId/items", async (c) => {
         activity: item.activity ? item.activity.toJson() : undefined
       }
     })
+  })
+})
+
+app.post("/environments/:environmentId/add-pet", async (c) => {
+  const environmentId = c.req.param("environmentId")!
+  const environment = environments.get(environmentId.toLowerCase())
+  if (!environment) {
+    return c.json({
+      message: `Environment ${environmentId} not found`
+    }, 404)
+  }
+  
+  const body = await c.req.json()
+  const pet = new VPetRemoteRef(body.petId, body.petServerUrl)
+  environment.addPet(pet)
+  return c.json({
+    message: `Pet ${body.petId} added to environment ${environmentId}`
   })
 })
 

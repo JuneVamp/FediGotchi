@@ -100,6 +100,14 @@ export class VPEnvironmentRemoteRef extends VPEntityRemoteRef {
             //HACK assumes itemData is directly compatiable with VPItem
         });
     }
+
+    async addPet(pet : VPetRemoteRef) : Promise<any> {
+        const data = await this.postRequest("add-pet", {
+            petId: pet.id,
+            petServerUrl: pet.serverURL
+        })
+        return data.success;
+    }
 }
 
 export class VPUserRemoteRef extends VPEntityRemoteRef {

@@ -24,9 +24,10 @@ export class VPUser extends VPEntity{
     // ----------------- async methods -----------------
     askPetToDoActivity(pet : VPetRemoteRef, activityName : string, itemName ?: string) : Promise<boolean> {
         var activity : VPActivity = VPActivity.fromStringData(activityName)
+        const activityID = this.remoteRef.id + "@" + this.remoteRef.serverURL + "@" + Date.now().toString()
 
         return new Promise((resolve) => {
-            pet.sendActivityRequestToThis(activity, this.remoteRef).then((accepted : boolean) => {
+            pet.sendActivityRequest(activity, this.remoteRef, activityID).then((accepted : boolean) => {
                 resolve(accepted)
             })
         });

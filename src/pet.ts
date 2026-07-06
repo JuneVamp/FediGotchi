@@ -16,11 +16,20 @@ export interface PetView{
     getModel(): VPet
 }
 
+export enum petState {
+    idle = "idle",
+    doingActivity = "doingActivity",
+    waitingForActivityResponse = "waitingForActivityResponse",
+    reservedForActivity = "reservedForActivity"
+}
+
 export class VPet extends VPEntity {
     personality : VPPersonality = new VPPersonality()
     stats : VPStats = createDefaultStats()
     environment ?: VPEnvironmentRemoteRef 
     currentActivity ?: VPActivity
+    reservedForActivity ?: VPActivity
+    state : petState = petState.idle
 
     // HACK 7
     knownActivitesPetxPet : Array<VPActivity> = []
@@ -116,12 +125,11 @@ export class VPet extends VPEntity {
             )
 
 
-            this.sendActivityRequest(selectedActivity, selectedActivityPartner).then((accepted : boolean) => {
-                console.log(`${this.name} is initiating activity ${selectedActivity.name} with ${selectedActivityPartner.id}`)
+            this.sendActivityRequest(selectedActivity, selectedActivityPartner).then((accepted : any) => {
+                this.state = petState.idle
                 if (accepted) {
                     this.doActivity(selectedActivity, selectedActivityPartner)
                 } else {
-                    console.log(`${this.name}'s activity request for ${selectedActivity.name} with ${selectedActivityPartner.id} was rejected`)
                 }
             })
         })
@@ -129,7 +137,7 @@ export class VPet extends VPEntity {
     }
 
     acceptActivity(activity : VPActivity, activityPartner : VPetRemoteRef | VPUserRemoteRef | VPItem) : boolean{
-        if (this.currentActivity) {
+        if (this.state !== petState.idle) {
             return false
         }
 
@@ -142,6 +150,7 @@ export class VPet extends VPEntity {
     }
 
     doActivity(activity : VPActivity, activityPartner : VPetRemoteRef | VPUserRemoteRef | VPItem){
+        this.state = petState.doingActivity
         this.timeBetweenActivityInitiation = 0
 
         activity.entitiesInvolved.push(this.remoteRef)
@@ -158,16 +167,32 @@ export class VPet extends VPEntity {
 
     // --------------------async methods--------------------
 
-    receiveActivityRequest(activity : VPActivity, activityPartner : VPetRemoteRef| VPUserRemoteRef | VPItem) : Promise<boolean>{
+    async receiveActivityRequest(activity : VPActivity, activityPartner : VPetRemoteRef| VPUserRemoteRef | VPItem) : Promise<boolean>{
+        // this.state = petState.reservedForActivity
         return new Promise((resolve, reject) => {
             resolve(this.acceptActivity(activity, activityPartner))
         })
     }
 
-    sendActivityRequest(activity : VPActivity, activityPartner : VPetRemoteRef | VPItem | VPUserRemoteRef) : Promise<boolean>{
+
+
+    async sendActivityRequest(activity : VPActivity, activityPartner : VPetRemoteRef | VPItem | VPUserRemoteRef) : Promise<boolean>{
+        const activityID = this.remoteRef.id + "@" + this.remoteRef.serverURL + "@" + Date.now().toString()
+
         return new Promise((resolve, reject) => {
             if (activityPartner instanceof VPetRemoteRef) {
-                activityPartner.sendActivityRequestToThis(activity, this.remoteRef).then((accepted : boolean) => {
+                this.state = petState.waitingForActivityResponse
+                this.reservedForActivity = activity
+                this.reservedForActivity.timeout = setTimeout(() => {
+                    this.state = petState.idle
+                    this.currentActivity = undefined
+                    resolve(false)
+                }, 5000)
+
+                activityPartner.sendActivityRequest(activity, this.remoteRef, activityID).then((accepted : boolean) => {
+                    if (this.reservedForActivity?.timeout) {
+                        clearTimeout(this.reservedForActivity.timeout)
+                    }
                     resolve(accepted)
                 })
             } else {
@@ -181,13 +206,13 @@ export class VPet extends VPEntity {
     tick(){
         //TODO 8 emit tick event
 
-        if (!this.currentActivity) {
+        if (this.state === petState.idle) {
             this.perTickStatChanges()
-        } else {
+            this.processInitiations()
+        } else if (this.state === petState.doingActivity) {
             this.processActivityTick()
         }
 
-        this.processInitiations()
     }
 
     perTickStatChanges(){
@@ -195,8 +220,7 @@ export class VPet extends VPEntity {
     }
 
     processInitiations(){
-        // console.log(`${this.name} is processing initiations, current activity: ${this.currentActivity ? this.currentActivity.name : "none"}`)
-        if (!this.currentActivity && this.environment) {
+        if (this.environment) {
             // TODO 9 randomness
             if (this.timeBetweenActivityInitiation >= 10) {
                 this.initiateActivity()
@@ -214,6 +238,7 @@ export class VPet extends VPEntity {
             this.activityTickTimer ++;
             if (this.activityTickTimer >= this.currentActivity.maxTicks) {
                 this.currentActivity = undefined
+                this.state = petState.idle
                 this.activityTickTimer = -1
             }
         }

@@ -85,6 +85,7 @@ export interface VPActivityInterface {
 }
 
 export class VPActivity {
+    activityID : string
     name : string
     statAffected : VPStats
     maxTicks : number
@@ -92,8 +93,10 @@ export class VPActivity {
     entityLimit : {min : number, max : number} = {min : 1, max : 1}
     tags : Array<string> = []
     events ?: Array<VPEvent>
+    timeout ?: NodeJS.Timeout
 
-    constructor(activity : VPActivityInterface){
+    constructor(activity : VPActivityInterface, activityID ?: string){
+        this.activityID = activityID || activity.name + "@" + Date.now().toString()
         this.name = activity.name
         this.statAffected = activity.statAffected
         this.maxTicks = activity.maxTicks

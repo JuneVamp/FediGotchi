@@ -47,6 +47,10 @@ parkEnvironment.addPet(pet2.getRemoteRef())
 parkEnvironment.addPet(pet3.getRemoteRef())
 parkEnvironment.addPet(pet4.getRemoteRef())
 
+pet1.tick()
+pet2.tick()
+pet3.tick()
+pet4.tick()
 
 setInterval(() => {
   pet1.tick()
@@ -62,6 +66,13 @@ app.get("/federation/me", async (c) => {
     serverUrl: new URL(c.req.url).origin
   })
 })
+
+app.get("/api/pets", async (c) => {
+  return c.json({
+    pets: Array.from(pets.values()).map(pet => { return pet.getView(); })
+  })
+})
+
 
 // --------- pets -------
 
@@ -108,9 +119,6 @@ app.post("/pets/:petId/activity-request", async (c) => {
     accepted: accepted
   });
 
-  // return c.json({
-  //   message: `Activity request sent to ${pet.name}`
-  // })
 })
 
 app.post("/pets/:petId/set-environment", async (c) => {

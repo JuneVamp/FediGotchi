@@ -44,22 +44,34 @@ export class VPetRemoteRef extends VPEntityRemoteRef {
 
     // NOTE these methods are so i dont have to write a long swtich statement
     // instead they can be handled by the server
-    async sendActivityRequestToThis(activity : VPActivity, activityPartner : VPetRemoteRef | VPUserRemoteRef) : Promise<any> {
+    async sendActivityRequest(activity : VPActivity, activityPartner : VPetRemoteRef | VPUserRemoteRef, activityID : string) : Promise<any> {
         const activityJson = activity.toJson();
+        // const activityID = activityPartner.id + "@" + activityPartner.serverURL + 
 
-        this.postRequest("activity-request", {
+        const data = await this.postRequest("activity-request", {
             activity: activityJson,
             activityPartnerType: activityPartner.entityType,
             activityPartnerId: activityPartner.id,
-            activityPartnerServerUrl: activityPartner.serverURL
-        }).then((data : any) => { return data.accepted as boolean; });
+            activityPartnerServerUrl: activityPartner.serverURL,
+            activityID: activityID
+        })
+
+        return data.accepted;
     }
 
+    // async cancelActivityRequest(activityID : string) : Promise<any> {
+    //     const data = await this.postRequest("cancel-activity-request", {
+    //         activityID: activityID
+    //     })
+    //     return data;
+    // }
+
+
     async setEnvironment(environment : VPEnvironmentRemoteRef) : Promise<any> {
-        this.postRequest("set-environment", {
+        await this.postRequest("set-environment", {
             environmentId: environment.id,
             environmentServerUrl: environment.serverURL
-        }).then((data : any) => { return data.success as boolean; });
+        }).then((data : any) => { return data.success; });
     }
 }
 

@@ -51,6 +51,10 @@ setInterval(updatePets, 1000);
 
 async function updateEnvironments() {
     const response = await fetch("api/environments");
+    if (!response.ok) {
+        console.error("Failed to fetch environments:", response.status, response.statusText);
+        return;
+    }
     const jsonResponse = await response.json();
     const environments = jsonResponse.environments;
 
@@ -76,8 +80,8 @@ async function updateEnvironments() {
 
     container.innerHTML = environmentHtml.join("");
 }
-// updateEnvironments();
-// setInterval(updateEnvironments, 1000);
+updateEnvironments();
+setInterval(updateEnvironments, 1000);
 
 function userAskPetToDoActivity(userName, petName, activity) {
     fetch(`/api/pets/${petName}/post`, {

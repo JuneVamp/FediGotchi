@@ -28,7 +28,7 @@ users.set(user1.name, user1)
 // get 6 random pets from the assets/images/beings folder and add them to the pets map
 var fs = require('fs');
 var path = require('path');
-var petImagesPath = path.join(__dirname, '../assets/images/beings');
+var petImagesPath = path.join(__dirname, '..\\assets\\images\\beings');
 var petImageFiles = fs.readdirSync(petImagesPath).filter((file : string) => file.endsWith('.png'));
 var randomPetImageFiles = petImageFiles.sort(() => 0.5 - Math.random()).slice(0, 6);
 randomPetImageFiles.forEach((file : string) => {

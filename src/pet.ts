@@ -1,8 +1,9 @@
 import { createDefaultStats, VPActivity, VPPersonality, VPStats } from "./petRepresentation"
 import { VPEntity } from "./petRepresentation"
-import { VPEnvironment, VPItem } from "./otherModels"
+import { VPEnvironment, VPItem, VPUser } from "./otherModels"
 import { parseActivityFromName } from "./parser"
 import { weighted_random, getRandomInt } from "./utils"
+import {VPEnvironmentRemoteRef, VPUserRemoteRef, VPetRemoteRef} from "./remoteRefs"
 
 export interface PetView{
     name : string
@@ -18,7 +19,7 @@ export interface PetView{
 export class VPet extends VPEntity {
     personality : VPPersonality = new VPPersonality()
     stats : VPStats = createDefaultStats()
-    environment ?: VPEnvironment
+    environment ?: VPEnvironmentRemoteRef 
     currentActivity ?: VPActivity
 
     // HACK 7
@@ -37,7 +38,7 @@ export class VPet extends VPEntity {
     tempPetView : PetView = {
         name : this.name,
         imageSrc : `../assets/images/pets/${this.name.toLowerCase()}.png`,
-        environmentName : this.environment ? this.environment.name : "null",
+        environmentName : this.environment ? this.environment.displayName : "null",
         boredom : this.stats.boredom,
         currentActivityName : this.currentActivity ? this.currentActivity.name : "null",
         currentActivityPartnerName : "null",
@@ -45,10 +46,14 @@ export class VPet extends VPEntity {
         getModel : () => this
     }
 
-    constructor (name : string){
+    remoteRef : VPetRemoteRef 
+
+    constructor (name : string, serverUrl : string){
         super(name)
 
-        // HACK 7 why did i do this again?
+        this.remoteRef = new VPetRemoteRef(this.name, serverUrl)
+
+        // HACK 7 only does known activities, does not query environment for activities or items
         this.knownActivitesPetxPet = ["Play", "Talk"].map((activityName : string) => {
             return parseActivityFromName(activityName)
         });
@@ -56,6 +61,9 @@ export class VPet extends VPEntity {
 
     //---------------------Activity Methods--------------------
     initiateActivity(){
+        // TODO 5 Solo item activities
+        // TODO 2 Get activites from environment
+        // TODO 8 ask user
         if (!this.environment) {
             return
         }
@@ -64,12 +72,14 @@ export class VPet extends VPEntity {
         var priorityList : Array<{activity : VPActivity, willingness : number}> = []
 
         // Environment Activites
-        this.environment.getAllItems().forEach(item => {
-            if (item.activity){
-                priorityList.push({
-                    activity : item.activity,
-                    willingness : this.willingToActivity(item.activity)})
-            }
+        this.environment.getAllItems().then((items) => {
+            items.forEach(item => {
+                if (item.activity){
+                    priorityList.push({
+                        activity : item.activity,
+                        willingness : this.willingToActivity(item.activity)})
+                    }
+                })
         });
 
         // Pet x Pet Activities
@@ -89,22 +99,31 @@ export class VPet extends VPEntity {
         }));
 
         // partner selection
-        var selectedActivityPartner = weighted_random(this.environment.getAllPets().filter((pet) => pet !== this).map((pet) => {
-            return {
-                item : pet,
-                weight : 100
+        this.environment.getAllPets().then((pets) => {
+            const eligiblePets = pets.filter((pet) => !pet.checkEqual(this.remoteRef))
+            if (eligiblePets.length === 0) {
+                return
             }
-        }));
 
-        this.sendActivityRequest(selectedActivity, selectedActivityPartner).then((accepted : boolean) => {
-            if (accepted) {
-                this.doActivity(selectedActivity, selectedActivityPartner)
-            }
+            var selectedActivityPartner = weighted_random(
+                eligiblePets.map((pet) => {
+                    return {
+                        item : pet,
+                        weight : 100
+                    }
+                })
+            )
+
+            this.sendActivityRequest(selectedActivity, selectedActivityPartner).then((accepted : boolean) => {
+                if (accepted) {
+                    this.doActivity(selectedActivity, selectedActivityPartner)
+                }
+            })
         })
 
     }
 
-    acceptActivity(activity : VPActivity, activityPartner : VPEntity | VPItem) : boolean{
+    acceptActivity(activity : VPActivity, activityPartner : VPetRemoteRef | VPItem) : boolean{
         if (this.currentActivity) {
             return false
         }
@@ -117,12 +136,12 @@ export class VPet extends VPEntity {
         return true
     }
 
-    doActivity(activity : VPActivity, activityPartner : VPEntity | VPItem){
+    doActivity(activity : VPActivity, activityPartner : VPetRemoteRef | VPItem){
         this.timeBetweenActivityInitiation = 0
 
-        if (!activity.entitiesInvolved.includes(this)) {
-            activity.entitiesInvolved.push(this)
-        }
+        activity.entitiesInvolved.push(this.remoteRef)
+        activity.entitiesInvolved.push(activityPartner)
+
         this.currentActivity = activity
     }
 
@@ -133,19 +152,21 @@ export class VPet extends VPEntity {
 
 
     // --------------------async methods--------------------
-    receiveActivityRequest(activity : VPActivity, activityPartner : VPEntity | VPItem) : Promise<boolean>{
+
+    receiveActivityRequest(activity : VPActivity, activityPartner : VPetRemoteRef | VPItem) : Promise<boolean>{
         return new Promise((resolve, reject) => {
             resolve(this.acceptActivity(activity, activityPartner))
         })
     }
 
-    sendActivityRequest(activity : VPActivity, activityPartner : VPEntity | VPItem) : Promise<boolean>{
+    sendActivityRequest(activity : VPActivity, activityPartner : VPetRemoteRef | VPItem | VPUserRemoteRef) : Promise<boolean>{
         return new Promise((resolve, reject) => {
-            if (activityPartner instanceof VPet) {
-                activityPartner.receiveActivityRequest(activity, this).then((accepted : boolean) => {
+            if (activityPartner instanceof VPetRemoteRef) {
+                activityPartner.sendActivityRequestToThis(activity, this.remoteRef).then((accepted : boolean) => {
                     resolve(accepted)
                 })
             } else {
+                // FIXME 7 item and user activity request not implemented
                 resolve(false)
             }
         })
@@ -213,12 +234,26 @@ export class VPet extends VPEntity {
 
     // -------------View Methods--------------------
     getView() : PetView{
-        this.tempPetView.environmentName = this.environment ? this.environment.name : "null"
+        this.tempPetView.environmentName = this.environment ? this.environment.displayName : "null"
         this.tempPetView.boredom = this.stats.boredom
         this.tempPetView.currentActivityName = this.currentActivity ? this.currentActivity.name : "null"
         if (this.currentActivity) {
-            var partner = this.currentActivity.entitiesInvolved.find(ent => ent !== this)
-            this.tempPetView.currentActivityPartnerName = partner ? partner.name : "null"
+            var partner = this.currentActivity.entitiesInvolved.filter((ent) => {
+                if (ent instanceof VPetRemoteRef) {
+                    if (!ent.checkEqual(this.remoteRef)) {
+                        this.tempPetView.currentActivityPartnerName = ent.id
+                        return true
+                    }
+                } else if (ent instanceof VPUserRemoteRef) {
+                        this.tempPetView.currentActivityPartnerName = ent.id
+                        return true
+                } else if (ent instanceof VPItem) {
+                    this.tempPetView.currentActivityPartnerName = ent.name
+                    return true
+                }
+                return true
+                
+            })
         } else {
             this.tempPetView.currentActivityPartnerName = "null"
         }
@@ -227,7 +262,3 @@ export class VPet extends VPEntity {
     }
 
 }
-
-// export class VPetFederationView {
-//     uniqueName : string
-// }

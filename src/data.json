@@ -20,6 +20,13 @@
             "pet": ["Eat", "Sleep"]
         },
         "list" : {
+            "empty":{
+                "statAffected" : {},
+                "maxTicks" : 0,
+                "entityLimit" : {"min" : 0, "max" : 0},
+                "tags" : [],
+                "events" : []
+            },
             "Talk": {
                 "statAffected" : {
                     "boredom" : -2,

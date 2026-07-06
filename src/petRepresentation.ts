@@ -1,4 +1,6 @@
+import { VPItem } from "./otherModels"
 import { parseActivityFromName } from "./parser"
+import { VPetRemoteRef, VPUserRemoteRef } from "./remoteRefs"
 
 export class VPEntity {
     name : string 
@@ -68,30 +70,30 @@ export interface VPEvent {
 //     [key : string] : VPEvent
 // }
 
-export interface VPTag {
-    tagName : string,
-}
-
-// export interface VPActivityInterface {
-//     name : string,
-//     statAffected : Array<string>,
-//     perTick : Array<number>,
-//     maxTicks : number
-//     entitiesInvolved : Array<VPEntity>
-//     tags : Array<VPTag>
-//     events ?: Array<VPEvent>
+// export interface VPTag {
+//     tagName : string,
 // }
+
+export interface VPActivityInterface {
+    name : string,
+    statAffected : VPStats,
+    maxTicks : number
+    entitiesInvolved : Array<VPetRemoteRef | VPUserRemoteRef | VPItem> 
+    entityLimit : {min : number, max : number} 
+    tags : Array<string>
+    events ?: Array<VPEvent>
+}
 
 export class VPActivity {
     name : string
     statAffected : VPStats
     maxTicks : number
-    entitiesInvolved : Array<VPEntity>
+    entitiesInvolved : Array<VPetRemoteRef | VPUserRemoteRef | VPItem> = []
     entityLimit : {min : number, max : number} = {min : 1, max : 1}
-    tags : Array<VPTag>
+    tags : Array<string> = []
     events ?: Array<VPEvent>
 
-    constructor(activity : VPActivity){
+    constructor(activity : VPActivityInterface){
         this.name = activity.name
         this.statAffected = activity.statAffected
         this.maxTicks = activity.maxTicks
@@ -102,7 +104,39 @@ export class VPActivity {
     }
 
     static fromStringData(activityName : string) : VPActivity{
+        if (!activityName || activityName === "" || activityName === "empty") {
+            return new VPActivity({
+                name : "empty",
+                statAffected : {},
+                maxTicks : 0,
+                entitiesInvolved : [],
+                entityLimit : {min : 0, max : 0},
+                tags : []
+            }
+            );
+        }
         return parseActivityFromName(activityName)
+    }
+
+    toJson() : any {
+        return {
+            name : this.name,
+            statAffected : this.statAffected,
+            maxTicks : this.maxTicks,
+            // entitiesInvolved : this.entitiesInvolved,
+            entityLimit : this.entityLimit,
+            tags : this.tags,
+            // events : this.events
+        }
+    }
+
+    fromJson(jsonData : any) : VPActivity {
+        this.name = jsonData.name;
+        this.statAffected = jsonData.statAffected;
+        this.maxTicks = jsonData.maxTicks;
+        this.entityLimit = jsonData.entityLimit;
+        this.tags = jsonData.tags;
+        return this;
     }
 }
 

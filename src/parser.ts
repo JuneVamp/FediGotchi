@@ -5,14 +5,7 @@ import { VPEnvironment, VPItem } from "./otherModels";
 // HACK 3 : will not get the "live version"
 export function parseActivityFromName(activityName : string) : VPActivity {
 
-    var activity : VPActivity = {
-        name : "-1",
-        statAffected : {},
-        maxTicks : -1,
-        entitiesInvolved : [],
-        entityLimit : {min : 1, max : 1},
-        tags : []
-    }
+    var activity : VPActivity = VPActivity.fromStringData("empty")
 
     // FIXME need to test if values exist
     for (const [key, value] of Object.entries(jsonData.Activities.list)) {
@@ -53,7 +46,7 @@ export function parseItemFromName(itemName : string) : VPItem {
 
 // HACK 3 : will not get the "live version"
 export function parseEnvironmentFromName(envName : string) : VPEnvironment {
-    var env : VPEnvironment = new VPEnvironment("1")
+    var env : VPEnvironment = new VPEnvironment("1","")
 
     for (const [key, value] of Object.entries(jsonData.Environments.list)) {
         if (key === envName) {

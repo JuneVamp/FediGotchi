@@ -38,18 +38,20 @@ var homeEvironment = VPEnvironment.fromStringData("Home")
 var parkEnvironment = VPEnvironment.fromStringData("Park")
 var schoolEnvironment = VPEnvironment.fromStringData("School")
 
+// parkEnvironment.remoteRef.displayName
+
 environments.set(homeEvironment.name.toLowerCase(), homeEvironment)
 environments.set(parkEnvironment.name.toLowerCase(), parkEnvironment)
 environments.set(schoolEnvironment.name.toLowerCase(), schoolEnvironment)
 
-// const remoteServerUrl = "https://conclave.cs.tsukuba.ac.jp/fediflock/"
+const remoteServerUrl = "https://utensil-ahoy-ferocity.ngrok-free.dev"
 
-// const remotePark = new VPEnvironmentRemoteRef("Park", remoteServerUrl, "Remote Park")
+const remotePark = new VPEnvironmentRemoteRef("Park", remoteServerUrl, "Remote Park")
 
-// remotePark.addPet(pet1.getRemoteRef())
-// remotePark.addPet(pet2.getRemoteRef())
-parkEnvironment.addPet(pet1.getRemoteRef())
-parkEnvironment.addPet(pet2.getRemoteRef())
+remotePark.addPet(pet1.getRemoteRef())
+remotePark.addPet(pet2.getRemoteRef())
+// parkEnvironment.addPet(pet1.getRemoteRef())
+// parkEnvironment.addPet(pet2.getRemoteRef())
 parkEnvironment.addPet(pet3.getRemoteRef())
 parkEnvironment.addPet(pet4.getRemoteRef())
 

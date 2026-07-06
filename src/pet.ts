@@ -150,6 +150,7 @@ export class VPet extends VPEntity {
     }
 
     doActivity(activity : VPActivity, activityPartner : VPetRemoteRef | VPUserRemoteRef | VPItem){
+        console.log(`${this.name} of ${this.remoteRef.serverURL} is doing activity ${activity.name} with ${activityPartner instanceof VPetRemoteRef ? activityPartner.id : activityPartner instanceof VPUserRemoteRef ? activityPartner.id : activityPartner.name} of server ${activityPartner instanceof VPetRemoteRef || activityPartner instanceof VPUserRemoteRef ? activityPartner.serverURL : "local"}`)
         this.state = petState.doingActivity
         this.timeBetweenActivityInitiation = 0
 
@@ -168,7 +169,9 @@ export class VPet extends VPEntity {
     // --------------------async methods--------------------
 
     async receiveActivityRequest(activity : VPActivity, activityPartner : VPetRemoteRef| VPUserRemoteRef | VPItem) : Promise<boolean>{
-        // this.state = petState.reservedForActivity
+        if (activityPartner instanceof VPetRemoteRef) {
+            console.log(`${this.name} of ${this.remoteRef.serverURL} received activity request for ${activity.name} from ${activityPartner.id} of server ${activityPartner.serverURL}`)
+        }
         return new Promise((resolve, reject) => {
             resolve(this.acceptActivity(activity, activityPartner))
         })
@@ -181,6 +184,7 @@ export class VPet extends VPEntity {
 
         return new Promise((resolve, reject) => {
             if (activityPartner instanceof VPetRemoteRef) {
+                console.log(`${this.name} of ${this.remoteRef.serverURL} is sending activity request for ${activity.name} to ${activityPartner.id} of server ${activityPartner.serverURL}`)
                 this.state = petState.waitingForActivityResponse
                 this.reservedForActivity = activity
                 this.reservedForActivity.timeout = setTimeout(() => {

@@ -1,5 +1,9 @@
 async function updatePets() {
     const response = await fetch("api/pets");
+    if (!response.ok) {
+        console.error("Failed to fetch pets:", response.status, response.statusText);
+        return;
+    }
     const jsonResponse = await response.json();
     const pets = jsonResponse.pets;
 
@@ -72,8 +76,8 @@ async function updateEnvironments() {
 
     container.innerHTML = environmentHtml.join("");
 }
-updateEnvironments();
-setInterval(updateEnvironments, 1000);
+// updateEnvironments();
+// setInterval(updateEnvironments, 1000);
 
 function userAskPetToDoActivity(userName, petName, activity) {
     fetch(`/api/pets/${petName}/post`, {

@@ -81,20 +81,30 @@ export class VPEnvironmentRemoteRef extends VPEntityRemoteRef {
 
     //TODO 10 change to use the post method in VPEntityRemoteRef
     async getAllPets() : Promise<Array<VPetRemoteRef>> {
-        const response = await fetch(`${this.serverURL}/environments/${this.id}/pets`);
-        const data : any = await response.json();
-        return data.pets.map((petData : any) => {
-            return new VPetRemoteRef(petData.id, this.serverURL)
-        });
+        try {
+            const response = await fetch(`${this.serverURL}/environments/${this.id}/pets`);
+            const data : any = await response.json();
+            return data.pets.map((petData : any) => {
+                return new VPetRemoteRef(petData.id, this.serverURL)
+            });
+        } catch (error) {
+            console.warn(`Failed to fetch pets for environment ${this.id} from ${this.serverURL}`, error)
+            return []
+        }
     }
 
     async getAllItems() : Promise<Array<VPItem>> {
-        const response = await fetch(`${this.serverURL}/environments/${this.id}/items`);
-        const data : any = await response.json();
-        return data.items.map((itemData : any) => {
-            return itemData as VPItem;
-            //HACK assumes itemData is directly compatiable with VPItem
-        });
+        try {
+            const response = await fetch(`${this.serverURL}/environments/${this.id}/items`);
+            const data : any = await response.json();
+            return data.items.map((itemData : any) => {
+                return itemData as VPItem;
+                //HACK assumes itemData is directly compatiable with VPItem
+            });
+        } catch (error) {
+            console.warn(`Failed to fetch items for environment ${this.id} from ${this.serverURL}`, error)
+            return []
+        }
     }
 
     async addPet(pet : VPetRemoteRef) : Promise<any> {

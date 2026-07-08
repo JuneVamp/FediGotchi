@@ -85,8 +85,11 @@ app.get("/", async (c) => {
 })
 
 app.get("/federation/me", async (c) => {
+  const baseUrl = new URL(c.req.url).origin
+  const prefixedUrl = baseUrl + c.req.header("X-Forwarded-Prefix") 
+
   return c.json({
-    serverUrl: new URL(c.req.url).origin
+    serverUrl: prefixedUrl,
   })
 })
 

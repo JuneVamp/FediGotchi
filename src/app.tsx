@@ -31,7 +31,7 @@ users.set(user1.name, user1)
 // adding random pets based on beings images
 var fs = require('fs');
 var path = require('path');
-var petImagesPath = path.join(__dirname, '..\\assets\\images\\beings');
+var petImagesPath = path.join(__dirname, '../assets/images/beings');
 var petImageFiles = fs.readdirSync(petImagesPath).filter((file : string) => file.endsWith('.png'));
 // var randomPetImageFiles = petImageFiles.sort(() => 0.5 - Math.random()).slice(0, 6);
 var randomPetImageFiles = petImageFiles.slice(0, 6);

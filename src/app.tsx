@@ -25,7 +25,7 @@ var user1 = new VPUser("userJune")
 users.set(user1.name, user1)
 
 
-// get 6 random pets from the assets/images/beings folder and add them to the pets map
+// adding random pets based on beings images
 var fs = require('fs');
 var path = require('path');
 var petImagesPath = path.join(__dirname, '..\\assets\\images\\beings');
@@ -38,31 +38,18 @@ randomPetImageFiles.forEach((file : string) => {
 });
 
 
-  
-// var pet1 = new VPet("Alice", SERVER_URL)
-// var pet2 = new VPet("Brice", SERVER_URL)
-// var pet3 = new VPet("Cami", SERVER_URL)
-// var pet4 = new VPet("Dani", SERVER_URL)
-
-// pets.set(pet1.name.toLowerCase(), pet1)
-// pets.set(pet2.name.toLowerCase(), pet2)
-// pets.set(pet3.name.toLowerCase(), pet3)
-// pets.set(pet4.name.toLowerCase(), pet4)
-
 var homeEvironment = VPEnvironment.fromStringData("Home") 
 var parkEnvironment = VPEnvironment.fromStringData("Park")
 var schoolEnvironment = VPEnvironment.fromStringData("School")
 
-// parkEnvironment.remoteRef.displayName
 
 environments.set(homeEvironment.name.toLowerCase(), homeEvironment)
 environments.set(parkEnvironment.name.toLowerCase(), parkEnvironment)
 environments.set(schoolEnvironment.name.toLowerCase(), schoolEnvironment)
 
 const remoteServerUrl = "https://utensil-ahoy-ferocity.ngrok-free.dev"
-const serverDistrubutions = [SERVER_URL, remoteServerUrl]
 
-var useRemotePark : boolean = false
+var useRemotePark : boolean = true
 const remotePark = new VPEnvironmentRemoteRef("Park", remoteServerUrl, "Remote Park")
 
 if (useRemotePark) {
@@ -129,7 +116,6 @@ app.get("/pets/:petId", petMiddleware, async (c) => {
     pet: pet.tempPetView
   })
 })
-
 
 app.post("/pets/:petId/activity-request", async (c) => {
   const pet = c.get("pet")
@@ -234,69 +220,6 @@ app.post("/environments/:environmentId/add-pet", async (c) => {
 app.get("/users/:userId", async (c) => {
   // TODO 1
 })
-
-// app.post("/api/pets/:pet/post", async (c) => {
-//   const body = await c.req.json()
-//   const petName = capitalizeFirstLetter(c.req.param("pet"))
-//   const userName = body.userName
-//   var returnMessage = ""
-
-//   const postType = body.postType
-//   switch (postType) {
-//     case "UserPetActivity":
-//       const activityName = capitalizeFirstLetter(body.activityName)
-//       const pet = pets.get(petName)
-//       const user = users.get(userName)
-
-//       if (!user){
-//         return c.json({
-//           message: `User ${userName} not found`
-//         }, 404)
-//       }
-
-//       user.askPetToDoActivity(pet!, activityName).then((accepted : boolean) => {
-//         if (accepted) {
-//           returnMessage = `Activity request accepted for ${petName}`
-//         } else {
-//           returnMessage = `Activity request rejected for ${petName}`
-//         }
-//       })
-
-//     case undefined:
-//       returnMessage = "No postType provided"
-//       break
-//   }
-
-//   return c.json({
-//     message: returnMessage
-//   })
-
-// })
-
-// app.post("/api/pets/:petName/activities/:activityName", async (c) => {
-
-//   const petName = capitalizeFirstLetter(c.req.param("petName") )
-//   const activityName = capitalizeFirstLetter(c.req.param("activityName") )
-//   const pet = parkEnvironment.getAllPets().find(pet => pet.name === petName)
-
-//   if (!pet) {
-//     return c.json({
-//       message: `Pet ${petName} not found`
-//     }, 404)
-//   }
-
-//   user1.askPetToDoActivity(pet, activityName).then((accepted : boolean) => {
-//     if (accepted) {
-//       console.log(`${petName} accepted the activity ${activityName}`)
-//     } else {
-//       console.log(`${petName} rejected the activity ${activityName}`)
-//     }
-//   })
-
-//   return c.json({
-//     message: `Activity request sent to ${petName} for ${activityName}`
-//   })
-// })
 
 app.get("/*", serveStatic({root : './public'}))
 

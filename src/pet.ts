@@ -51,7 +51,7 @@ export class VPet extends VPEntity {
 
     tempPetView : PetView = {
         name : this.name,
-        imageSrc : `../assets/images/beings/${this.name.toLowerCase()}.png`,
+        imageSrc : `/assets/images/beings/${this.name}.png`,
         environmentName : this.environment ? this.environment.displayName : "null",
         boredom : this.stats.boredom,
         currentActivityName : this.currentActivity ? this.currentActivity.name : "null",

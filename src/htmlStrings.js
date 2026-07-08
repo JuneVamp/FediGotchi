@@ -22,9 +22,10 @@ export const petViewHtmlString = (pet, baseUrl) => {
             <div class="pet" id="pet-${pet.name}">
                 <script src="${baseUrl}/client.js"></script>
                 <script>
+                    console.log('${baseUrl}');
                     refreshPetView('${pet.name}', '${baseUrl}');
                 </script>
-                <img src="${pet.imageSrc}" />
+                <img src="${baseUrl}/${pet.imageSrc}" />
                 <div class="pet-name">${pet.name}</div>
                 <div class="pet-activity"> CODE DEFINED </div>
                 <div class="stats"> CODE DEFINE </div>

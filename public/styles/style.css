@@ -43,7 +43,7 @@ body {
     color: #555;
 }
 
-.pet-activity keyword {
+.pet-activity .keyword {
     font-weight: bold;
     color: #682323;
 }
@@ -61,7 +61,7 @@ body {
     justify-content: center;
 }
 
-.user-actions button {
+button {
     padding: 5px 10px;
     margin: 5px;
     background-color: #682323;
@@ -71,7 +71,7 @@ body {
 }
 
 /* hover effect for buttons */
-.user-actions button:hover {
+button:hover {
     background-color: #a94444;
     border-color: #a94444;
     cursor: pointer;

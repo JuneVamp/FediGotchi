@@ -1,5 +1,7 @@
+
+
 async function updatePets() {
-    const response = await fetch("api/pets");
+    const response = await fetch(`api/pets`);
     if (!response.ok) {
         console.error("Failed to fetch pets:", response.status, response.statusText);
         return;
@@ -46,11 +48,11 @@ async function updatePets() {
         `;
     }
 }
-updatePets();
-setInterval(updatePets, 1000);
+// updatePets();
+// setInterval(updatePets, 1000);
 
 async function updateEnvironments() {
-    const response = await fetch("api/environments");
+    const response = await fetch(`api/environments`);
     if (!response.ok) {
         console.error("Failed to fetch environments:", response.status, response.statusText);
         return;
@@ -80,23 +82,83 @@ async function updateEnvironments() {
 
     container.innerHTML = environmentHtml.join("");
 }
-updateEnvironments();
-setInterval(updateEnvironments, 1000);
+// updateEnvironments();
+// setInterval(updateEnvironments, 1000);
 
-function userAskPetToDoActivity(userName, petName, activity) {
-    fetch(`/api/pets/${petName}/post`, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            postType: "UserPetActivity",
-            userName: userName,
-            activityName: activity
-        })
-    })
-    // .then(response => {
-    //     console.log(response.json())
-    // })
+// function userAskPetToDoActivity(userName, petName, activity) {
+//     fetch(`/api/pets/${petName}/post`, {
+//         method: "POST",
+//         headers: {
+//             "Content-Type": "application/json"
+//         },
+//         body: JSON.stringify({
+//             postType: "UserPetActivity",
+//             userName: userName,
+//             activityName: activity
+//         })
+//     })
+//     // .then(response => {
+//     //     console.log(response.json())
+//     // })
 
+// }
+
+function userAskPetToDoActivity(petName , activityName ) {
+    console.log(`User is asking pet ${petName} to do activity ${activityName}`);
+    // const response = await fetch(`/pets/${petName}/do-activity`, {
+    //     method: "POST",
+    //     headers: {
+    //         "Content-Type": "application/json"
+    //     },
+    //     body: JSON.stringify({
+    //         activityName: activityName
+    //     })
+    // });
+    // if (!response.ok) {
+    //     console.error(`Failed to ask pet ${petName} to do activity ${activityName}: ${response.statusText}`);
+    // } else {
+    //     console.log(`Successfully asked pet ${petName} to do activity ${activityName}`);
+    // }
+};
+
+function userMovePetToNewEnvironment(petName ) {
+    console.log(`User is asking pet ${petName} to move to a new environment`);
 }
+
+function refreshPetView(petName , baseUrl) {
+    const refreshPetViewOnce = async (petName , baseUrl ) => {
+        const response = await fetch(`${baseUrl}/pets/${petName}`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json"
+            }
+        });
+        if (!response.ok) {
+            console.error(`Failed to refresh pet view for ${petName}: ${response.statusText}`);
+            return null;
+        }
+
+        const data = await response.json() ;
+
+        const activityContainer = document.querySelector(`#pet-${petName} .pet-activity`);
+        if (activityContainer) {
+            activityContainer.innerHTML = `
+            is doing <span class="activity-name keyword"> ${data.pet.currentActivityName}</span> with 
+            <span class="activity-partner keyword"> ${data.pet.currentActivityPartnerName} </span> in 
+            <span class="environment-name keyword"> ${data.pet.environmentName} </span>`;
+        }
+
+        const statsContainer = document.querySelector(`#pet-${petName} .stats`);
+        if (statsContainer) {
+            statsContainer.innerHTML = `
+            <div>Hunger: ${data.pet.stats.hunger}</div>
+            <div>Energy: ${data.pet.stats.energy}</div>
+            <div>Happiness: ${data.pet.stats.happiness}</div>
+            <div>Boredom: ${data.pet.stats.boredom}</div>`;
+        }
+    }
+
+    setInterval(async () => {
+        await refreshPetViewOnce(petName, baseUrl);
+    }, 1000);
+};

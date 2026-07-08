@@ -5,6 +5,9 @@ import { parseActivityFromName } from "./parser"
 import { weighted_random, getRandomInt } from "./utils"
 import {VPEnvironmentRemoteRef, VPUserRemoteRef, VPetRemoteRef} from "./remoteRefs"
 
+// @ts-ignore - JavaScript module without type declarations.
+import { petViewHtmlString } from "./htmlStrings"
+
 export interface PetView{
     name : string
     imageSrc : string
@@ -304,6 +307,10 @@ export class VPet extends VPEntity {
             return false
         }) : undefined
         return this.tempPetView
+    }
+
+    getHTMLView(baseUrl : string) : string{
+        return petViewHtmlString(this.getView(), baseUrl)
     }
 
     getRemoteRef() : VPetRemoteRef{

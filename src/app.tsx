@@ -1,12 +1,15 @@
 import { VPItem, VPEnvironment, VPUser } from "./otherModels"
 import { VPet } from "./pet"
 import {Context, Hono, Next} from "hono"
-import { Layout, PetListComponent } from "./views"
+// import { Layout, PetListComponent } from "./views"
+// import { PetViewComponent} from "./views"
 import { serveStatic } from "@hono/node-server/serve-static"
+// import { renderToString } from "react-dom/server";
 import { capitalizeFirstLetter } from "./utils"
 import { SERVER_URL } from "./serverConfig.ts"
 import { VPEnvironmentRemoteRef, VPetRemoteRef, VPUserRemoteRef } from "./remoteRefs.ts"
 import { VPActivity } from "./petRepresentation.ts"
+import {htmlLayoutString} from "./htmlStrings"
 
 type AppEnv = {
   Variables : {
@@ -30,7 +33,8 @@ var fs = require('fs');
 var path = require('path');
 var petImagesPath = path.join(__dirname, '..\\assets\\images\\beings');
 var petImageFiles = fs.readdirSync(petImagesPath).filter((file : string) => file.endsWith('.png'));
-var randomPetImageFiles = petImageFiles.sort(() => 0.5 - Math.random()).slice(0, 6);
+// var randomPetImageFiles = petImageFiles.sort(() => 0.5 - Math.random()).slice(0, 6);
+var randomPetImageFiles = petImageFiles.slice(0, 6);
 randomPetImageFiles.forEach((file : string) => {
     var petName = capitalizeFirstLetter(file.replace('.png', ''));
     var pet = new VPet(petName, SERVER_URL);
@@ -49,7 +53,7 @@ environments.set(schoolEnvironment.name.toLowerCase(), schoolEnvironment)
 
 const remoteServerUrl = "https://utensil-ahoy-ferocity.ngrok-free.dev"
 
-var useRemotePark : boolean = true
+var useRemotePark : boolean = false
 const remotePark = new VPEnvironmentRemoteRef("Park", remoteServerUrl, "Remote Park")
 
 if (useRemotePark) {
@@ -75,6 +79,10 @@ setInterval(() => {
 
 }, 1000)
 
+app.get("/", async (c) => {
+  const allPetsStrings = "<div id=\"pets\">" + Array.from(pets.values()).map(pet => { return pet.getHTMLView(new URL(c.req.url).origin); }).join("") + "</div>"
+  return c.html(htmlLayoutString([allPetsStrings], new URL(c.req.url).origin))
+})
 
 app.get("/federation/me", async (c) => {
   return c.json({
@@ -112,8 +120,17 @@ app.use("/pets/:petId/*", petMiddleware)
 
 app.get("/pets/:petId", petMiddleware, async (c) => {
   const pet = c.get("pet") as VPet
+
+  const accept = c.req.header("Content-Type") ?? ""
+  const isJson = accept.includes("application/json")
+
+  if (!isJson) {
+    return c.html(htmlLayoutString([pet.getHTMLView(new URL(c.req.url).origin)], new URL(c.req.url).origin))
+  }
+
+
   return c.json({
-    pet: pet.tempPetView
+    pet: pet.getView()
   })
 })
 

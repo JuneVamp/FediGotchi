@@ -13,7 +13,8 @@ import {htmlLayoutString} from "./htmlStrings"
 
 type AppEnv = {
   Variables : {
-    pet : VPet
+    pet : VPet,
+    baseUrl : string
   }
 }
 
@@ -38,6 +39,7 @@ var randomPetImageFiles = petImageFiles.slice(0, 6);
 randomPetImageFiles.forEach((file : string) => {
     var petName = capitalizeFirstLetter(file.replace('.png', ''));
     var pet = new VPet(petName, SERVER_URL);
+    // pet.imageSrc = `/assets/images/beings/${file}`;
     pets.set(pet.name.toLowerCase(), pet);
 });
 
@@ -93,6 +95,13 @@ app.get("/federation/me", async (c) => {
   })
 })
 
+app.use("/" ,async (c : Context, next: Next)=> {
+  const baseUrl = new URL(c.req.url).origin
+  const prefixedUrl = baseUrl + c.req.header("X-Forwarded-Prefix") 
+  c.set("baseUrl", prefixedUrl)
+  next()
+})
+
 app.get("/api/pets", async (c) => {
   return c.json({
     pets: Array.from(pets.values()).map(pet => { return pet.getView(); })
@@ -128,7 +137,7 @@ app.get("/pets/:petId", petMiddleware, async (c) => {
   const isJson = accept.includes("application/json")
 
   if (!isJson) {
-    return c.html(htmlLayoutString([pet.getHTMLView(new URL(c.req.url).origin)], new URL(c.req.url).origin))
+    return c.html(htmlLayoutString([pet.getHTMLView(c.get("baseUrl"))], new URL(c.req.url).origin))
   }
 
 

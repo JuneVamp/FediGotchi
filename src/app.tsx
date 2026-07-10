@@ -9,11 +9,12 @@ import { capitalizeFirstLetter } from "./utils"
 import { SERVER_URL } from "./serverConfig.ts"
 import { VPEnvironmentRemoteRef, VPetRemoteRef, VPUserRemoteRef } from "./remoteRefs.ts"
 import { VPActivity } from "./petRepresentation.ts"
-import {htmlLayoutString} from "./htmlStrings"
+import {htmlLayoutString, petViewLayoutString, petActivityHistoryHtmlString, petViewHtmlString, environmentHtmlString} from "./htmlStrings"
 
 type AppEnv = {
   Variables : {
     pet : VPet,
+    environment : VPEnvironment,
     baseUrl : string
   }
 }
@@ -82,15 +83,27 @@ setInterval(() => {
 }, 1000)
 
 
+
+// --------- base urls -------
+
 app.use("/*" ,async (c : Context, next: Next)=> {
   const baseUrl = new URL(c.req.url).origin
-  const prefixedUrl = baseUrl + c.req.header("X-Forwarded-Prefix") 
+  const prefix = c.req.header("X-Forwarded-Prefix") || ""
+  const prefixedUrl = baseUrl + prefix
   c.set("baseUrl", prefixedUrl)
   await next()
 })
 
 app.get("/", async (c) => {
-  const allPetsStrings = "<div id=\"pets\">" + Array.from(pets.values()).map(pet => { return pet.getHTMLView(c.get("baseUrl")); }).join("") + "</div>"
+  const allPetsStrings = `
+  <div id="pets"> 
+    ${Array.from(pets.values()).map(pet => {
+       return petViewLayoutString(pet.getView(), c.get("baseUrl"), [
+        petViewHtmlString(pet.getView(), c.get("baseUrl"))
+      ]); 
+    }) .join("")} 
+  </div>
+  `
   return c.html(htmlLayoutString([allPetsStrings], c.get("baseUrl")))
 })
 
@@ -133,12 +146,22 @@ app.use("/pets/:petId/*", petMiddleware)
 
 app.get("/pets/:petId", petMiddleware, async (c) => {
   const pet = c.get("pet") as VPet
+  const petView = pet.getView()
 
   const accept = c.req.header("Content-Type") ?? ""
   const isJson = accept.includes("application/json")
 
   if (!isJson) {
-    return c.html(htmlLayoutString([pet.getHTMLView(c.get("baseUrl"))],c.get("baseUrl")))
+    return c.html(
+      htmlLayoutString(
+        [
+          petViewLayoutString(petView, c.get("baseUrl"), [
+            petViewHtmlString(petView, c.get("baseUrl")),
+            petActivityHistoryHtmlString()
+          ])
+        ],
+        c.get("baseUrl"))
+    )
   }
 
 
@@ -181,27 +204,51 @@ app.post("/pets/:petId/set-environment", async (c) => {
 })
 
 // --------- environments -------
-app.get("/environments/:environmentId", async (c) => {
-  const environmentId = c.req.param("environmentId")!
-  const environment = environments.get(environmentId.toLowerCase())
+const environmentMiddleware = async (c: Context, next: Next) => {
+  const environmentId = c.req.param("environmentId")!.toLowerCase()
+  const environment = environments.get(environmentId)
+
   if (!environment) {
-    return c.json({
-      message: `Environment ${environmentId} not found`
-    }, 404)
+    return c.json({ message: `Environment ${environmentId} not found` }, 404)
   }
+
+  c.set("environment", environment)
+  await next()
+}
+app.use("/environments/:environmentId/*", environmentMiddleware)
+
+app.get("/environments/:environmentId", environmentMiddleware, async (c) => {
+  const environment = c.get("environment") as VPEnvironment
+  const pets = environment.getAllPets()
+  const petViews = await Promise.all(pets.map(async(pet) => await pet.getView()))
+
+  const accept = c.req.header("Content-Type") ?? ""
+  const isJson = accept.includes("application/json")
+
+  if (!isJson) {
+    return c.html(
+      htmlLayoutString(
+        [
+          environmentHtmlString(environment, c.get("baseUrl"), [
+            ...petViews.map(petView => {
+                return petViewLayoutString(petView, c.get("baseUrl"), [
+                  petViewHtmlString(petView, c.get("baseUrl"))
+                ])
+            })
+          ])
+        ],
+        c.get("baseUrl"))
+    )
+  }
+
+
   return c.json({
     environment: environment.getRemoteRef()
   })
 })
 
 app.get("/environments/:environmentId/pets", async (c) => {
-  const environmentId = c.req.param("environmentId")!
-  const environment = environments.get(environmentId.toLowerCase())
-  if (!environment) {
-    return c.json({
-      message: `Environment ${environmentId} not found`
-    }, 404)
-  }
+  const environment = c.get("environment") as VPEnvironment
 
   const allPets = environment.getAllPets()
   return c.json({
@@ -210,13 +257,7 @@ app.get("/environments/:environmentId/pets", async (c) => {
 })
 
 app.get("/environments/:environmentId/items", async (c) => {
-  const environmentId = c.req.param("environmentId")!
-  const environment = environments.get(environmentId.toLowerCase())
-  if (!environment) {
-    return c.json({
-      message: `Environment ${environmentId} not found`
-    }, 404)
-  }
+  const environment = c.get("environment") as VPEnvironment
 
   const allItems = environment.items
   return c.json({
@@ -230,13 +271,8 @@ app.get("/environments/:environmentId/items", async (c) => {
 })
 
 app.post("/environments/:environmentId/add-pet", async (c) => {
+  const environment = c.get("environment") as VPEnvironment
   const environmentId = c.req.param("environmentId")!
-  const environment = environments.get(environmentId.toLowerCase())
-  if (!environment) {
-    return c.json({
-      message: `Environment ${environmentId} not found`
-    }, 404)
-  }
   
   const body = await c.req.json()
   const pet = new VPetRemoteRef(body.petId, body.petServerUrl)

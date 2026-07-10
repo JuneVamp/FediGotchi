@@ -14,7 +14,8 @@ export class VPEntityRemoteRef {
 
     async postRequest(endpoint : string, body : any) : Promise<any> {
         // console.log("Making request to " + `${this.serverURL}/${this.entityType.toLowerCase()}s/${this.id}/${endpoint}`)
-        const response = await fetch(`${this.serverURL}/${this.entityType.toLowerCase()}s/${this.id}/${endpoint}`, {
+        const endpointString = endpoint == "" ? "" : `/${endpoint}`
+        const response = await fetch(`${this.serverURL}/${this.entityType.toLowerCase()}s/${this.id}${endpointString}`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -25,13 +26,15 @@ export class VPEntityRemoteRef {
     }
 
     async getRequest(endpoint : string) : Promise<any> {
-        const response = await fetch(`${this.serverURL}/${this.entityType.toLowerCase()}s/${this.id}/${endpoint}`);
+        const endpointString = endpoint == "" ? "" : `/${endpoint}`
+        const response = await fetch(` ${this.serverURL}/${this.entityType.toLowerCase()}s/${this.id}${endpointString}`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json"
+            }
+        });
         return response.json();
     }
-
-    // static fromJson(json : any) : VPEntityRemoteRef {
-    //     return new VPEntityRemoteRef(json.id, json.entityType, json.serverURL)
-    // }
 }
 
 export class VPetRemoteRef extends VPEntityRemoteRef {
@@ -44,8 +47,8 @@ export class VPetRemoteRef extends VPEntityRemoteRef {
     }
 
     async getView() : Promise<PetView> {
-        const data = await this.getRequest("view");
-        return data.petView as PetView;
+        const data = await this.getRequest("");
+        return data.pet as PetView;
     }
 
     // NOTE these methods are so i dont have to write a long swtich statement

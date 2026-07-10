@@ -90,6 +90,22 @@ button:hover {
     border: 2px solid #682323;
     padding: 10px;
     margin: 10px 10px;
-    max-width: 200px;
-    min-width: 200px;
+    /* max-width: 200px; */
+    /* min-width: 200px; */
 }
+
+.environment-pets {
+    display: flex;
+    flex-wrap: wrap;
+    flex-direction: rows;
+    justify-content: space-around;
+    gap: 5px;
+    margin-top: 10px;
+}
+
+/* iframe {
+    border: 1px solid #682323;
+    border-radius: 5px;
+    width: 250px;
+    height: 150px;
+} */

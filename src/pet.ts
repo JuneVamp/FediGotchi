@@ -6,7 +6,7 @@ import { weighted_random, getRandomInt } from "./utils"
 import {VPEnvironmentRemoteRef, VPUserRemoteRef, VPetRemoteRef} from "./remoteRefs"
 
 // @ts-ignore - JavaScript module without type declarations.
-import { petViewHtmlString } from "./htmlStrings"
+import { petViewLayoutString } from "./htmlStrings"
 
 export interface PetView{
     name : string
@@ -19,6 +19,7 @@ export interface PetView{
     remoteRef : VPetRemoteRef
     environmentRemoteRef ?: VPEnvironmentRemoteRef
     activityPartnerRemoteRef ?: VPetRemoteRef | VPUserRemoteRef | VPItem
+    activityHistory ?: Array<{activity : VPActivity, partner : VPetRemoteRef | VPUserRemoteRef | VPItem, timestamp : number}>
 }
 
 export enum petState {
@@ -48,10 +49,12 @@ export class VPet extends VPEntity {
         "energy" : -1
     }
 
+    activityHistory : Array<{activity : VPActivity, partner : VPetRemoteRef | VPUserRemoteRef | VPItem, timestamp : number}> = []
+
 
     tempPetView : PetView = {
         name : this.name,
-        imageSrc : `/assets/images/beings/${this.name}.png`,
+        imageSrc : `assets/images/beings/${this.name}.png`,
         environmentName : this.environment ? this.environment.displayName : "null",
         boredom : this.stats.boredom,
         currentActivityName : this.currentActivity ? this.currentActivity.name : "null",
@@ -134,8 +137,7 @@ export class VPet extends VPEntity {
                 this.state = petState.idle
                 if (accepted) {
                     this.doActivity(selectedActivity, selectedActivityPartner)
-                } else {
-                }
+                } 
             })
         })
 
@@ -155,12 +157,19 @@ export class VPet extends VPEntity {
     }
 
     doActivity(activity : VPActivity, activityPartner : VPetRemoteRef | VPUserRemoteRef | VPItem){
-        console.log(`${this.name} of ${this.remoteRef.serverURL} is doing activity ${activity.name} with ${activityPartner instanceof VPetRemoteRef ? activityPartner.id : activityPartner instanceof VPUserRemoteRef ? activityPartner.id : activityPartner.name} of server ${activityPartner instanceof VPetRemoteRef || activityPartner instanceof VPUserRemoteRef ? activityPartner.serverURL : "local"}`)
+        // console.log(`${this.name} of ${this.remoteRef.serverURL} is doing activity ${activity.name} with ${activityPartner instanceof VPetRemoteRef ? activityPartner.id : activityPartner instanceof VPUserRemoteRef ? activityPartner.id : activityPartner.name} of server ${activityPartner instanceof VPetRemoteRef || activityPartner instanceof VPUserRemoteRef ? activityPartner.serverURL : "local"}`)
         this.state = petState.doingActivity
         this.timeBetweenActivityInitiation = 0
 
         activity.entitiesInvolved.push(this.remoteRef)
         activity.entitiesInvolved.push(activityPartner)
+
+        this.activityHistory.push({
+            activity : activity,
+            partner : activityPartner,
+            timestamp : Date.now()
+        })
+        // console.log(`Activity history for ${this.name}: ${this.activityHistory.map((entry) => `${entry.activity.name} with ${entry.partner instanceof VPetRemoteRef ? entry.partner.id : entry.partner instanceof VPUserRemoteRef ? entry.partner.id : entry.partner.name} at ${new Date(entry.timestamp).toLocaleString()}`).join(", ")}`)
 
         this.currentActivity = activity
     }
@@ -175,7 +184,7 @@ export class VPet extends VPEntity {
 
     async receiveActivityRequest(activity : VPActivity, activityPartner : VPetRemoteRef| VPUserRemoteRef | VPItem) : Promise<boolean>{
         if (activityPartner instanceof VPetRemoteRef) {
-            console.log(`${this.name} of ${this.remoteRef.serverURL} received activity request for ${activity.name} from ${activityPartner.id} of server ${activityPartner.serverURL}`)
+            // console.log(`${this.name} of ${this.remoteRef.serverURL} received activity request for ${activity.name} from ${activityPartner.id} of server ${activityPartner.serverURL}`)
         }
         return new Promise((resolve, reject) => {
             resolve(this.acceptActivity(activity, activityPartner))
@@ -189,7 +198,7 @@ export class VPet extends VPEntity {
 
         return new Promise((resolve, reject) => {
             if (activityPartner instanceof VPetRemoteRef) {
-                console.log(`${this.name} of ${this.remoteRef.serverURL} is sending activity request for ${activity.name} to ${activityPartner.id} of server ${activityPartner.serverURL}`)
+                // console.log(`${this.name} of ${this.remoteRef.serverURL} is sending activity request for ${activity.name} to ${activityPartner.id} of server ${activityPartner.serverURL}`)
                 this.state = petState.waitingForActivityResponse
                 this.reservedForActivity = activity
                 this.reservedForActivity.timeout = setTimeout(() => {
@@ -306,12 +315,13 @@ export class VPet extends VPEntity {
             }
             return false
         }) : undefined
+        this.tempPetView.activityHistory = this.activityHistory
         return this.tempPetView
     }
 
-    getHTMLView(baseUrl : string) : string{
-        return petViewHtmlString(this.getView(), baseUrl)
-    }
+    // getHTMLView(baseUrl : string) : (children: string) => string{
+    //     return (children : string) => {return petViewLayoutString(this.getView(), baseUrl, [children])}
+    // }
 
     getRemoteRef() : VPetRemoteRef{
         this.remoteRef.id = this.name

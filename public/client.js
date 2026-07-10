@@ -143,9 +143,24 @@ function refreshPetView(petName , baseUrl) {
         const activityContainer = document.querySelector(`#pet-${petName} .pet-activity`);
         if (activityContainer) {
             activityContainer.innerHTML = `
-            is doing <span class="activity-name keyword"> ${data.pet.currentActivityName}</span> with 
-            <span class="activity-partner keyword"> ${data.pet.currentActivityPartnerName} </span> in 
-            <span class="environment-name keyword"> ${data.pet.environmentName} </span>`;
+            is doing 
+            <span class="activity-name keyword">
+                    ${data.pet.currentActivityName}
+            </span> with 
+            <span class="activity-partner keyword"> 
+                <a href="${data.pet.activityPartnerRemoteRef ? data.pet.activityPartnerRemoteRef.serverURL 
+                    + "/pets/" + 
+                    data.pet.activityPartnerRemoteRef.id : "null"}">
+                    ${data.pet.currentActivityPartnerName} 
+                </a>
+            </span> in 
+            <span class="environment-name keyword"> 
+                <a href="${data.pet.environmentRemoteRef ? data.pet.environmentRemoteRef.serverURL 
+                        + "/environments/" + 
+                        data.pet.environmentRemoteRef.id : "null"}">
+                    ${data.pet.environmentName} 
+                </a>
+            </span>`;
         }
 
         const statsContainer = document.querySelector(`#pet-${petName} .stats`);
@@ -156,9 +171,65 @@ function refreshPetView(petName , baseUrl) {
             <div>Happiness: ${data.pet.stats.happiness}</div>
             <div>Boredom: ${data.pet.stats.boredom}</div>`;
         }
+
+        const activityHistoryContainer = document.querySelector(`#pet-container-${petName} .pet-activity-history`);
+        if (activityHistoryContainer) {
+            activityHistoryContainer.innerHTML = `
+                <h3>Activity History</h3>
+                <ul>
+                    ${data.pet.activityHistory.map(entry => `
+                        <li>
+                            <span class="activity-name keyword">${entry.activity.name}</span> with
+                            <span class="activity-partner keyword">${entry.partner.id}</span> at
+                            <span class="activity-timestamp">${new Date(entry.timestamp).toLocaleString()}</span>
+                        </li>   
+                    `).join('')}
+                </ul>
+                `;
+            }
     }
+
+    refreshPetViewOnce(petName, baseUrl);
 
     setInterval(async () => {
         await refreshPetViewOnce(petName, baseUrl);
     }, 1000);
 };
+
+function refreshEnvironmentView(environmentName , baseUrl) {
+    const refreshEnvironmentViewOnce = async (environmentName , baseUrl ) => {
+        // const response = await fetch(`${baseUrl}/environments/${environmentName}`, {
+        //     method: "GET",
+        //     headers: {
+        //         "Content-Type": "application/json"
+        //     }
+        // });
+        // if (!response.ok) {
+        //     console.error(`Failed to refresh environment view for ${environmentName}: ${response.statusText}`);
+        //     return null;
+        // }
+        // const data = await response.json() ;
+
+        // const allPets = await fetch(`${data.environment.serverURL}/environments/${data.environment.id}/pets`);
+        // const allPetsData = await allPets.json();
+
+        // const allPetsHtml = allPetsData.pets.map(async (pet) => 
+        //     await fetch(`${pet.serverURL}/pets/${pet.id}`)
+        // )
+
+
+
+        // const environmentContainer = document.querySelector(`#environment-${environmentName} .environment-pets`);
+        // if (environmentContainer) {
+        //     environmentContainer.innerHTML = allPetsData.pets.map(pet => `
+        //         <a href="${pet.serverURL}/pets/${pet.id}">${pet.id}</a>
+        //     `).join(", ");
+        // }
+    }
+
+    refreshEnvironmentViewOnce(environmentName, baseUrl);
+
+    setInterval(async () => {
+        await refreshEnvironmentViewOnce(environmentName, baseUrl);
+    }, 30_000);
+}

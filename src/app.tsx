@@ -9,12 +9,13 @@ import { capitalizeFirstLetter } from "./utils"
 import { SERVER_URL } from "./serverConfig.ts"
 import { VPEnvironmentRemoteRef, VPetRemoteRef, VPUserRemoteRef } from "./remoteRefs.ts"
 import { VPActivity } from "./petRepresentation.ts"
-import {htmlLayoutString, petViewLayoutString, petActivityHistoryHtmlString, petViewHtmlString, environmentHtmlString} from "./htmlStrings"
+import {htmlLayoutString, petViewLayoutString, petActivityHistoryHtmlString, petViewHtmlString, environmentHtmlString, loginBox} from "./htmlStrings"
 
 type AppEnv = {
   Variables : {
     pet : VPet,
     environment : VPEnvironment,
+    currentUserId : string,
     baseUrl : string
   }
 }
@@ -25,6 +26,7 @@ app.get("/assets/*", serveStatic({root : './'}))
 var users = new Map<string, VPUser>()
 var pets = new Map<string, VPet>()
 var environments = new Map<string, VPEnvironment>()
+var activities = new Map<string, VPActivity>()
 
 var user1 = new VPUser("userJune")
 users.set(user1.name, user1)
@@ -104,7 +106,10 @@ app.get("/", async (c) => {
     }) .join("")} 
   </div>
   `
-  return c.html(htmlLayoutString([allPetsStrings], c.get("baseUrl")))
+  return c.html(htmlLayoutString([
+    loginBox(),
+    allPetsStrings
+  ], c.get("baseUrl")))
 })
 
 app.get("/federation/me", async (c) => {
@@ -132,7 +137,7 @@ app.get("/api/environments", async (c) => {
 // --------- pets -------
 
 const petMiddleware = async (c: Context, next: Next) => {
-  const petName = c.req.param("petId")!.toLowerCase().toLowerCase().toLowerCase().toLowerCase()
+  const petName = c.req.param("petId")!.toLowerCase()
   const pet = pets.get(petName)
 
   if (!pet) {
@@ -286,6 +291,36 @@ app.post("/environments/:environmentId/add-pet", async (c) => {
 app.get("/users/:userId", async (c) => {
   // TODO 1
 })
+
+// app.post("/users/create", async (c) => {
+
+// })
+
+// app.post("/users/login",  async (c) => {
+//   const formData = await c.req.formData()
+//   const userId = formData.get("userId")
+//   if (typeof userId != "string"){
+//     return
+//   }
+
+//   localStorage.setItem("currentUserId", userId)
+// })
+
+// ------------ activities ------------
+//TODO 10 someday
+// app.get("/activites/:activityId", async (c) =>{
+//   const activityId = c.req.param("activityId")
+
+// })
+
+// //create activity
+// //TODO 10 someday
+// app.post("/activites/:activityId", async (c) => {
+//   const activityId = c.req.param("activityId")
+
+// })
+
+
 
 app.get("/*", serveStatic({root : './public'}))
 

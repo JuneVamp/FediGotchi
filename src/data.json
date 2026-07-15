@@ -13,78 +13,235 @@
 
     "Activities" : {
         "types" : {
-            "pet_pet" :  ["Talk", "Play"] ,
-            "pet_item": ["Read"],
-            "pet_item_pet": ["ReadTogether"],
-            "pet_user": ["Play"],
-            "pet": ["Eat", "Sleep"]
+            "master_list" :[
+                            "Talk", "Play", "Eat", "Sleep", "Walk", "Explore",
+                            "Read", "Paint", "Sing", "Dance",
+                            "ListenMusic", "WatchTV", "PlayGuitar", "PlayingGames", "Drive",
+                            "Exercise", "Meditate", "Rest", "Groom",
+                            "Fight"
+            ],
+            "pet_pet" :  [ 
+                            "Talk", "Play", "Walk", "Explore","Sing", "Dance", "Exercise", "Fight" 
+            ],
+            "pet_item":  [ 
+                            "Play", "Eat", "Sleep", "Read", "Paint", "Sing", "ListenMusic", "WatchTV", "PlayGuitar", "PlayingGames",
+                            "Drive", "Fight"
+            ],
+            "pet_item_pet": [ 
+                            "Play", "Eat", "Read", "Paint", "Sing", "ListenMusic", "WatchTV", "PlayingGames", "Fight"
+            ],
+            "pet_user": [
+                            "Play", "Sleep", "Meditate", "Groom"
+            ],
+            "pet": [
+                            "Play", "Walk", "Explore",
+                            "Dance", "Sing",
+                            "Exercise", "Meditate", "Rest"
+            ]
         },
         "list" : {
             "empty":{
                 "statAffected" : {},
                 "maxTicks" : 0,
                 "entityLimit" : {"min" : 0, "max" : 0},
-                "tags" : [],
-                "events" : []
+                "tags" : []
             },
             "Talk": {
                 "statAffected" : {
                     "boredom" : -2,
                     "energy" : -1
                 },
-                "maxTicks" : 10,
+                "maxTicks" : 5,
                 "entityLimit" : {"min" : 2, "max" : 3},
-                "tags" : ["Social"],
-                "events" : []
+                "tags" : ["Social"]
             },
             "Play": {
                 "statAffected" : {
                     "boredom" : -2,
-                    "energy" : -2
+                    "energy" : -3,
+                    "hunger" : 2
                 },
                 "maxTicks" : 10,
-                "entityLimit" : {"min" : 2, "max" : 4},
-                "tags" : ["Social"],
-                "events" : []
+                "entityLimit" : {"min" : 1, "max" : 4},
+                "tags" : ["Social"]
             },
             "Read": {
                 "statAffected" : {
-                    "boredom" : -2
+                    "energy" : -1,
+                    "boredom"  : -2,
+                    "hunger" : 1
                 },
                 "maxTicks" : 10,
-                "entityLimit" : {"min" : 1, "max" : 1},
-                "tags" : ["Alone"],
-                "events" : []
-            },
-            "ReadTogether": {
-                "statAffected" : {
-                    "boredom" : -2,
-                    "energy" : -1
-                },
-                "maxTicks" : 10,
-                "entityLimit" : {"min" : 2, "max" : 2},
-                "tags" : ["Social"],
-                "events" : []
+                "entityLimit" : {"min" : 1, "max" : 2},
+                "tags" : ["Alone"]
             },
             "Eat": {
                 "statAffected" : {
-                    "hunger" : -3
+                    "hunger" : -15
                 },
-                "maxTicks" : 15,
-                "entityLimit" : {"min" : 1, "max" : 1},
-                "tags" : ["Alone"],
-                "events" : []
+                "maxTicks" : 5,
+                "entityLimit" : {"min" : 1, "max" : 3},
+                "tags" : ["Alone"]
             },
             "Sleep": {
                 "statAffected" : {
-                    "energy" : 3
+                    "energy" : 4
+                },
+                "maxTicks" : 20,
+                "entityLimit" : {"min" : 1, "max" : 1},
+                "tags" : ["Alone"]
+            },
+            "Walk":{
+                "statAffected" : {
+                    "energy" : -1,
+                    "boredom"  : -1,
+                    "hunger" : 1
+                },
+                "maxTicks" : 10,
+                "entityLimit" : {"min" : 1, "max" : 4},
+                "tags" : ["Alone"]
+            },
+            "Paint":{
+                "statAffected" : {
+                    "energy" : -1,
+                    "boredom"  : -2,
+                    "hunger" : 1
+                },
+                "maxTicks" : 10,
+                "entityLimit" : {"min" : 1, "max" : 2},
+                "tags" : ["Alone"]
+            },
+            "Sing":{
+                "statAffected" : {
+                    "energy" : -1,
+                    "boredom"  : -3,
+                    "hunger" : 1
+                },
+                "maxTicks" : 10,
+                "entityLimit" : {"min" : 1, "max" : 2},
+                "tags" : ["Alone"]
+            },
+            "Dance":{
+                "statAffected" : {
+                    "energy" : -2,
+                    "boredom"  : -4,
+                    "hunger" : 3
+                },
+                "maxTicks" : 10,
+                "entityLimit" : {"min" : 1, "max" : 4},
+                "tags" : ["Alone"]
+            },
+            "ListenMusic":{
+                "statAffected" : {
+                    "energy" : -1,
+                    "boredom"  : -1,
+                    "hunger" : 1
+                },
+                "maxTicks" : 10,
+                "entityLimit" : {"min" : 1, "max" : 3},
+                "tags" : ["Alone"]
+            },
+            "WatchTV":{
+                "statAffected" : {
+                    "energy" : -1,
+                    "boredom"  : -2,
+                    "hunger" : 1
+                },
+                "maxTicks" : 13,
+                "entityLimit" : {"min" : 1, "max" : 4},
+                "tags" : ["Alone"]
+            },
+            "PlayGuitar":{
+                "statAffected" : {
+                    "energy" : -1,
+                    "boredom"  : -3,
+                    "hunger" : 1
+                },
+                "maxTicks" : 12,
+                "entityLimit" : {"min" : 1, "max" : 1},
+                "tags" : ["Alone"]
+            },
+            "PlayingGames":{
+                "statAffected" : {
+                    "energy" : -1,
+                    "boredom"  : -2,
+                    "hunger" : 1
+                },
+                "maxTicks" : 15,
+                "entityLimit" : {"min" : 1, "max" : 4},
+                "tags" : ["Alone"]
+            },
+            "Drive":{
+                "statAffected" : {
+                    "energy" : -2,
+                    "boredom"  : -2,
+                    "hunger" : 2
+                },
+                "maxTicks" : 4,
+                "entityLimit" : {"min" : 1, "max" : 1},
+                "tags" : ["Alone"]
+            },
+            "Exercise":{
+                "statAffected" : {
+                    "energy" : -2,
+                    "boredom"  : -2,
+                    "hunger" : 3
+                },
+                "maxTicks" : 8,
+                "entityLimit" : {"min" : 1, "max" : 2},
+                "tags" : ["Alone"]
+            },
+            "Meditate":{
+                "statAffected" : {
+                    "energy" : 2,
+                    "boredom"  : 1,
+                    "hunger" : 1
+                },
+                "maxTicks" : 6,
+                "entityLimit" : {"min" : 1, "max" : 1},
+                "tags" : ["Alone"]
+            },
+            "Explore":{
+                "statAffected" : {
+                    "energy" : -2,
+                    "boredom"  : -2,
+                    "hunger" : 2
+                },
+                "maxTicks" : 15,
+                "entityLimit" : {"min" : 1, "max" : 1},
+                "tags" : ["Alone"]
+            },
+            "Rest":{
+                "statAffected" : {
+                    "energy" : 3,
+                    "boredom"  : 1,
+                    "hunger" : 1
+                },
+                "maxTicks" : 7,
+                "entityLimit" : {"min" : 1, "max" : 1},
+                "tags" : ["Alone"]
+            },
+            "Groom":{
+                "statAffected" : {
+                    "energy" : 1,
+                    "boredom"  : -1,
+                    "hunger" : 1
                 },
                 "maxTicks" : 10,
                 "entityLimit" : {"min" : 1, "max" : 1},
-                "tags" : ["Alone"],
-                "events" : []
+                "tags" : ["Alone"]
+            },
+            "Fight":{
+                "statAffected" : {
+                    "energy" : -3,
+                    "boredom"  : -2,
+                    "hunger" : 2
+                },
+                "maxTicks" : 5,
+                "entityLimit" : {"min" : 2, "max" : 2},
+                "tags" : ["Alone"]
             }
-        }
+                    }
     },
 
     "Items" : {
@@ -100,6 +257,30 @@
             },
             "Bed" : {
                 "activity" : "Sleep"
+            },
+            "TV" : {
+                "activity" : "WatchingTV"
+            },
+            "MusicPlayer" : {
+                "activity" : "ListeningMusic"
+            },
+            "Skateboard" : {
+                "activity" : "Play"
+            },
+            "Bicyle" : {
+                "activity" : "Drive"
+            },
+            "PaintBrush" : {
+                "activity" : "Paint"
+            },
+            "Guitar" : {
+                "activity" : "PlayingGuitar"
+            },
+            "GameConsole" : {
+                "activity" : "PlayingGames"
+            },
+            "SingingMic" : {
+                "activity" : "Sing"
             }
         }
     },
@@ -107,14 +288,21 @@
     "Environments" : {
         "list" : {
             "Home" : {
-                "items" : ["Book", "Food", "Bed"]
+                "items" : ["Book", "Food", "Bed", "TV"]
             },
             "Park" : {
-                "items" : ["Ball"]
+                "items" : ["Ball", "Skateboard", "Bicyle"]
             },
             "School" : {
-                "items" : ["Book"]
+                "items" : ["Book", "PaintBrush"]
+            },
+            "Cafe": {
+                "items" : ["Food", "Book", "MusicPlayer"]
+            }, 
+            "Playhouse": {
+                "items" : ["Guitar", "GameConsole", "SingingMic"]
             }
+
         }
     }
 }

@@ -196,38 +196,10 @@ function refreshPetView(petName , baseUrl) {
     }, 1000);
 };
 
+// FIXME 10 remove this
 function refreshEnvironmentView(environmentName , baseUrl) {
     const refreshEnvironmentViewOnce = async (environmentName , baseUrl ) => {
-        // const response = await fetch(`${baseUrl}/environments/${environmentName}`, {
-        //     method: "GET",
-        //     headers: {
-        //         "Content-Type": "application/json"
-        //     }
-        // });
-        // if (!response.ok) {
-        //     console.error(`Failed to refresh environment view for ${environmentName}: ${response.statusText}`);
-        //     return null;
-        // }
-        // const data = await response.json() ;
-
-        // const allPets = await fetch(`${data.environment.serverURL}/environments/${data.environment.id}/pets`);
-        // const allPetsData = await allPets.json();
-
-        // const allPetsHtml = allPetsData.pets.map(async (pet) => 
-        //     await fetch(`${pet.serverURL}/pets/${pet.id}`)
-        // )
-
-
-
-        // const environmentContainer = document.querySelector(`#environment-${environmentName} .environment-pets`);
-        // if (environmentContainer) {
-        //     environmentContainer.innerHTML = allPetsData.pets.map(pet => `
-        //         <a href="${pet.serverURL}/pets/${pet.id}">${pet.id}</a>
-        //     `).join(", ");
-        // }
     }
-
-    refreshEnvironmentViewOnce(environmentName, baseUrl);
 
     setInterval(async () => {
         await refreshEnvironmentViewOnce(environmentName, baseUrl);

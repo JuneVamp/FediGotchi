@@ -32,7 +32,13 @@ export function parseItemFromName(itemName : string) : VPItem {
     for (const [key, value] of Object.entries(jsonData.Items.list)) {
         if (key === itemName) {
             item.name = key
-            item.activity = value.activity ? parseActivityFromName(value.activity) : undefined
+            
+            var activity 
+            if (value.activity){ activity = parseActivityFromName(value.activity) }
+            item.activity = activity
+
+            item.activity? item.activity.item = item : ""
+
             break;
         }
     }

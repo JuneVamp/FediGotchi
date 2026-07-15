@@ -1,5 +1,5 @@
 
-export const htmlLayoutString = ([children], baseUrl) => {
+export const htmlLayoutString = ([...children], baseUrl) => {
     return `
         <!doctype html>
         <html>
@@ -10,7 +10,7 @@ export const htmlLayoutString = ([children], baseUrl) => {
             </head>
             <body>
             <script src="${baseUrl}/client.js"> </script>
-                ${children}
+                ${children.join("")}
             </body>
         </html>
     `
@@ -22,7 +22,7 @@ export const petViewLayoutString = (pet, baseUrl, [...children]) => {
     return `
         <div class="pet-container" id="pet-container-${pet.name}">
             <div class="pet" id="pet-${pet.name}">
-                ${children}
+                ${children.join("")}
             </div>
         </div>
     `;
@@ -67,5 +67,26 @@ export const environmentHtmlString = (environment, baseUrl, [... petChildren]) =
             <div class="environment-name">${environmentId}</div>
             <div class="environment-pets">${petChildren.join('')}</div>
         </div>
+    `
+}
+
+export const loginBox = () => {
+    return `
+        <form id="loginform" action="javascript:setUserId()">
+            <label for="userId">Login: </label>
+            <input type="text" id="login-form-userId" name="userId">
+            <input type="submit" value="Submit">
+        </form>
+        <span id="login-information">
+            Not logged in
+        </span>
+        <script>
+            document.getElementById("login-information").innerHTML = "logged in as: " + "<span id='user-information-userid'>" + localStorage.getItem("userId") + "</span>"
+            function setUserId () {
+                const userId = document.getElementById("login-form-userId").value
+                localStorage.setItem("userId", userId)
+                location.reload()
+            }
+        </script>
     `
 }

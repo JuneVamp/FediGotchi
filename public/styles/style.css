@@ -4,6 +4,9 @@ body {
     padding: 0;
     background-color: #ffe8e8;
     color: #333;
+    display: flex;
+    align-items: center;
+    flex-direction: column;
 }
 
 #pets {
@@ -103,9 +106,13 @@ button:hover {
     margin-top: 10px;
 }
 
-/* iframe {
-    border: 1px solid #682323;
-    border-radius: 5px;
-    width: 250px;
-    height: 150px;
+/* form {
+    display: flex;
+    margin : auto;
+    justify-content: center;
 } */
+
+#login-information {
+    padding: 5px 5px;
+    font-size: large;
+}

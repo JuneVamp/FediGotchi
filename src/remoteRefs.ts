@@ -6,10 +6,12 @@ export class VPEntityRemoteRef {
     id : string
     entityType : string
     serverURL : string
+    uniqueId : string
     constructor(id : string, entityType : string, serverURL : string){
         this.id = id
         this.entityType = entityType
         this.serverURL = serverURL
+        this.uniqueId = serverURL + "@"  + id
     }
 
     async postRequest(endpoint : string, body : any) : Promise<any> {
@@ -123,4 +125,22 @@ export class VPUserRemoteRef extends VPEntityRemoteRef {
     constructor(id : string, serverUrl : string){
         super(id, "user", serverUrl)
     }
+
+
 }
+
+// TODO 10 someday
+// export class VPActivityRemoteRef extends VPEntityRemoteRef{
+//     constructor(id : string, serverUrl : string){
+//         super(id, "activity", serverUrl)
+//     }
+
+//     async addEntity(){
+
+//     }
+
+//     async getActivity(){
+
+//     }
+
+// }

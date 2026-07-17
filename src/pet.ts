@@ -2,7 +2,7 @@ import { ActivityHistoryDict, createDefaultStats, VPActivity, VPRelationship, VP
 import { VPEntity } from "./petRepresentation"
 import { VPEnvironment, VPItem, VPUser } from "./otherModels"
 import { parseActivityFromName } from "./parser"
-import { weighted_random, getRandomInt, getRandomIntInclusive } from "./utils"
+import { weighted_random, getRandomInt, getRandomIntInclusive, writeToCsvFile } from "./utils"
 import {VPEnvironmentRemoteRef, VPUserRemoteRef, VPetRemoteRef} from "./remoteRefs"
 
 // @ts-ignore - JavaScript module without type declarations.
@@ -389,6 +389,20 @@ export class VPet extends VPEntity {
 
             this.relationships[activityPartner.uniqueId].friendliness = Math.max(-5, Math.min(5, this.relationships[activityPartner.uniqueId].friendliness))  
         }
+
+
+        //csv for activity finished log
+        var activityFinishedCsv = `${Date.now()},${this.name},${activityFinished!.name},${activityPartner ? activityPartner.uniqueId : "null"},${petLikedActivity}\n`
+
+        // csv for relationship log
+        var relationshipsCsv = ""
+        for (const [otherEntityId, relationship] of Object.entries(this.relationships)) {
+            relationshipsCsv += `${Date.now()},${this.name},${otherEntityId},${relationship.friendliness}\n`
+        }
+
+        // write to csv files
+        writeToCsvFile("logs/activity_finished_log.csv", activityFinishedCsv)
+        writeToCsvFile("logs/relationships_log.csv", relationshipsCsv)
     }
 
     processStatChanges(statChanges : VPStats){

@@ -39,3 +39,16 @@ export function capitalizeFirstLetter(val : string) : string {
     val = val.toLowerCase()
     return String(val).charAt(0).toUpperCase() + String(val).slice(1);
 }
+
+
+export function writeToCsvFile(filePath : string, data : string) {
+    const fs = require('fs');
+    const path = require('path');
+
+    // Ensure the directory exists
+    const dir = path.dirname(filePath);
+    if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+    }
+    fs.appendFileSync(filePath, data);
+}

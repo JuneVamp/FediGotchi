@@ -12,7 +12,7 @@ export class VPEntity {
 
 //--------------------relationships--------------------
 export interface VPRelationship{
-    otherEntity : VPetRemoteRef | VPItem | VPActivity
+    otherEntity : VPetRemoteRef | VPItem | VPActivity | any
     friendliness : number
 }
 

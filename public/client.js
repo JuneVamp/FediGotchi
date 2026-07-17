@@ -177,16 +177,32 @@ function refreshPetView(petName , baseUrl) {
             activityHistoryContainer.innerHTML = `
                 <h3>Activity History</h3>
                 <ul>
-                    ${data.pet.activityHistory.map(entry => `
+                    ${ 
+                       Object.entries(data.pet.activityHistory).map(([timestamp, entry]) => `
                         <li>
                             <span class="activity-name keyword">${entry.activity.name}</span> with
-                            <span class="activity-partner keyword">${entry.partner.id}</span> at
+                            <span class="activity-partner keyword">${entry.partner?.id}</span> at
                             <span class="activity-timestamp">${new Date(entry.timestamp).toLocaleString()}</span>
                         </li>   
                     `).join('')}
                 </ul>
                 `;
             }
+
+        const relationshipsContainer = document.querySelector(`#pet-container-${petName} .pet-relationships`);
+        if (relationshipsContainer){
+            relationshipsContainer.innerHTML = `
+            <h3> Relationships </h3>
+            <ul>
+                ${ Object.entries(data.pet.relationships).map(([thingName, relationship]) => `
+                    <li>
+                        <span class="relationship-thing-name keyword">${thingName}</span> : 
+                        <span class="relationship-friendliness">${relationship.friendliness}</span>
+                    </li>
+                `).join('')}
+            </ul>
+            `;
+        }
     }
 
     refreshPetViewOnce(petName, baseUrl);

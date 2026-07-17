@@ -48,9 +48,17 @@ export const petViewHtmlString = (pet, baseUrl) => {
 }
 
 export const petActivityHistoryHtmlString = () => {
+    // return `
+    //     <div class="pet-activity-history"></div>
+    //     <div class="pet-relationships"></div>
+    // `;
     return `
-        <div class="pet-activity-history"></div>
+        <div class="pet-relationships"></div>
     `;
+}
+
+export const petRelationshipsHtmlString = () => {
+
 }
 
 

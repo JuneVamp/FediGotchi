@@ -82,7 +82,7 @@ setInterval(() => {
     pet.tick()
   }
 
-}, 1000)
+}, 100)
 
 
 

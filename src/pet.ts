@@ -201,7 +201,7 @@ export class VPet extends VPEntity {
             return "not_free"
         }
 
-        if (!this.willingToActivity(activity, activityPartner)){
+        if (this.willingToActivity(activity, activityPartner) < Math.random() * 10) {
             return "not_willing"
         }
 
@@ -265,10 +265,12 @@ export class VPet extends VPEntity {
             var newStatValue =  this.stats[statName] + changeInValue*activity.maxTicks
 
             if (newStatValue > 100 && (statName in ["hunger", "boredom"])){
+                console.log(`Activity ${activity.name} is not feasable for ${this.name} because ${statName} would exceed 100`)
                 return false
             }
 
             if ( newStatValue < 0 && (statName in ["energy"])){
+                console.log(`Activity ${activity.name} is not feasable for ${this.name} because ${statName} would go below 0`)
                 return false
             }
         }
@@ -360,8 +362,33 @@ export class VPet extends VPEntity {
 
     //TODO 2
     finishActivity(){
-       var activtyFinished
-       var activityPartner 
+       var activityFinished = this.currentActivity
+       var activityPartner = this.currentActivity?.entitiesInvolved.find((ent) => {
+            if (ent instanceof VPetRemoteRef) {
+                return !ent.checkEqual(this.remoteRef)
+            }
+        })
+
+        // HACK 7 need non random way to determine if pet liked activity
+        var petLikedActivity = Math.random() < 0.5
+
+        this.relationships[activityFinished!.name] = {
+            otherEntity : activityFinished,
+            friendliness : this.relationships[activityFinished!.name]?.friendliness ? this.relationships[activityFinished!.name].friendliness + (petLikedActivity ? 1 : -1) :
+            petLikedActivity ? 1 : -1
+        }
+
+        this.relationships[activityFinished!.name].friendliness = Math.max(-5, Math.min(5, this.relationships[activityFinished!.name].friendliness))
+
+        if (activityPartner) {
+            this.relationships[activityPartner.uniqueId] = {
+                otherEntity : activityPartner,
+                friendliness : this.relationships[activityPartner.uniqueId]?.friendliness ? this.relationships[activityPartner.uniqueId].friendliness + (petLikedActivity ? 1 : -1) :
+                petLikedActivity ? 1 : -1
+            }
+
+            this.relationships[activityPartner.uniqueId].friendliness = Math.max(-5, Math.min(5, this.relationships[activityPartner.uniqueId].friendliness))  
+        }
     }
 
     processStatChanges(statChanges : VPStats){

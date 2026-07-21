@@ -1,6 +1,7 @@
 import { VPItem, VPEnvironment, VPUser } from "./otherModels"
 import { VPet } from "./pet"
 import {Context, Hono, Next} from "hono"
+import { auth } from "./lib/auth.ts"
 // import { Layout, PetListComponent } from "./views"
 // import { PetViewComponent} from "./views"
 import { serveStatic } from "@hono/node-server/serve-static"
@@ -22,6 +23,8 @@ type AppEnv = {
 
 const app = new Hono<AppEnv>()
 app.get("/assets/*", serveStatic({root : './'}))
+app.on(["POST", "GET"], "/api/auth/*", (c) => auth.handler(c.req.raw));
+
 
 var users = new Map<string, VPUser>()
 var pets = new Map<string, VPet>()

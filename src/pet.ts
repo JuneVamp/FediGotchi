@@ -238,7 +238,7 @@ export class VPet extends VPEntity {
     // TODO 9 Put in brain
     // TODO 10 when fighting check opposite for partner willingness
     //Returns willingness [0,10]
-    willingToActivity(activity : VPActivity, partner?: VPetRemoteRef | VPUserRemoteRef, randomness : number = 1) : number{
+    willingToActivity(activity : VPActivity, partner?: VPetRemoteRef | VPUserRemoteRef, randomness : number = 0.4) : number{
 
         var activityLike = this.relationships[activity.name]?.friendliness
 
@@ -375,7 +375,7 @@ export class VPet extends VPEntity {
         this.relationships[activityFinished!.name] = {
             otherEntity : activityFinished,
             friendliness : this.relationships[activityFinished!.name]?.friendliness ? this.relationships[activityFinished!.name].friendliness + (petLikedActivity ? 1 : -1) :
-            petLikedActivity ? 1 : -1
+            petLikedActivity ? 0.1 : -0.1
         }
 
         this.relationships[activityFinished!.name].friendliness = Math.max(-5, Math.min(5, this.relationships[activityFinished!.name].friendliness))
@@ -384,7 +384,7 @@ export class VPet extends VPEntity {
             this.relationships[activityPartner.uniqueId] = {
                 otherEntity : activityPartner,
                 friendliness : this.relationships[activityPartner.uniqueId]?.friendliness ? this.relationships[activityPartner.uniqueId].friendliness + (petLikedActivity ? 1 : -1) :
-                petLikedActivity ? 1 : -1
+                petLikedActivity ? 0.1 : -0.1
             }
 
             this.relationships[activityPartner.uniqueId].friendliness = Math.max(-5, Math.min(5, this.relationships[activityPartner.uniqueId].friendliness))  

@@ -1,4 +1,4 @@
-import { authClient } from "./lib/auth-client";
+import { authClient } from "../client/auth-client";
 
 type SignUpInput = {
     email: string;

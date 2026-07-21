@@ -1,5 +1,0 @@
-### ping pong
-GET http://localhost:8000/
-
-### check Post pet
-POST http://localhost:8000/api/pets/cami/activities/play

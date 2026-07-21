@@ -1,15 +1,13 @@
-import { VPItem, VPEnvironment, VPUser } from "./otherModels"
-import { VPet } from "./pet"
 import {Context, Hono, Next} from "hono"
 import { auth } from "./lib/auth.ts"
-// import { Layout, PetListComponent } from "./views"
-// import { PetViewComponent} from "./views"
 import { serveStatic } from "@hono/node-server/serve-static"
-// import { renderToString } from "react-dom/server";
-import { capitalizeFirstLetter } from "./utils"
 import { SERVER_URL } from "./serverConfig.ts"
-import { VPEnvironmentRemoteRef, VPetRemoteRef, VPUserRemoteRef } from "./remoteRefs.ts"
-import { VPActivity } from "./petRepresentation.ts"
+
+import { VPEnvironmentRemoteRef, VPetRemoteRef, VPUserRemoteRef } from "./model/remoteRefs.ts"
+import { VPItem, VPEnvironment, VPUser } from "./model/otherModels"
+import { VPet } from "./model/pet"
+import { VPActivity } from "./model/petRepresentation.ts"
+
 import {htmlLayoutString, petViewLayoutString, petActivityHistoryHtmlString, petViewHtmlString, environmentHtmlString, loginBox} from "./htmlStrings"
 
 type AppEnv = {
@@ -22,7 +20,7 @@ type AppEnv = {
 }
 
 const app = new Hono<AppEnv>()
-app.get("/assets/*", serveStatic({root : './'}))
+// app.get("/assets/*", serveStatic({root : './'}))
 app.on(["POST", "GET"], "/api/auth/*", (c) => auth.handler(c.req.raw));
 
 
@@ -38,7 +36,7 @@ users.set(user1.name, user1)
 // adding random pets based on beings images
 var fs = require('fs');
 var path = require('path');
-var petImagesPath = path.join(__dirname, '../assets/images/beings');
+var petImagesPath = path.join(__dirname, '../public/assets/images/beings');
 var petImageFiles = fs.readdirSync(petImagesPath).filter((file : string) => file.endsWith('.png'));
 // var randomPetImageFiles = petImageFiles.sort(() => 0.5 - Math.random()).slice(0, 6);
 var randomPetImageFiles = petImageFiles.slice(0, 6);
@@ -53,6 +51,8 @@ randomPetImageFiles.forEach((file : string) => {
 var homeEvironment = VPEnvironment.fromStringData("Home") 
 var parkEnvironment = VPEnvironment.fromStringData("Park")
 var schoolEnvironment = VPEnvironment.fromStringData("School")
+
+parkEnvironment.remoteRef.serverURL = SERVER_URL
 
 
 environments.set(homeEvironment.name.toLowerCase(), homeEvironment)
@@ -265,7 +265,9 @@ app.get("/environments/:environmentId/pets", async (c) => {
 })
 
 app.get("/environments/:environmentId/items", async (c) => {
+  console.log("got to environment/items")
   const environment = c.get("environment") as VPEnvironment
+  console.log("found environment, ", environment)
 
   const allItems = environment.items
   return c.json({

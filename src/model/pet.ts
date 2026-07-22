@@ -392,17 +392,17 @@ export class VPet extends VPEntity {
 
 
         //csv for activity finished log
-        var activityFinishedCsv = `${Date.now()},${this.name},${activityFinished!.name},${activityPartner ? activityPartner.uniqueId : "null"},${petLikedActivity}\n`
+        // var activityFinishedCsv = `${Date.now()},${this.name},${activityFinished!.name},${activityPartner ? activityPartner.uniqueId : "null"},${petLikedActivity}\n`
 
-        // csv for relationship log
-        var relationshipsCsv = ""
-        for (const [otherEntityId, relationship] of Object.entries(this.relationships)) {
-            relationshipsCsv += `${Date.now()},${this.name},${otherEntityId},${relationship.friendliness}\n`
-        }
+        // // csv for relationship log
+        // var relationshipsCsv = ""
+        // for (const [otherEntityId, relationship] of Object.entries(this.relationships)) {
+        //     relationshipsCsv += `${Date.now()},${this.name},${otherEntityId},${relationship.friendliness}\n`
+        // }
 
-        // write to csv files
-        writeToCsvFile("logs/activity_finished_log.csv", activityFinishedCsv)
-        writeToCsvFile("logs/relationships_log.csv", relationshipsCsv)
+        // // write to csv files
+        // writeToCsvFile("logs/activity_finished_log.csv", activityFinishedCsv)
+        // writeToCsvFile("logs/relationships_log.csv", relationshipsCsv)
     }
 
     processStatChanges(statChanges : VPStats){

@@ -1,3 +1,6 @@
+import fs from "fs";
+import path from "path";
+
 // Source - https://stackoverflow.com/a/55671924
 // Posted by rydwolf, modified by community. See post 'Timeline' for change history
 // Retrieved 2026-06-16, License - CC BY-SA 4.0
@@ -42,8 +45,8 @@ export function capitalizeFirstLetter(val : string) : string {
 
 
 export function writeToCsvFile(filePath : string, data : string) {
-    const fs = require('fs');
-    const path = require('path');
+    // const fs = require('fs');
+    // const path = require('path');
 
     // Ensure the directory exists
     const dir = path.dirname(filePath);

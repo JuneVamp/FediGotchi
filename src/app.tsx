@@ -1,14 +1,20 @@
+import path from "path";
+import fs from "fs";
+
 import {Context, Hono, Next} from "hono"
-import { auth } from "./lib/auth.ts"
 import { serveStatic } from "@hono/node-server/serve-static"
 import { SERVER_URL } from "./serverConfig.ts"
+
+import { auth } from "./auth.ts"
+import { db } from "./db.js";
+import * as schema from "./auth-schema.js";
 
 import { VPEnvironmentRemoteRef, VPetRemoteRef, VPUserRemoteRef } from "./model/remoteRefs.ts"
 import { VPItem, VPEnvironment, VPUser } from "./model/otherModels"
 import { VPet } from "./model/pet"
 import { VPActivity } from "./model/petRepresentation.ts"
 
-import {htmlLayoutString, petViewLayoutString, petActivityHistoryHtmlString, petViewHtmlString, environmentHtmlString, loginBox} from "./htmlStrings"
+import {htmlLayoutString, petViewLayoutString, petActivityHistoryHtmlString, petViewHtmlString, environmentHtmlString, loginBox, signupform} from "./htmlStrings"
 
 type AppEnv = {
   Variables : {
@@ -24,6 +30,8 @@ const app = new Hono<AppEnv>()
 app.on(["POST", "GET"], "/api/auth/*", (c) => auth.handler(c.req.raw));
 
 
+// #region in-memory initation of pets, users, environments, and activities
+
 var users = new Map<string, VPUser>()
 var pets = new Map<string, VPet>()
 var environments = new Map<string, VPEnvironment>()
@@ -34,9 +42,12 @@ users.set(user1.name, user1)
 
 
 // adding random pets based on beings images
-var fs = require('fs');
-var path = require('path');
-var petImagesPath = path.join(__dirname, '../public/assets/images/beings');
+// var fs = require('fs');
+// var path = require('path');
+// var petImagesPath = path.join(__dirname, '../public/assets/images/beings');
+// var petImageFiles = fs.readdirSync(petImagesPath).filter((file : string) => file.endsWith('.png'));
+
+var petImagesPath = path.join(process.cwd(), 'public/assets/images/beings');
 var petImageFiles = fs.readdirSync(petImagesPath).filter((file : string) => file.endsWith('.png'));
 // var randomPetImageFiles = petImageFiles.sort(() => 0.5 - Math.random()).slice(0, 6);
 var randomPetImageFiles = petImageFiles.slice(0, 6);
@@ -87,6 +98,23 @@ setInterval(() => {
 
 }, 50)
 
+// #endregion
+
+// --------- auth ---------
+app.get("/test-db", async (c) => {
+    const users = await db.select().from(schema.user);
+
+    return c.json(users);
+});
+
+app.get("/me", async (c) => {
+
+    const session = await auth.api.getSession({
+        headers: c.req.raw.headers,
+    });
+
+    return c.json(session);
+});
 
 
 // --------- base urls -------
@@ -110,7 +138,8 @@ app.get("/", async (c) => {
   </div>
   `
   return c.html(htmlLayoutString([
-    loginBox(),
+    signupform(c.get("baseUrl")),
+    loginBox(c.get("baseUrl")),
     allPetsStrings
   ], c.get("baseUrl")))
 })
@@ -265,9 +294,9 @@ app.get("/environments/:environmentId/pets", async (c) => {
 })
 
 app.get("/environments/:environmentId/items", async (c) => {
-  console.log("got to environment/items")
+  // console.log("got to environment/items")
   const environment = c.get("environment") as VPEnvironment
-  console.log("found environment, ", environment)
+  // console.log("found environment, ", environment)
 
   const allItems = environment.items
   return c.json({
@@ -330,3 +359,4 @@ app.get("/users/:userId", async (c) => {
 app.get("/*", serveStatic({root : './public'}))
 
 export default app
+

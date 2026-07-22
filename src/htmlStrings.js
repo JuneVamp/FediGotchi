@@ -78,28 +78,20 @@ export const environmentHtmlString = (environment, baseUrl, [... petChildren]) =
     `
 }
 
-export const loginBox = () => {
+export const loginBox = (baseUrl) => {
     return `
-        <form id="loginform" action="javascript:setUserId()">
-            <label for="userId">Login: </label>
-            <input type="text" id="login-form-userId" name="userId">
-            <label for="password">Password: </label>
-            <input type="password" id="login-form-password" name="password">
+        <form id="loginform" action="${baseUrl}/login" method="POST">
+            <label for="username">Login: </label>
+            <input type="text" id="login-form-username" name="username">
             <input type="submit" value="Submit">
         </form>
         <span id="login-information">
             Not logged in
         </span>
         <script>
-            document.getElementById("login-information").innerHTML = "logged in as: " + "<span id='user-information-userid'>" + localStorage.getItem("userId") + "</span>"
-            function setUserId () {
-                const userId = document.getElementById("login-form-userId").value
-                const password = document.getElementById("login-form-password").value
-                localStorage.setItem("userId", userId)
-                localStorage.setItem("password", password)
-                location.reload()
-            }
+            updateLoginInformation('${baseUrl}');
         </script>
+
     `
 }
 

@@ -130,17 +130,17 @@ export class VPUserRemoteRef extends VPEntityRemoteRef {
 }
 
 // TODO 10 someday
-// export class VPActivityRemoteRef extends VPEntityRemoteRef{
-//     constructor(id : string, serverUrl : string){
-//         super(id, "activity", serverUrl)
-//     }
+export class VPActivityRemoteRef extends VPEntityRemoteRef{
+    constructor(id : string, serverUrl : string){
+        super(id, "activity", serverUrl)
+    }
 
-//     async addEntity(){
+    async addEntity(){
 
-//     }
+    }
 
-//     async getActivity(){
+    async getActivity(){
 
-//     }
+    }
 
-// }
+}

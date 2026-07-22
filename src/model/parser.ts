@@ -34,11 +34,8 @@ export function parseItemFromName(itemName : string) : VPItem {
             item.name = key
             
             var activity 
-            if (value.activity){ activity = parseActivityFromName(value.activity) }
-            item.activity = activity
-
-            item.activity? item.activity.item = item : ""
-
+            if (value.activity){ activity = value.activity }
+            item.activityName = activity
             break;
         }
     }

@@ -1,7 +1,7 @@
 import {Context, Hono, Next} from "hono"
-import { auth } from "./lib/auth.ts"
 import { serveStatic } from "@hono/node-server/serve-static"
 import { SERVER_URL } from "./serverConfig.ts"
+import {setCookie, getCookie, deleteCookie} from "hono/cookie"
 
 import { VPEnvironmentRemoteRef, VPetRemoteRef, VPUserRemoteRef } from "./model/remoteRefs.ts"
 import { VPItem, VPEnvironment, VPUser } from "./model/otherModels"
@@ -9,6 +9,7 @@ import { VPet } from "./model/pet"
 import { VPActivity } from "./model/petRepresentation.ts"
 
 import {htmlLayoutString, petViewLayoutString, petActivityHistoryHtmlString, petViewHtmlString, environmentHtmlString, loginBox} from "./htmlStrings"
+import { createSession, destroySession, getUser } from "./session.ts"
 
 type AppEnv = {
   Variables : {
@@ -21,7 +22,6 @@ type AppEnv = {
 
 const app = new Hono<AppEnv>()
 // app.get("/assets/*", serveStatic({root : './'}))
-app.on(["POST", "GET"], "/api/auth/*", (c) => auth.handler(c.req.raw));
 
 
 var users = new Map<string, VPUser>()
@@ -88,6 +88,40 @@ setInterval(() => {
 }, 50)
 
 
+// --------- login ---------
+
+app.post("/login", async (c) => {
+  const body = await c.req.parseBody()
+  console.log("cookie set")
+
+  const username = body.username as string
+  const session = createSession(username);
+
+  setCookie(c, "sessionId", session, {
+    httpOnly: true,
+    path: "/",
+  });
+
+  return c.redirect("/")
+})
+
+app.get("/me", async (c) => {
+  const session = getCookie(c, "sessionId")
+  const username = getUser(session)
+  
+  if (!username) {
+    return c.text("Not logged in")
+  }
+
+  return c.text(`Logged in as ${username}`)
+})
+
+app.post("/logout", async (c) => {
+  const session = getCookie(c, "sessionId")
+  destroySession(session)
+  deleteCookie(c, "sessionId", { path: "/" })
+  return c.redirect("/")
+})
 
 // --------- base urls -------
 
@@ -110,7 +144,7 @@ app.get("/", async (c) => {
   </div>
   `
   return c.html(htmlLayoutString([
-    loginBox(),
+    loginBox(c.get("baseUrl")),
     allPetsStrings
   ], c.get("baseUrl")))
 })
@@ -265,16 +299,14 @@ app.get("/environments/:environmentId/pets", async (c) => {
 })
 
 app.get("/environments/:environmentId/items", async (c) => {
-  console.log("got to environment/items")
   const environment = c.get("environment") as VPEnvironment
-  console.log("found environment, ", environment)
 
   const allItems = environment.items
   return c.json({
     items: allItems.map(item => {
       return {
         name: item.name,
-        activity: item.activity ? item.activity.toJson() : undefined
+        activity: item.getActivity() ? item.getActivity()!.toJson() : undefined
       }
     })
   })

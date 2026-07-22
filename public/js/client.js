@@ -203,6 +203,7 @@ function refreshPetView(petName , baseUrl) {
             </ul>
             `;
         }
+
     }
 
     refreshPetViewOnce(petName, baseUrl);
@@ -220,4 +221,20 @@ function refreshEnvironmentView(environmentName , baseUrl) {
     setInterval(async () => {
         await refreshEnvironmentViewOnce(environmentName, baseUrl);
     }, 30_000);
+}
+
+function updateLoginInformation(baseUrl) {
+    const refreshLoginInformationOnce = async (baseUrl) => {
+        const loginData = await fetch(`${baseUrl}/me`)
+
+        const userData = await loginData.text();
+        document.getElementById("login-information").innerHTML = `
+            ${userData}<br>
+        `;
+    }
+
+    setInterval(async () => {
+        await refreshLoginInformationOnce(baseUrl);
+    }, 1000);
+
 }

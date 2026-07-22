@@ -35,15 +35,23 @@ export class VPItem {
     name : string
     available : boolean = true
     numUsers = {min : 1, max : 2}
-    activity ?: VPActivity
+    // activity ?: VPActivity
+    activityName ?: string
 
-    constructor(name : string, activity ?: VPActivity){
+    constructor(name : string, activityName ?: string){
         this.name = name
-        this.activity = activity
+        this.activityName = activityName
     }
 
     static fromStringData(itemName : string) : VPItem{
         return parseItemFromName(itemName)
+    }
+
+    getActivity() : VPActivity | undefined{
+        if (!this.activityName) return undefined
+        const activity = parseActivityFromName(this.activityName)
+        activity.item = this
+        return activity
     }
 }
 

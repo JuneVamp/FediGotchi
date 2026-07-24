@@ -1,15 +1,34 @@
 
+// // source: https://www.geeksforgeeks.org/javascript/how-to-get-cookie-by-name-in-javascript/
+// function getCookieByName(name) {
+//   const cookies = document.cookie.split(";");
+//   for (let cookie of cookies) {
+//     cookie = cookie.trim();
+//     if (cookie.startsWith(name + "=")) {
+//       return cookie.substring(name.length + 1);
+//     }
+//   }
+//   return null;
+// }
+
+
+
 async function userAskPetToDoActivity(petName , activityName, baseURL) {
     console.log(`User is asking pet ${petName} to do activity ${activityName}`);
-    const response = await fetch(`/pets/${petName}/do-activity`, {
+    const activityPartnerType = "user"
+    const response = await fetch(`/pets/${petName}/activity-request`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
         },
         body: JSON.stringify({
-            activityName: activityName
+            activityName: activityName,
+            activityPartnerType: activityPartnerType,
+            activityPartnerId: null,
+            activityPartnerServerURL: baseURL
         })
     });
+    console.log(`Response from asking pet ${petName} to do activity ${activityName}:`, response);
     // if (!response.ok) {
     //     console.error(`Failed to ask pet ${petName} to do activity ${activityName}: ${response.statusText}`);
     // } else {

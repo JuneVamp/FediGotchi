@@ -74,6 +74,13 @@ export class VPetRemoteRef extends VPEntityRemoteRef {
             environmentServerURL: environment.serverURL
         }).then((data : any) => { return data.success; });
     }
+
+    async setOwner(owner : VPUserRemoteRef) : Promise<any> {
+        await this.postRequest("set-owner", {
+            ownerId: owner.id,
+            ownerServerURL: owner.serverURL
+        }).then((data : any) => { return data.success; });
+    }
 }
 
 export class VPEnvironmentRemoteRef extends VPEntityRemoteRef {

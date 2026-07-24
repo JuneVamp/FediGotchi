@@ -88,6 +88,7 @@ setInterval(() => {
 }, 50)
 
 
+
 // --------- login ---------
 
 app.post("/login", async (c) => {
@@ -187,9 +188,10 @@ const petMiddleware = async (c: Context, next: Next) => {
 }
 app.use("/pets/:petId/*", petMiddleware)
 
-// HACK 10 COMMENT json requests should get everything that i use to make the website, anyone can make their own website with the json data
+// HACK 7 COMMENT json requests should get everything that i use to make the website, anyone can make their own website with the json data
 // but i kinda return my own version of html for the pet view if looked up on browser 
 // maybe i can seperate it to do that on soemthing like /site/pets/:petId and /api/pets/:petId for json data only
+// or just build the website in the frontend with a js file and return just the shell of an html
 app.get("/pets/:petId", petMiddleware, async (c) => {
   const pet = c.get("pet") as VPet
   const petView = pet.getView()
@@ -219,18 +221,36 @@ app.get("/pets/:petId", petMiddleware, async (c) => {
   })
 })
 
+// expects body to have activity or activityName, activityPartnerType, activityPartnerId, activityPartnerServerURL
 app.post("/pets/:petId/activity-request", async (c) => {
   const pet = c.get("pet")
   const body = await c.req.json()
-  const activity = VPActivity.fromJson(body.activity)
+  var activity = undefined as unknown as VPActivity
+
+  if (body.activity){
+    activity = VPActivity.fromJson(body.activity)
+  }
+  else if (body.activityName){
+    activity = VPActivity.fromStringData(body.activityName)
+  }
+
   const activityPartnerType = body.activityPartnerType
 
   var activityPartner : VPetRemoteRef | VPUserRemoteRef | undefined = undefined
   if (activityPartnerType === "pet") {
     activityPartner = new VPetRemoteRef(body.activityPartnerId, body.activityPartnerServerURL)
-  } else if (activityPartnerType === "user") {
-    activityPartner = new VPUserRemoteRef(body.activityPartnerId, body.activityPartnerServerURL)
-  } else {
+  } 
+  else if (activityPartnerType === "user") {
+    const userId = c.get("currentUserId") as string
+    console.log("currentUserId", userId)
+    if (!userId) {
+      return c.json({
+        message: "User not logged in"
+      }, 401)
+    }
+    activityPartner = new VPUserRemoteRef( userId, body.activityPartnerServerURL)
+  } 
+  else {
     return c.json({
       message: `Activity partner type ${activityPartnerType} not supported`
     }, 400)
@@ -246,10 +266,21 @@ app.post("/pets/:petId/activity-request", async (c) => {
 app.post("/pets/:petId/set-environment", async (c) => {
   const pet = c.get("pet")
   const body = await c.req.json()
-  pet.environment = new VPEnvironmentRemoteRef(body.environmentId, body.environmentServerURL)
-  console.log(`Pet ${pet.name} set to environment ${body.environmentId} at ${body.environmentServerURL}`)
+  const response = await pet.setEnvironment(new VPEnvironmentRemoteRef(body.environmentId, body.environmentServerURL))
   return c.json({
-    message: `Pet ${pet.name} set to environment ${body.environmentId}`
+    message: `Pet ${pet.name} ${response.accepted ? 'successfully' : 'failed'} set to environment ${body.environmentId}`,
+    accepted: response.accepted
+  })
+})
+
+app.post("/pets/:petId/set-owner", async (c) => {
+  const pet = c.get("pet")
+  const body = await c.req.json()
+  pet.owner = new VPUserRemoteRef(body.ownerId, body.ownerServerURL)
+  const response = await pet.setOwner(new VPUserRemoteRef(body.ownerId, body.ownerServerURL))
+  return c.json({
+    message: `Pet ${pet.name} ${response.accepted ? 'successfully' : 'failed'} set to owner ${body.ownerId}`,
+    accepted: response.accepted
   })
 })
 

@@ -2,7 +2,7 @@ import { VPActivity, VPEntity} from "./petRepresentation";
 import jsonData from "./data.json" 
 import { VPEnvironment, VPItem } from "./otherModels";
 
-// HACK 3 : will not get the "live version"
+// HACK 8 : will not get the "live version"
 export function parseActivityFromName(activityName : string) : VPActivity {
 
     var activity : VPActivity = VPActivity.fromStringData("empty")
@@ -25,7 +25,7 @@ export function parseActivityFromName(activityName : string) : VPActivity {
     return activity
 }
 
-// HACK 3 : will not get the "live version"
+// HACK 8 : will not get the "live version"
 export function parseItemFromName(itemName : string) : VPItem {
     var item : VPItem = new VPItem("-1")
 
@@ -46,7 +46,7 @@ export function parseItemFromName(itemName : string) : VPItem {
     return item
 }
 
-// HACK 3 : will not get the "live version"
+// HACK 8 : will not get the "live version"
 export function parseEnvironmentFromName(envName : string) : VPEnvironment {
     var env : VPEnvironment = new VPEnvironment("-1","")
 

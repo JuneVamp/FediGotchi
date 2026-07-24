@@ -139,6 +139,13 @@ export class VPActivity {
     }
 
     static fromJson(jsonData : any) : VPActivity {
+        const checkIfValidActivity = (data : any) : boolean => {
+            return data && typeof data.name === "string" && typeof data.statAffected === "object" && typeof data.maxTicks === "number" ;
+        }
+        if (!checkIfValidActivity(jsonData)) {
+            // throw new Error("Invalid activity data");
+            return undefined as unknown as VPActivity; // HACK 9 to avoid breaking the server if the activity is invalid
+        }
         const activity = new VPActivity({
             name: jsonData.name,
             statAffected: jsonData.statAffected,

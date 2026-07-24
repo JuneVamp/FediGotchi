@@ -26,6 +26,7 @@ export interface PetView{
     activityHistory ?: ActivityHistoryDict
     relationships ?: VPRelationshipDict
     availableUserActivityNames ?: Array<string>
+    ownerRemoteRef ?: VPUserRemoteRef
 }
 
 export enum petState {
@@ -39,6 +40,7 @@ export class VPet extends VPEntity {
     // personality : VPPersonality = new VPPersonality()
     stats : VPStats = createDefaultStats()
     environment ?: VPEnvironmentRemoteRef 
+    owner ?: VPUserRemoteRef
     currentActivity ?: VPActivity
     reservedForActivity ?: VPActivity
     state : petState = petState.idle
@@ -85,7 +87,7 @@ export class VPet extends VPEntity {
         });
     }
 
-    //---------------------Activity Methods--------------------
+    // #region ---------------------Activity Methods--------------------
     initiateActivity(){
         // TODO 5 Solo item activities
         // TODO 8 ask user
@@ -200,7 +202,9 @@ export class VPet extends VPEntity {
     }
 
     acceptActivity(activity : VPActivity, activityPartner : VPetRemoteRef | VPUserRemoteRef) : string{
-        if (this.state !== petState.idle) {
+        // HACK COMMENT : to allow users to "interupt" pet activities
+        // although since activities aren't live objects they can't be interupted for the other pet
+        if (this.state !== petState.idle && activityPartner instanceof VPetRemoteRef) {
             return "not_free"
         }
 
@@ -257,7 +261,7 @@ export class VPet extends VPEntity {
         // add 1 randomness
         var willingness = totalLike + getRandomIntInclusive(-1*randomness, randomness)
 
-        //normalize to 10 to -10 (i understand why gpt writes comments like this, without these i will forget what i was doing)
+        //normalize to 10 to -10 (i understand why gpt writes comments like this, without these i will forget what i was doing) // forgot-counter : 4
         willingness = ((willingness * 10 / (10 + randomness)) +10)/2
 
         return willingness
@@ -280,6 +284,8 @@ export class VPet extends VPEntity {
         return true
     }
 
+    //#endregion
+
 
     // --------------------async methods--------------------
 
@@ -291,8 +297,6 @@ export class VPet extends VPEntity {
             resolve(this.acceptActivity(activity, activityPartner))
         })
     }
-
-
 
     async sendActivityRequest(activity : VPActivity, activityPartner : VPetRemoteRef | VPItem | VPUserRemoteRef) : Promise<string>{
         const activityID = this.remoteRef.id + "@" + this.remoteRef.serverURL + "@" + Date.now().toString()
@@ -321,7 +325,25 @@ export class VPet extends VPEntity {
         })
     }
 
-    //---------------------Tick Methods--------------------
+    async setEnvironment(environment : VPEnvironmentRemoteRef) : Promise<any>{
+        this.environment = environment
+        // TODO 4 logic
+        var saidYes = true
+        return {
+            accepted : saidYes
+        }
+    }
+    
+    async setOwner(owner : VPUserRemoteRef) : Promise<any>{
+        this.owner = owner
+        // TODO 4 logic
+        var saidYes = true
+        return {
+            accepted : saidYes
+        }
+    }
+
+    // #region ---------------------Tick Methods--------------------
     tick(){
         //TODO 8 emit tick event
 
@@ -368,16 +390,70 @@ export class VPet extends VPEntity {
        var activityPartner = this.currentActivity?.entitiesInvolved.find((ent) => {
             if (ent instanceof VPetRemoteRef) {
                 return !ent.checkEqual(this.remoteRef)
+            } else if (ent instanceof VPUserRemoteRef) {
+                return true
             }
         })
 
         // HACK 7 need non random way to determine if pet liked activity
-        var petLikedActivity = Math.random() < 0.5
+        var petLikedActivity = this.didPetLikeActivity(activityFinished!, activityPartner!)
+        
+        this.updatePetLikings(activityFinished!, petLikedActivity, activityPartner)
+
+        const finishTimestamp = Date.now()
+
+        // csv for activity finished log
+        var petActivityRelationship = this.relationships[activityFinished!.name]?.friendliness
+        var partnerActivityRelationship = activityPartner ? this.relationships[activityPartner.uniqueId]?.friendliness : undefined
+        var activityFinishedCsv = `${finishTimestamp},${this.name},${activityFinished!.name},${activityPartner ? activityPartner.uniqueId : "null"},${petLikedActivity},${petActivityRelationship ? petActivityRelationship : "null"},${partnerActivityRelationship ? partnerActivityRelationship : "null"}\n`
+
+        // csv for relationship log
+        var relationshipsCsv = ""
+        for (const [otherEntityId, relationship] of Object.entries(this.relationships)) {
+            relationshipsCsv += `${finishTimestamp},${this.name},${otherEntityId},${relationship.friendliness}\n`
+        }
+
+        // write to csv files
+        writeToCsvFile("logs/activity_finished_log.csv", activityFinishedCsv)
+        writeToCsvFile("logs/relationships_log.csv", relationshipsCsv)
+    }
+
+    didPetLikeActivity(activity : VPActivity, activityPartner : VPetRemoteRef | VPUserRemoteRef, randomness : number = 0.01) : boolean{
+        // alorithm outline
+        // sum the friendliness values
+        // chance of liking = friendliness
+        // random chance %randomness to have random outcome
+
+
+        var activityFriendliness = this.relationships[activity.name]?.friendliness
+        var partnerFriendliness = activityPartner ?  this.relationships[activityPartner.uniqueId]?.friendliness : undefined
+        var totalFriendliness = (activityFriendliness ? activityFriendliness : 0) + (partnerFriendliness ? partnerFriendliness : 0)
+
+        // normalize to [0,1]
+        var chanceOfLiking = (totalFriendliness + 10) / 20 
+        var petLikedActivity = Math.random() < chanceOfLiking
+
+        if (Math.random() < randomness) {
+            return Math.random() < 0.5
+        } else{
+            return petLikedActivity
+        }
+    }
+
+    updatePetLikings(activityFinished : VPActivity, petLikedActivity : boolean, activityPartner ?: VPetRemoteRef | VPUserRemoteRef, randomness : number = 0.1){
+        // % randomness chance to set the friendliness to a random value between -5 and 5
+        var randomFriendliness = getRandomIntInclusive(-5, 5)
+        var randomPartnerFriendliness = getRandomIntInclusive(-5, 5)
+        if (Math.random() < randomness) {
+            randomFriendliness = getRandomIntInclusive(-5, 5)
+            randomPartnerFriendliness = getRandomIntInclusive(-5, 5)
+        }
 
         this.relationships[activityFinished!.name] = {
             otherEntity : activityFinished,
-            friendliness : this.relationships[activityFinished!.name]?.friendliness ? this.relationships[activityFinished!.name].friendliness + (petLikedActivity ? 1 : -1) :
-            petLikedActivity ? 0.1 : -0.1
+            friendliness : this.relationships[activityFinished!.name]?.friendliness ? 
+            this.relationships[activityFinished!.name].friendliness + (petLikedActivity ? 1 : -1) :
+            petLikedActivity ? 1 : -1
         }
 
         this.relationships[activityFinished!.name].friendliness = Math.max(-5, Math.min(5, this.relationships[activityFinished!.name].friendliness))
@@ -385,26 +461,13 @@ export class VPet extends VPEntity {
         if (activityPartner) {
             this.relationships[activityPartner.uniqueId] = {
                 otherEntity : activityPartner,
-                friendliness : this.relationships[activityPartner.uniqueId]?.friendliness ? this.relationships[activityPartner.uniqueId].friendliness + (petLikedActivity ? 1 : -1) :
-                petLikedActivity ? 0.1 : -0.1
+                friendliness : this.relationships[activityPartner.uniqueId]?.friendliness ? 
+                this.relationships[activityPartner.uniqueId].friendliness + (petLikedActivity ? 1 : -1) :
+                petLikedActivity ? 1 : -1
             }
 
             this.relationships[activityPartner.uniqueId].friendliness = Math.max(-5, Math.min(5, this.relationships[activityPartner.uniqueId].friendliness))  
         }
-
-
-        //csv for activity finished log
-        // var activityFinishedCsv = `${Date.now()},${this.name},${activityFinished!.name},${activityPartner ? activityPartner.uniqueId : "null"},${petLikedActivity}\n`
-
-        // // csv for relationship log
-        // var relationshipsCsv = ""
-        // for (const [otherEntityId, relationship] of Object.entries(this.relationships)) {
-        //     relationshipsCsv += `${Date.now()},${this.name},${otherEntityId},${relationship.friendliness}\n`
-        // }
-
-        // // write to csv files
-        // writeToCsvFile("logs/activity_finished_log.csv", activityFinishedCsv)
-        // writeToCsvFile("logs/relationships_log.csv", relationshipsCsv)
     }
 
     processStatChanges(statChanges : VPStats){
@@ -426,6 +489,8 @@ export class VPet extends VPEntity {
         }
     }
 
+    // #endregion
+
     // -------------View Methods--------------------
     getView() : PetView{
         this.tempPetView.boredom = this.stats.boredom
@@ -433,7 +498,9 @@ export class VPet extends VPEntity {
         this.tempPetView.remoteRef = this.remoteRef
         this.tempPetView.activityHistory = this.activityHistory
         this.tempPetView.relationships = this.relationships
+
         this.tempPetView.availableUserActivityNames = jsonData.Activities.types.pet_user
+        this.tempPetView.ownerRemoteRef = this.owner
 
         this.tempPetView.environmentName = this.environment ? this.environment.displayName : "null"
         this.tempPetView.environmentRemoteRef = this.environment
@@ -474,9 +541,6 @@ export class VPet extends VPEntity {
         return this.tempPetView
     }
 
-    // getHTMLView(baseURL : string) : (children: string) => string{
-    //     return (children : string) => {return petViewLayoutString(this.getView(), baseURL, [children])}
-    // }
 
     getRemoteRef() : VPetRemoteRef{
         this.remoteRef.id = this.name

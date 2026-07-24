@@ -40,8 +40,8 @@ export class VPEntityRemoteRef {
 }
 
 export class VPetRemoteRef extends VPEntityRemoteRef {
-    constructor(id : string, serverUrl : string){
-        super(id, "pet", serverUrl)
+    constructor(id : string, serverURL : string){
+        super(id, "pet", serverURL)
     }
 
     checkEqual(other : VPetRemoteRef) : boolean {
@@ -61,7 +61,7 @@ export class VPetRemoteRef extends VPEntityRemoteRef {
             activity: activityJson,
             activityPartnerType: activityPartner.entityType,
             activityPartnerId: activityPartner.id,
-            activityPartnerServerUrl: activityPartner.serverURL,
+            activityPartnerServerURL: activityPartner.serverURL,
             activityID: activityID
         })
 
@@ -71,7 +71,7 @@ export class VPetRemoteRef extends VPEntityRemoteRef {
     async setEnvironment(environment : VPEnvironmentRemoteRef) : Promise<any> {
         await this.postRequest("set-environment", {
             environmentId: environment.id,
-            environmentServerUrl: environment.serverURL
+            environmentServerURL: environment.serverURL
         }).then((data : any) => { return data.success; });
     }
 }
@@ -79,8 +79,8 @@ export class VPetRemoteRef extends VPEntityRemoteRef {
 export class VPEnvironmentRemoteRef extends VPEntityRemoteRef {
     displayName : string
 
-    constructor(id : string, serverUrl : string, displayName ?: string){
-        super(id, "environment", serverUrl)
+    constructor(id : string, serverURL : string, displayName ?: string){
+        super(id, "environment", serverURL)
         this.displayName = displayName || id
     }
 
@@ -118,15 +118,15 @@ export class VPEnvironmentRemoteRef extends VPEntityRemoteRef {
     async addPet(pet : VPetRemoteRef) : Promise<any> {
         const data = await this.postRequest("add-pet", {
             petId: pet.id,
-            petServerUrl: pet.serverURL
+            petServerURL: pet.serverURL
         })
         return data.success;
     }
 }
 
 export class VPUserRemoteRef extends VPEntityRemoteRef {
-    constructor(id : string, serverUrl : string){
-        super(id, "user", serverUrl)
+    constructor(id : string, serverURL : string){
+        super(id, "user", serverURL)
     }
 
 
@@ -134,8 +134,8 @@ export class VPUserRemoteRef extends VPEntityRemoteRef {
 
 // TODO 10 someday
 export class VPActivityRemoteRef extends VPEntityRemoteRef{
-    constructor(id : string, serverUrl : string){
-        super(id, "activity", serverUrl)
+    constructor(id : string, serverURL : string){
+        super(id, "activity", serverURL)
     }
 
     async addEntity(){

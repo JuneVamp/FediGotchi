@@ -16,7 +16,7 @@ type AppEnv = {
     pet : VPet,
     environment : VPEnvironment,
     currentUserId : string,
-    baseUrl : string
+    baseURL : string
   }
 }
 
@@ -59,10 +59,10 @@ environments.set(homeEvironment.name.toLowerCase(), homeEvironment)
 environments.set(parkEnvironment.name.toLowerCase(), parkEnvironment)
 environments.set(schoolEnvironment.name.toLowerCase(), schoolEnvironment)
 
-const remoteServerUrl = "https://utensil-ahoy-ferocity.ngrok-free.dev"
+const remoteServerURL = "https://utensil-ahoy-ferocity.ngrok-free.dev"
 
 var useRemotePark : boolean = false
-const remotePark = new VPEnvironmentRemoteRef("Park", remoteServerUrl, "Remote Park")
+const remotePark = new VPEnvironmentRemoteRef("Park", remoteServerURL, "Remote Park")
 
 if (useRemotePark) {
   pets.forEach(pet => {
@@ -126,10 +126,10 @@ app.post("/logout", async (c) => {
 // --------- base urls -------
 
 app.use("/*" ,async (c : Context, next: Next)=> {
-  const baseUrl = new URL(c.req.url).origin
+  const baseURL = new URL(c.req.url).origin
   const prefix = c.req.header("X-Forwarded-Prefix") || ""
-  const prefixedUrl = baseUrl + prefix
-  c.set("baseUrl", prefixedUrl)
+  const prefixedURL = baseURL + prefix
+  c.set("baseURL", prefixedURL)
   await next()
 })
 
@@ -137,24 +137,24 @@ app.get("/", async (c) => {
   const allPetsStrings = `
   <div id="pets"> 
     ${Array.from(pets.values()).map(pet => {
-       return petViewLayoutString(pet.getView(), c.get("baseUrl"), [
-        petViewHtmlString(pet.getView(), c.get("baseUrl"))
+       return petViewLayoutString(pet.getView(), c.get("baseURL"), [
+        petViewHtmlString(pet.getView(), c.get("baseURL"))
       ]); 
     }) .join("")} 
   </div>
   `
   return c.html(htmlLayoutString([
-    loginBox(c.get("baseUrl")),
+    loginBox(c.get("baseURL")),
     allPetsStrings
-  ], c.get("baseUrl")))
+  ], c.get("baseURL")))
 })
 
 app.get("/federation/me", async (c) => {
-  const baseUrl = new URL(c.req.url).origin
-  const prefixedUrl = baseUrl + c.req.header("X-Forwarded-Prefix") 
+  const baseURL = new URL(c.req.url).origin
+  const prefixedURL = baseURL + c.req.header("X-Forwarded-Prefix") 
 
   return c.json({
-    serverUrl: prefixedUrl,
+    serverURL: prefixedURL,
   })
 })
 
@@ -183,10 +183,13 @@ const petMiddleware = async (c: Context, next: Next) => {
 
   c.set("pet", pet)
   c.set("currentUserId", getUser(getCookie(c, "sessionId")))
-  await next()
+  await next() // FIXME 7 this throws an error... by nature? https://stackoverflow.com/questions/27101240/typeerror-converting-circular-structure-to-json-in-nodejs
 }
 app.use("/pets/:petId/*", petMiddleware)
 
+// HACK 10 COMMENT json requests should get everything that i use to make the website, anyone can make their own website with the json data
+// but i kinda return my own version of html for the pet view if looked up on browser 
+// maybe i can seperate it to do that on soemthing like /site/pets/:petId and /api/pets/:petId for json data only
 app.get("/pets/:petId", petMiddleware, async (c) => {
   const pet = c.get("pet") as VPet
   const petView = pet.getView()
@@ -198,15 +201,15 @@ app.get("/pets/:petId", petMiddleware, async (c) => {
     return c.html(
       htmlLayoutString(
         [
-          loginBox(c.get("baseUrl")),
-          petViewLayoutString(petView, c.get("baseUrl"), [
-            petViewHtmlString(petView, c.get("baseUrl")),
+          loginBox(c.get("baseURL")),
+          petViewLayoutString(petView, c.get("baseURL"), [
+            petViewHtmlString(petView, c.get("baseURL")),
             // petActivityHistoryHtmlString(),
             petRelationshipsHtmlString(),
-            petUserActionsHtmlString(pet, c.get("baseUrl"))
+            petUserActionsHtmlString(pet, c.get("baseURL"))
           ])
         ],
-        c.get("baseUrl"))
+        c.get("baseURL"))
     )
   }
 
@@ -224,9 +227,9 @@ app.post("/pets/:petId/activity-request", async (c) => {
 
   var activityPartner : VPetRemoteRef | VPUserRemoteRef | undefined = undefined
   if (activityPartnerType === "pet") {
-    activityPartner = new VPetRemoteRef(body.activityPartnerId, body.activityPartnerServerUrl)
+    activityPartner = new VPetRemoteRef(body.activityPartnerId, body.activityPartnerServerURL)
   } else if (activityPartnerType === "user") {
-    activityPartner = new VPUserRemoteRef(body.activityPartnerId, body.activityPartnerServerUrl)
+    activityPartner = new VPUserRemoteRef(body.activityPartnerId, body.activityPartnerServerURL)
   } else {
     return c.json({
       message: `Activity partner type ${activityPartnerType} not supported`
@@ -243,8 +246,8 @@ app.post("/pets/:petId/activity-request", async (c) => {
 app.post("/pets/:petId/set-environment", async (c) => {
   const pet = c.get("pet")
   const body = await c.req.json()
-  pet.environment = new VPEnvironmentRemoteRef(body.environmentId, body.environmentServerUrl)
-  console.log(`Pet ${pet.name} set to environment ${body.environmentId} at ${body.environmentServerUrl}`)
+  pet.environment = new VPEnvironmentRemoteRef(body.environmentId, body.environmentServerURL)
+  console.log(`Pet ${pet.name} set to environment ${body.environmentId} at ${body.environmentServerURL}`)
   return c.json({
     message: `Pet ${pet.name} set to environment ${body.environmentId}`
   })
@@ -276,15 +279,15 @@ app.get("/environments/:environmentId", environmentMiddleware, async (c) => {
     return c.html(
       htmlLayoutString(
         [
-          environmentHtmlString(environment, c.get("baseUrl"), [
+          environmentHtmlString(environment, c.get("baseURL"), [
             ...petViews.map(petView => {
-                return petViewLayoutString(petView, c.get("baseUrl"), [
-                  petViewHtmlString(petView, c.get("baseUrl"))
+                return petViewLayoutString(petView, c.get("baseURL"), [
+                  petViewHtmlString(petView, c.get("baseURL"))
                 ])
             })
           ])
         ],
-        c.get("baseUrl"))
+        c.get("baseURL"))
     )
   }
 
@@ -322,7 +325,7 @@ app.post("/environments/:environmentId/add-pet", async (c) => {
   const environmentId = c.req.param("environmentId")!
   
   const body = await c.req.json()
-  const pet = new VPetRemoteRef(body.petId, body.petServerUrl)
+  const pet = new VPetRemoteRef(body.petId, body.petServerURL)
   environment.addPet(pet)
   return c.json({
     message: `Pet ${body.petId} added to environment ${environmentId}`

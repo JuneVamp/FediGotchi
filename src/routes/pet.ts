@@ -35,12 +35,12 @@ const app = new Hono()
 //     return c.html(
 //       htmlLayoutString(
 //         [
-//           petViewLayoutString(petView, c.get("baseUrl"), [
-//             petViewHtmlString(petView, c.get("baseUrl")),
+//           petViewLayoutString(petView, c.get("baseURL"), [
+//             petViewHtmlString(petView, c.get("baseURL")),
 //             petActivityHistoryHtmlString()
 //           ])
 //         ],
-//         c.get("baseUrl"))
+//         c.get("baseURL"))
 //     )
 //   }
 
@@ -58,9 +58,9 @@ const app = new Hono()
 
 //   var activityPartner : VPetRemoteRef | VPUserRemoteRef | undefined = undefined
 //   if (activityPartnerType === "pet") {
-//     activityPartner = new VPetRemoteRef(body.activityPartnerId, body.activityPartnerServerUrl)
+//     activityPartner = new VPetRemoteRef(body.activityPartnerId, body.activityPartnerServerURL)
 //   } else if (activityPartnerType === "user") {
-//     activityPartner = new VPUserRemoteRef(body.activityPartnerId, body.activityPartnerServerUrl)
+//     activityPartner = new VPUserRemoteRef(body.activityPartnerId, body.activityPartnerServerURL)
 //   } else {
 //     return c.json({
 //       message: `Activity partner type ${activityPartnerType} not supported`
@@ -77,7 +77,7 @@ const app = new Hono()
 // app.post("/pets/:petId/set-environment", async (c) => {
 //   const pet = c.get("pet")
 //   const body = await c.req.json()
-//   pet.environment = new VPEnvironmentRemoteRef(body.environmentId, body.environmentServerUrl)
+//   pet.environment = new VPEnvironmentRemoteRef(body.environmentId, body.environmentServerURL)
 //   return c.json({
 //     message: `Pet ${pet.name} set to environment ${body.environmentId}`
 //   })

@@ -61,11 +61,11 @@ export class VPEnvironment {
     pets : Array<VPetRemoteRef> = []
     remoteRef : VPEnvironmentRemoteRef 
 
-    constructor (name : string, serverUrl : string = "", items : Array<VPItem> = []){
+    constructor (name : string, serverURL : string = "", items : Array<VPItem> = []){
         this.name = name
         this.items = items
         
-        this.remoteRef = new VPEnvironmentRemoteRef(this.name, serverUrl)
+        this.remoteRef = new VPEnvironmentRemoteRef(this.name, serverURL)
     }
     
     static fromStringData(envName : string) : VPEnvironment{

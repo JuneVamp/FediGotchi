@@ -4,6 +4,7 @@ import { VPEnvironment, VPItem, VPUser } from "./otherModels"
 import { parseActivityFromName } from "./parser"
 import { weighted_random, getRandomInt, getRandomIntInclusive, writeToCsvFile } from "../utils"
 import {VPEnvironmentRemoteRef, VPUserRemoteRef, VPetRemoteRef} from "./remoteRefs"
+import jsonData from "./data.json" 
 
 // @ts-ignore - JavaScript module without type declarations.
 import { petViewLayoutString } from "./htmlStrings"
@@ -24,6 +25,7 @@ export interface PetView{
     activityItem ?: VPItem
     activityHistory ?: ActivityHistoryDict
     relationships ?: VPRelationshipDict
+    availableUserActivityNames ?: Array<string>
 }
 
 export enum petState {
@@ -70,10 +72,10 @@ export class VPet extends VPEntity {
 
     remoteRef : VPetRemoteRef 
 
-    constructor (name : string, serverUrl : string){
+    constructor (name : string, serverURL : string){
         super(name)
 
-        this.remoteRef = new VPetRemoteRef(this.name, serverUrl)
+        this.remoteRef = new VPetRemoteRef(this.name, serverURL)
 
         // HACK 7 : un-hardcode this
         this.knownActivitesPetxPet = [ 
@@ -431,6 +433,7 @@ export class VPet extends VPEntity {
         this.tempPetView.remoteRef = this.remoteRef
         this.tempPetView.activityHistory = this.activityHistory
         this.tempPetView.relationships = this.relationships
+        this.tempPetView.availableUserActivityNames = jsonData.Activities.types.pet_user
 
         this.tempPetView.environmentName = this.environment ? this.environment.displayName : "null"
         this.tempPetView.environmentRemoteRef = this.environment
@@ -471,8 +474,8 @@ export class VPet extends VPEntity {
         return this.tempPetView
     }
 
-    // getHTMLView(baseUrl : string) : (children: string) => string{
-    //     return (children : string) => {return petViewLayoutString(this.getView(), baseUrl, [children])}
+    // getHTMLView(baseURL : string) : (children: string) => string{
+    //     return (children : string) => {return petViewLayoutString(this.getView(), baseURL, [children])}
     // }
 
     getRemoteRef() : VPetRemoteRef{

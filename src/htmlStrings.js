@@ -1,17 +1,17 @@
 // I could have used React but I tried and hated it so this is my version of react
 // TODO 10 someday change this to React or hono/jsx
 
-export const htmlLayoutString = ([...children], baseUrl) => {
+export const htmlLayoutString = ([...children], baseURL) => {
     return `
         <!doctype html>
         <html>
             <head>
                 <meta charset="utf-8">
                 <title>FediFlock</title>
-                <link rel="stylesheet" href="${baseUrl}/styles/style.css">
+                <link rel="stylesheet" href="${baseURL}/styles/style.css">
             </head>
             <body>
-            <script src="${baseUrl}/js/client.js"> </script>
+            <script src="${baseURL}/js/client.js"> </script>
                 ${children.join("")}
             </body>
         </html>
@@ -20,7 +20,7 @@ export const htmlLayoutString = ([...children], baseUrl) => {
 
 // PET STRINGS
 
-export const petViewLayoutString = (pet, baseUrl, [...children]) => {
+export const petViewLayoutString = (pet, baseURL, [...children]) => {
     return `
         <div class="pet-container" id="pet-container-${pet.name}">
             <div class="pet" id="pet-${pet.name}">
@@ -30,13 +30,13 @@ export const petViewLayoutString = (pet, baseUrl, [...children]) => {
     `;
 };
 
-export const petViewHtmlString = (pet, baseUrl) => {
+export const petViewHtmlString = (pet, baseURL) => {
     return `
         <script>
-            console.log('${baseUrl}');
-            refreshPetView('${pet.name}', '${baseUrl}');
+            console.log('${baseURL}');
+            refreshPetView('${pet.name}', '${baseURL}');
         </script>
-        <img src="${baseUrl}/${pet.imageSrc}" />
+        <img src="${baseURL}/${pet.imageSrc}" />
         <div class="pet-name">${pet.name}</div>
         <div class="pet-activity"> CODE DEFINED </div>
         <div class="stats"> CODE DEFINE </div>
@@ -56,27 +56,30 @@ export const petRelationshipsHtmlString = () => {
 
 }
 
-export const petUserActionsHtmlString = (pet, baseUrl) => {
+export const petUserActionsHtmlString = (pet, baseURL) => {
+            //examples
+            // <button class="user-activity-action" onClick="userAskPetToDoActivity('${pet.name}', 'play')">Play</button>
+            // <button class="user-activity-action" onClick="userAskPetToDoActivity('${pet.name}', 'eat')">Eat</button>
+            // <button class="user-activity-action" onClick="userAskPetToDoActivity('${pet.name}', 'sleep')">Sleep</button>
     return `
-        <div class="user-actions">
-            <button class="user-activity-action" onClick="userAskPetToDoActivity('${pet.name}', 'play')">Play</button>
-            <button class="user-activity-action" onClick="userAskPetToDoActivity('${pet.name}', 'eat')">Eat</button>
-            <button class="user-activity-action" onClick="userAskPetToDoActivity('${pet.name}', 'sleep')">Sleep</button>
-        </div>
-        <button class="environment-move" onClick="userMovePetToNewEnvironment('${pet.name}', '${baseUrl}')">move to new environment</button>
+        <div class="user-actions">  </div>
+        <script>
+            setupUserActions('${pet.name}', '${baseURL}');
+        </script>
+        <button class="environment-move" onClick="userMovePetToNewEnvironment('${pet.name}', '${baseURL}')">move to new environment</button>
     `;
 }
 
 
 // ENVIRONMENT STRINGS
 
-export const environmentHtmlString = (environment, baseUrl, [... petChildren]) => {
+export const environmentHtmlString = (environment, baseURL, [... petChildren]) => {
     const environmentId = (environment.id ? environment.id : environment.name).toLowerCase();
     return `
         <div class="environment" id="environment-${environmentId}">
             <script>
-                console.log('${baseUrl}');
-                refreshEnvironmentView('${environmentId}', '${baseUrl}');
+                console.log('${baseURL}');
+                refreshEnvironmentView('${environmentId}', '${baseURL}');
             </script>
             <div class="environment-name">${environmentId}</div>
             <button id="save-environement-local-storage" onClick='saveEnvironmentToLocalStorage(${JSON.stringify(environment.remoteRef)})'>Save locally</button>
@@ -85,9 +88,9 @@ export const environmentHtmlString = (environment, baseUrl, [... petChildren]) =
     `
 }
 
-export const loginBox = (baseUrl) => {
+export const loginBox = (baseURL) => {
     return `
-        <form id="loginform" action="${baseUrl}/login" method="POST">
+        <form id="loginform" action="${baseURL}/login" method="POST">
             <label for="username">Login: </label>
             <input type="text" id="login-form-username" name="username">
             <input type="submit" value="Submit">
@@ -96,7 +99,7 @@ export const loginBox = (baseUrl) => {
             Not logged in
         </span>
         <script>
-            updateLoginInformation('${baseUrl}');
+            updateLoginInformation('${baseURL}');
         </script>
 
     `

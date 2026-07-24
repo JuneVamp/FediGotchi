@@ -1,119 +1,15 @@
 
-
-async function updatePets() {
-    const response = await fetch(`api/pets`);
-    if (!response.ok) {
-        console.error("Failed to fetch pets:", response.status, response.statusText);
-        return;
-    }
-    const jsonResponse = await response.json();
-    const pets = jsonResponse.pets;
-
-    const container = document.getElementById("pets");
-
-    container.innerHTML = pets.map(pet => { 
-        var environmentUrl = pet.environmentRemoteRef ? pet.environmentRemoteRef.serverURL + "/environments/" + pet.environmentRemoteRef.id : "null"
-        var activityPartnerUrl = (pet.activityPartnerRemoteRef ? pet.activityPartnerRemoteRef.serverURL + "/pets/" + pet.activityPartnerRemoteRef.id : "null" )
-        
-        
-        return `
-        <div class="pet" id="pet-${pet.name}">
-            <img src="${pet.imageSrc}">
-            <div class="pet-name">${pet.name}</div>
-            <div class="pet-activity">is doing 
-                <keyword> ${pet.currentActivityName}</keyword> with 
-                <a href="${activityPartnerUrl}">
-                    <keyword> ${pet.currentActivityPartnerName} </keyword>
-                </a> in 
-                <a href="${environmentUrl}">
-                    <keyword> ${pet.environmentName} </keyword>
-                </a>
-            </div>
-            <div class="stats"></div>
-            <div class="user-actions">
-                <button onclick="userAskPetToDoActivity('userJune', '${pet.name}', 'play')">Play</button>
-                <button onclick="userAskPetToDoActivity('userJune', '${pet.name}', 'eat')">Eat</button>
-                <button onclick="userAskPetToDoActivity('userJune', '${pet.name}', 'sleep')">Sleep</button>
-            </div>
-        </div>
-    `}).join("");
-
-    for (const pet of pets) {
-        const statsContainer = document.querySelector(`#pet-${pet.name} .stats`);
-        statsContainer.innerHTML = `
-            <div>Hunger: ${pet.stats.hunger}</div>
-            <div>Energy: ${pet.stats.energy}</div>
-            <div>Happiness: ${pet.stats.happiness}</div>
-            <div>Boredom: ${pet.stats.boredom}</div>
-        `;
-    }
-}
-// updatePets();
-// setInterval(updatePets, 1000);
-
-async function updateEnvironments() {
-    const response = await fetch(`api/environments`);
-    if (!response.ok) {
-        console.error("Failed to fetch environments:", response.status, response.statusText);
-        return;
-    }
-    const jsonResponse = await response.json();
-    const environments = jsonResponse.environments;
-
-    const container = document.getElementById("environments");
-
-    const environmentHtml = await Promise.all(environments.map(async (env) => {
-        const petResponse = await fetch(`${env.serverURL}/environments/${env.id}/pets`);
-        const petJsonResponse = await petResponse.json();
-        const envPets = petJsonResponse.pets.map(pet => pet.id)
-        // .join(", ");
-        const petHtml = [];
-        for (const pet of envPets) {
-            petHtml.push(`<a href="${env.serverURL}/pets/${pet}">${pet}</a>`);
-        }
-
-        return `
-            <div class="environment" id="environment-${env.id}"> 
-                <div class="environment-name">${env.displayName}</div>
-                <div class="environment-pets">${petHtml.join(", ")}</div>
-            </div>
-        `;
-    }));
-
-    container.innerHTML = environmentHtml.join("");
-}
-// updateEnvironments();
-// setInterval(updateEnvironments, 1000);
-
-// function userAskPetToDoActivity(userName, petName, activity) {
-//     fetch(`/api/pets/${petName}/post`, {
-//         method: "POST",
-//         headers: {
-//             "Content-Type": "application/json"
-//         },
-//         body: JSON.stringify({
-//             postType: "UserPetActivity",
-//             userName: userName,
-//             activityName: activity
-//         })
-//     })
-//     // .then(response => {
-//     //     console.log(response.json())
-//     // })
-
-// }
-
-function userAskPetToDoActivity(petName , activityName ) {
+async function userAskPetToDoActivity(petName , activityName, baseURL) {
     console.log(`User is asking pet ${petName} to do activity ${activityName}`);
-    // const response = await fetch(`/pets/${petName}/do-activity`, {
-    //     method: "POST",
-    //     headers: {
-    //         "Content-Type": "application/json"
-    //     },
-    //     body: JSON.stringify({
-    //         activityName: activityName
-    //     })
-    // });
+    const response = await fetch(`/pets/${petName}/do-activity`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            activityName: activityName
+        })
+    });
     // if (!response.ok) {
     //     console.error(`Failed to ask pet ${petName} to do activity ${activityName}: ${response.statusText}`);
     // } else {
@@ -121,29 +17,29 @@ function userAskPetToDoActivity(petName , activityName ) {
     // }
 };
 
-async function userSelectEnvironment(environmentRemoteRef, petName, baseUrl) {
-    console.log(`User is asking pet ${petName} to move to environment ${environmentRemoteRef.id} at ${environmentRemoteRef.serverURL}, with baseUrl ${baseUrl}`);
-    const response = await fetch(`${baseUrl}/pets/${petName}/set-environment`, {
+async function userSelectEnvironment(environmentRemoteRef, petName, baseURL) {
+    console.log(`User is asking pet ${petName} to move to environment ${environmentRemoteRef.id} at ${environmentRemoteRef.serverURL}, with baseURL ${baseURL}`);
+    const response = await fetch(`${baseURL}/pets/${petName}/set-environment`, {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
         },
         body: JSON.stringify({
             environmentId: environmentRemoteRef.id,
-            environmentServerUrl: environmentRemoteRef.serverUrl
+            environmentServerURL: environmentRemoteRef.serverURL
         })
     });
 }
 
-function userMovePetToNewEnvironment(petName, baseUrl) {
-    console.log("base url: " + baseUrl);
+function userMovePetToNewEnvironment(petName, baseURL) {
+    console.log("base url: " + baseURL);
     console.log(`User is asking pet ${petName} to move to a new environment`);
     const environments = JSON.parse(localStorage.getItem("environments") ?? "[]");
 
-    const environmentHtml = document.querySelector(".environment-selector-popup")?.remove();
+    const environmentHtml = document.querySelector(".environment-select-popup")?.remove();
 
     const environmentSelectorPopup = document.createElement("div");
-    environmentSelectorPopup.className = "environment-selector-popup";
+    environmentSelectorPopup.className = "environment-select-popup";
     environmentSelectorPopup.innerHTML = `
          <div class="environment-select-window">
             <h2>Select Environment</h2>
@@ -153,12 +49,12 @@ function userMovePetToNewEnvironment(petName, baseUrl) {
                     <div class="environment-row">
                         <div class="environment-info">
                             <strong>${env.id}</strong><br>
-                            <small>${env.server ?? ""}</small>
+                            <small>${env.remoteRef.serverURL ?? ""}</small>
                         </div>
 
                         <button class="move-button"
                             data-id="${env.id}" 
-                            data-server="${env.remoteRef.serverUrl ?? ""}"
+                            data-server="${env.remoteRef.serverURL ?? ""}"
                             >
                             Move Here
                         </button>
@@ -179,16 +75,16 @@ function userMovePetToNewEnvironment(petName, baseUrl) {
     moveButtons.forEach(button => {
         button.addEventListener("click", async (event) => {
             const selectedEnvironmentId = event.target.dataset.id;
-            const selectedEnvironmentServerUrl = event.target.dataset.server;
-            await userSelectEnvironment({ id: selectedEnvironmentId, serverUrl: selectedEnvironmentServerUrl }, petName, baseUrl);
+            const selectedEnvironmentServerURL = event.target.dataset.server;
+            await userSelectEnvironment({ id: selectedEnvironmentId, serverURL: selectedEnvironmentServerURL }, petName, baseURL);
             environmentSelectorPopup.remove();
         });
     });
 }
 
-function refreshPetView(petName , baseUrl) {
-    const refreshPetViewOnce = async (petName , baseUrl ) => {
-        const response = await fetch(`${baseUrl}/pets/${petName}`, {
+function refreshPetView(petName , baseURL) {
+    const refreshPetViewOnce = async (petName , baseURL ) => {
+        const response = await fetch(`${baseURL}/pets/${petName}`, {
             method: "GET",
             headers: {
                 "Content-Type": "application/json"
@@ -209,7 +105,7 @@ function refreshPetView(petName , baseUrl) {
                     ${data.pet.currentActivityName}
             </span> with 
             <span class="activity-partner keyword"> 
-                <a href="${data.pet.activityPartnerRemoteRef ? data.pet.activityPartnerRemoteRef.serverUrl 
+                <a href="${data.pet.activityPartnerRemoteRef ? data.pet.activityPartnerRemoteRef.serverURL 
                     + "/pets/" + 
                     data.pet.activityPartnerRemoteRef.id : "null"}">
                     ${data.pet.currentActivityPartnerName} 
@@ -267,26 +163,59 @@ function refreshPetView(petName , baseUrl) {
 
     }
 
-    refreshPetViewOnce(petName, baseUrl);
+    refreshPetViewOnce(petName, baseURL);
 
     setInterval(async () => {
-        await refreshPetViewOnce(petName, baseUrl);
+        await refreshPetViewOnce(petName, baseURL);
     }, 1000);
 };
 
-// FIXME 10 remove this
-function refreshEnvironmentView(environmentName , baseUrl) {
-    const refreshEnvironmentViewOnce = async (environmentName , baseUrl ) => {
+function setupUserActions(petName, baseURL) {
+    async function refreshUserActions() {
+        const userActionsContainer = document.querySelector(`#pet-container-${petName} .user-actions`);
+        const activities = await fetch(`${baseURL}/pets/${petName}`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json"
+            }
+        })
+        .then(async res => {
+            return await res.json().catch(() => null).then(data => {
+                if (data && data.pet && data.pet.availableUserActivityNames) {
+                    return data.pet.availableUserActivityNames;
+                } else {
+                    console.error(`Failed to get available activities for pet ${petName}: Invalid response data`, data);
+                    return [];
+                }
+        })
+    })
+
+        userActionsContainer.innerHTML = activities.map(activityName => `
+            <button class="user-activity-action" onClick="userAskPetToDoActivity('${petName}', '${activityName}', '${baseURL}')">
+                ${activityName}
+            </button>
+        `).join("");
     }
 
     setInterval(async () => {
-        await refreshEnvironmentViewOnce(environmentName, baseUrl);
+        await refreshUserActions();
+    }, 1000);
+}
+
+
+// FIXME 10 remove this
+function refreshEnvironmentView(environmentName , baseURL) {
+    const refreshEnvironmentViewOnce = async (environmentName , baseURL ) => {
+    }
+
+    setInterval(async () => {
+        await refreshEnvironmentViewOnce(environmentName, baseURL);
     }, 30_000);
 }
 
-function updateLoginInformation(baseUrl) {
-    const refreshLoginInformationOnce = async (baseUrl) => {
-        const loginData = await fetch(`${baseUrl}/me`)
+function updateLoginInformation(baseURL) {
+    const refreshLoginInformationOnce = async (baseURL) => {
+        const loginData = await fetch(`${baseURL}/me`)
 
         const userData = await loginData.text();
         document.getElementById("login-information").innerHTML = `
@@ -295,7 +224,7 @@ function updateLoginInformation(baseUrl) {
     }
 
     setInterval(async () => {
-        await refreshLoginInformationOnce(baseUrl);
+        await refreshLoginInformationOnce(baseURL);
     }, 1000);
 
 }

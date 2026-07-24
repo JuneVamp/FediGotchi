@@ -103,6 +103,9 @@ export class VPEnvironmentRemoteRef extends VPEntityRemoteRef {
             const response = await fetch(`${this.serverURL}/environments/${this.id}/items`);
             const data : any = await response.json();
             return data.items.map((itemData : any) => {
+                itemData.getActivity = function() : VPActivity {
+                    return itemData.activity;
+                }
                 return itemData as VPItem;
                 //HACK assumes itemData is directly compatiable with VPItem
             });

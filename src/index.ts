@@ -4,6 +4,7 @@ import { getConnInfo } from "@hono/node-server/conninfo"
 import {SERVER_PORT} from "./serverConfig.ts"
 import app from "./app.tsx";
 // import "./logging.ts";
+console.log("Starting server on port", SERVER_PORT)
 
 const port = parseInt(process.argv[2] || SERVER_PORT.toString(), 10);
 

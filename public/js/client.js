@@ -121,8 +121,69 @@ function userAskPetToDoActivity(petName , activityName ) {
     // }
 };
 
-function userMovePetToNewEnvironment(petName ) {
+async function userSelectEnvironment(environmentRemoteRef, petName, baseUrl) {
+    console.log(`User is asking pet ${petName} to move to environment ${environmentRemoteRef.id} at ${environmentRemoteRef.serverURL}, with baseUrl ${baseUrl}`);
+    const response = await fetch(`${baseUrl}/pets/${petName}/set-environment`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json"
+        },
+        body: JSON.stringify({
+            environmentId: environmentRemoteRef.id,
+            environmentServerUrl: environmentRemoteRef.serverUrl
+        })
+    });
+}
+
+function userMovePetToNewEnvironment(petName, baseUrl) {
+    console.log("base url: " + baseUrl);
     console.log(`User is asking pet ${petName} to move to a new environment`);
+    const environments = JSON.parse(localStorage.getItem("environments") ?? "[]");
+
+    const environmentHtml = document.querySelector(".environment-selector-popup")?.remove();
+
+    const environmentSelectorPopup = document.createElement("div");
+    environmentSelectorPopup.className = "environment-selector-popup";
+    environmentSelectorPopup.innerHTML = `
+         <div class="environment-select-window">
+            <h2>Select Environment</h2>
+
+            <div class="environment-list">
+                ${environments.map(env => `
+                    <div class="environment-row">
+                        <div class="environment-info">
+                            <strong>${env.id}</strong><br>
+                            <small>${env.server ?? ""}</small>
+                        </div>
+
+                        <button class="move-button"
+                            data-id="${env.id}" 
+                            data-server="${env.remoteRef.serverUrl ?? ""}"
+                            >
+                            Move Here
+                        </button>
+                    </div>
+                `).join("")}
+            </div>
+
+            <button class="cancel-button">Cancel</button>
+        </div>
+    `;
+    document.body.appendChild(environmentSelectorPopup);
+
+    environmentSelectorPopup.querySelector(".cancel-button").addEventListener("click", () => {
+        environmentSelectorPopup.remove();
+    });
+
+    const moveButtons = environmentSelectorPopup.querySelectorAll(".move-button");
+    moveButtons.forEach(button => {
+        button.addEventListener("click", async (event) => {
+            const selectedEnvironmentId = event.target.dataset.id;
+            const selectedEnvironmentServerUrl = event.target.dataset.server;
+            await userSelectEnvironment({ id: selectedEnvironmentId, serverUrl: selectedEnvironmentServerUrl }, petName, baseUrl);
+            environmentSelectorPopup.remove();
+        });
+    });
 }
 
 function refreshPetView(petName , baseUrl) {
@@ -148,7 +209,7 @@ function refreshPetView(petName , baseUrl) {
                     ${data.pet.currentActivityName}
             </span> with 
             <span class="activity-partner keyword"> 
-                <a href="${data.pet.activityPartnerRemoteRef ? data.pet.activityPartnerRemoteRef.serverURL 
+                <a href="${data.pet.activityPartnerRemoteRef ? data.pet.activityPartnerRemoteRef.serverUrl 
                     + "/pets/" + 
                     data.pet.activityPartnerRemoteRef.id : "null"}">
                     ${data.pet.currentActivityPartnerName} 
@@ -237,4 +298,15 @@ function updateLoginInformation(baseUrl) {
         await refreshLoginInformationOnce(baseUrl);
     }, 1000);
 
+}
+
+// Should take environment remote ref
+function saveEnvironmentToLocalStorage(environmentRemoteRef) {
+    const environmentId = (environmentRemoteRef.id ? environmentRemoteRef.id : environmentRemoteRef.name).toLowerCase();
+    const environmentToSave = {
+        id: environmentId,
+        remoteRef: environmentRemoteRef
+    }
+
+    localStorage.setItem(`environments`, JSON.stringify([...JSON.parse(localStorage.getItem(`environments`) || "[]"), environmentToSave]));
 }

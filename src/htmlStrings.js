@@ -1,3 +1,5 @@
+// I could have used React but I tried and hated it so this is my version of react
+// TODO 10 someday change this to React or hono/jsx
 
 export const htmlLayoutString = ([...children], baseUrl) => {
     return `
@@ -38,27 +40,31 @@ export const petViewHtmlString = (pet, baseUrl) => {
         <div class="pet-name">${pet.name}</div>
         <div class="pet-activity"> CODE DEFINED </div>
         <div class="stats"> CODE DEFINE </div>
+    `;
+}
+
+export const petActivityHistoryHtmlString = () => {
+    return `
+        <div class="pet-activity-history"></div>
+    `;
+}
+
+export const petRelationshipsHtmlString = () => {
+    return `
+        <div class="pet-relationships"></div>
+    `;
+
+}
+
+export const petUserActionsHtmlString = (pet, baseUrl) => {
+    return `
         <div class="user-actions">
             <button class="user-activity-action" onClick="userAskPetToDoActivity('${pet.name}', 'play')">Play</button>
             <button class="user-activity-action" onClick="userAskPetToDoActivity('${pet.name}', 'eat')">Eat</button>
             <button class="user-activity-action" onClick="userAskPetToDoActivity('${pet.name}', 'sleep')">Sleep</button>
         </div>
-        <button class="environment-move" onClick="userMovePetToNewEnvironment('${pet.name}')">move to new environment</button>
+        <button class="environment-move" onClick="userMovePetToNewEnvironment('${pet.name}', '${baseUrl}')">move to new environment</button>
     `;
-}
-
-export const petActivityHistoryHtmlString = () => {
-    // return `
-    //     <div class="pet-activity-history"></div>
-    //     <div class="pet-relationships"></div>
-    // `;
-    return `
-        <div class="pet-relationships"></div>
-    `;
-}
-
-export const petRelationshipsHtmlString = () => {
-
 }
 
 
@@ -73,6 +79,7 @@ export const environmentHtmlString = (environment, baseUrl, [... petChildren]) =
                 refreshEnvironmentView('${environmentId}', '${baseUrl}');
             </script>
             <div class="environment-name">${environmentId}</div>
+            <button id="save-environement-local-storage" onClick='saveEnvironmentToLocalStorage(${JSON.stringify(environment.remoteRef)})'>Save locally</button>
             <div class="environment-pets">${petChildren.join('')}</div>
         </div>
     `

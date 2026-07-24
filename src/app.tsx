@@ -8,7 +8,7 @@ import { VPItem, VPEnvironment, VPUser } from "./model/otherModels"
 import { VPet } from "./model/pet"
 import { VPActivity } from "./model/petRepresentation.ts"
 
-import {htmlLayoutString, petViewLayoutString, petActivityHistoryHtmlString, petViewHtmlString, environmentHtmlString, loginBox} from "./htmlStrings"
+import {htmlLayoutString, petViewLayoutString, petActivityHistoryHtmlString, petViewHtmlString, environmentHtmlString, loginBox, petUserActionsHtmlString, petRelationshipsHtmlString} from "./htmlStrings"
 import { createSession, destroySession, getUser } from "./session.ts"
 
 type AppEnv = {
@@ -182,6 +182,7 @@ const petMiddleware = async (c: Context, next: Next) => {
   }
 
   c.set("pet", pet)
+  c.set("currentUserId", getUser(getCookie(c, "sessionId")))
   await next()
 }
 app.use("/pets/:petId/*", petMiddleware)
@@ -197,9 +198,12 @@ app.get("/pets/:petId", petMiddleware, async (c) => {
     return c.html(
       htmlLayoutString(
         [
+          loginBox(c.get("baseUrl")),
           petViewLayoutString(petView, c.get("baseUrl"), [
             petViewHtmlString(petView, c.get("baseUrl")),
-            petActivityHistoryHtmlString()
+            // petActivityHistoryHtmlString(),
+            petRelationshipsHtmlString(),
+            petUserActionsHtmlString(pet, c.get("baseUrl"))
           ])
         ],
         c.get("baseUrl"))
@@ -240,6 +244,7 @@ app.post("/pets/:petId/set-environment", async (c) => {
   const pet = c.get("pet")
   const body = await c.req.json()
   pet.environment = new VPEnvironmentRemoteRef(body.environmentId, body.environmentServerUrl)
+  console.log(`Pet ${pet.name} set to environment ${body.environmentId} at ${body.environmentServerUrl}`)
   return c.json({
     message: `Pet ${pet.name} set to environment ${body.environmentId}`
   })

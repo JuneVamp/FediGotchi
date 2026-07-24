@@ -98,11 +98,13 @@ export class VPet extends VPEntity {
         // Environment item Activites
         this.environment.getAllItems().then((items) => {
             items.forEach(item => {
-                if (item.activity && this.isActivityFeasable(item.activity)){
+                var activity = item.getActivity()
+                if (activity && this.isActivityFeasable(activity)) {
                     priorityList.push({
-                        activity : item.activity,
-                        willingness : this.willingToActivity(item.activity)})
-                    }
+                        activity : activity,
+                        willingness : this.willingToActivity(activity)
+                    })
+                }
                 else {
                     console.warn("no activity on item : ", item.name)
                 }
@@ -173,7 +175,6 @@ export class VPet extends VPEntity {
             // the < 5 is because the willingness is activity + partner so if partner is less than (5 more) than means we-
             // dont like the partner
             if (!needPartner && (selectedActivityPartnerWeight! -  selectedActivityWeight! < 5)){
-                //TODO 2 do actvity alone
                 this.doActivity(selectedActivity)
             }
 
@@ -360,7 +361,6 @@ export class VPet extends VPEntity {
         }
     }
 
-    //TODO 2
     finishActivity(){
        var activityFinished = this.currentActivity
        var activityPartner = this.currentActivity?.entitiesInvolved.find((ent) => {
@@ -392,17 +392,17 @@ export class VPet extends VPEntity {
 
 
         //csv for activity finished log
-        var activityFinishedCsv = `${Date.now()},${this.name},${activityFinished!.name},${activityPartner ? activityPartner.uniqueId : "null"},${petLikedActivity}\n`
+        // var activityFinishedCsv = `${Date.now()},${this.name},${activityFinished!.name},${activityPartner ? activityPartner.uniqueId : "null"},${petLikedActivity}\n`
 
-        // csv for relationship log
-        var relationshipsCsv = ""
-        for (const [otherEntityId, relationship] of Object.entries(this.relationships)) {
-            relationshipsCsv += `${Date.now()},${this.name},${otherEntityId},${relationship.friendliness}\n`
-        }
+        // // csv for relationship log
+        // var relationshipsCsv = ""
+        // for (const [otherEntityId, relationship] of Object.entries(this.relationships)) {
+        //     relationshipsCsv += `${Date.now()},${this.name},${otherEntityId},${relationship.friendliness}\n`
+        // }
 
-        // write to csv files
-        writeToCsvFile("logs/activity_finished_log.csv", activityFinishedCsv)
-        writeToCsvFile("logs/relationships_log.csv", relationshipsCsv)
+        // // write to csv files
+        // writeToCsvFile("logs/activity_finished_log.csv", activityFinishedCsv)
+        // writeToCsvFile("logs/relationships_log.csv", relationshipsCsv)
     }
 
     processStatChanges(statChanges : VPStats){

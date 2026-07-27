@@ -81,11 +81,12 @@ if (useRemotePark) {
 
 
 setInterval(() => {
+  var timestamp = Date.now()
   for (const pet of pets.values()) {
-    pet.tick()
+    pet.tick(timestamp)
   }
 
-}, 50)
+}, 500)
 
 
 

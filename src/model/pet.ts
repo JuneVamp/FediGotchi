@@ -58,6 +58,7 @@ export class VPet extends VPEntity {
     }
 
     activityHistory : ActivityHistoryDict = {}
+    logs: { [k: string]: string } = {};
 
 
     tempPetView : PetView = {
@@ -74,7 +75,9 @@ export class VPet extends VPEntity {
 
     remoteRef : VPetRemoteRef 
 
-    constructor (name : string, serverURL : string){
+    logging : boolean
+
+    constructor (name : string, serverURL : string, logging : boolean = true) {
         super(name)
 
         this.remoteRef = new VPetRemoteRef(this.name, serverURL)
@@ -85,6 +88,14 @@ export class VPet extends VPEntity {
         ].map((activityName : string) => {
             return parseActivityFromName(activityName)
         });
+
+
+        this.logging = logging
+        if (this.logging) {
+            setInterval(() => {
+                this.logCommit()
+            }, 1000)
+        }
     }
 
     // #region ---------------------Activity Methods--------------------
@@ -346,8 +357,17 @@ export class VPet extends VPEntity {
 
     // #region ---------- logging methods ----------
 
-    logRelationships(){
-        const currentTimestamp = Date.now()
+    logCommit(){
+        for (const [logName, logData] of Object.entries(this.logs)) {
+            if (logData.length > 0) {
+                writeToCsvFile(`logs/${logName}.csv`, logData)
+                this.logs[logName] = ""
+            }
+        }
+    }
+
+    logRelationships(timestamp ?: number){
+        const currentTimestamp = timestamp || Date.now()
 
         var relationshipsCsv = ""
 
@@ -355,15 +375,34 @@ export class VPet extends VPEntity {
             var tick_log_csv = `${currentTimestamp},${this.name},${otherEntityId},${relationship.friendliness}\n`
             relationshipsCsv += tick_log_csv
         }
-        
-        writeToCsvFile("logs/tick_log.csv", relationshipsCsv)
 
+        if (!this.logs["relationships"]) {
+            this.logs["relationships"] = relationshipsCsv
+        }
+        else {
+            this.logs["relationships"] += relationshipsCsv
+        }
+    }
+
+    logActivityFinished(activityFinished : VPActivity, activityPartner ?: VPetRemoteRef | VPUserRemoteRef, petLikedActivity : boolean = true, timestamp ?: number){
+        const finishTimestamp = timestamp || Date.now()
+
+        var petActivityRelationship = this.relationships[activityFinished!.name]?.friendliness
+        var partnerActivityRelationship = activityPartner ? this.relationships[activityPartner.uniqueId]?.friendliness : undefined
+        var activityFinishedCsv = `${finishTimestamp},${this.name},${activityFinished!.name},${activityPartner ? activityPartner.uniqueId : "null"},${petLikedActivity},${petActivityRelationship ? petActivityRelationship : "null"},${partnerActivityRelationship ? partnerActivityRelationship : "null"}\n`
+
+
+        if (!this.logs["activity_finished"]) {
+            this.logs["activity_finished"] = activityFinishedCsv
+        } else {
+            this.logs["activity_finished"] += activityFinishedCsv
+        }
     }
 
     // #endregion
 
     // #region ---------------------Tick Methods--------------------
-    tick(){
+    tick(timestamp ?: number){
         //TODO 8 emit tick event
 
         if (this.state === petState.idle) {
@@ -371,6 +410,10 @@ export class VPet extends VPEntity {
             this.processInitiations()
         } else if (this.state === petState.doingActivity) {
             this.processActivityTick()
+        }
+
+        if (this.logging) {
+            this.logRelationships(timestamp)
         }
     }
 
@@ -423,21 +466,9 @@ export class VPet extends VPEntity {
         
         this.updatePetLikings(activityFinished!, petLikedActivity, activityPartner)
 
-        const finishTimestamp = Date.now()
-
-        // csv for activity finished log
-        var petActivityRelationship = this.relationships[activityFinished!.name]?.friendliness
-        var partnerActivityRelationship = activityPartner ? this.relationships[activityPartner.uniqueId]?.friendliness : undefined
-        var activityFinishedCsv = `${finishTimestamp},${this.name},${activityFinished!.name},${activityPartner ? activityPartner.uniqueId : "null"},${petLikedActivity},${petActivityRelationship ? petActivityRelationship : "null"},${partnerActivityRelationship ? partnerActivityRelationship : "null"}\n`
-
-        // csv for relationship log
-        // var relationshipsCsv = ""
-        //     relationshipsCsv += `${finishTimestamp},${this.name},${otherEntityId},${relationship.friendliness}\n`
-        // }
-
-        // write to csv files
-        writeToCsvFile("logs/activity_finished_log.csv", activityFinishedCsv)
-        // writeToCsvFile("logs/relationships_log.csv", relationshipsCsv)
+        if (this.logging) {
+            this.logActivityFinished(activityFinished!, activityPartner, petLikedActivity)
+        }
     }
 
     didPetLikeActivity(activity : VPActivity, activityPartner : VPetRemoteRef | VPUserRemoteRef, randomness : number = 0.01) : boolean{
@@ -465,8 +496,8 @@ export class VPet extends VPEntity {
 
     updatePetLikings(activityFinished : VPActivity, petLikedActivity : boolean, activityPartner ?: VPetRemoteRef | VPUserRemoteRef, 
         randomness : number = 0.1, 
-        likedActivityFriendlinessChange : number = 0.5, dislikedActivityFriendlinessChange : number = -0.9,
-        likedPartnerFriendlinessChange : number = 0.5, dislikedPartnerFriendlinessChange : number = -0.9
+        likedActivityFriendlinessChange : number = 0.5, dislikedActivityFriendlinessChange : number = -0.6,
+        likedPartnerFriendlinessChange : number = 0.5, dislikedPartnerFriendlinessChange : number = -0.6
 ){
 
 

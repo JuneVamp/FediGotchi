@@ -140,6 +140,14 @@ export class VPEnvironmentRemoteRef extends VPEntityRemoteRef {
         })
         return data.success;
     }
+
+    async removePet(pet : VPetRemoteRef) : Promise<any> {
+        const data = await this.postRequest("remove-pet", {
+            petId: pet.id,
+            petServerURL: pet.serverURL
+        })
+        return data.success;
+    }
 }
 
 export class VPUserRemoteRef extends VPEntityRemoteRef {

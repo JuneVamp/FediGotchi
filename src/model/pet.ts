@@ -232,11 +232,11 @@ export class VPet extends VPEntity {
     gotRejectedByPartner(partner : VPetRemoteRef | VPUserRemoteRef){
         //HACK COMMENT  propotion decay
         if (this.relationships[partner.uniqueId]) {
-            this.relationships[partner.uniqueId].friendliness -= 0.5 - 0.08 * this.relationships[partner.uniqueId].friendliness
+            this.relationships[partner.uniqueId].friendliness -= 0.1 - 0.02 * this.relationships[partner.uniqueId].friendliness
         } else {
             this.relationships[partner.uniqueId] = {
                 otherEntity : partner,
-                friendliness : -0.5
+                friendliness : -0.1
             }
         }
 
@@ -492,7 +492,7 @@ export class VPet extends VPEntity {
         this.processStatChanges(this.perTickStatChangesDict)
 
         for (const [statName, value] of Object.entries(this.relationships)) {
-            this.relationships[statName].friendliness *= 0.995
+            this.relationships[statName].friendliness *= 0.99995
         }
     }
 
@@ -542,6 +542,7 @@ export class VPet extends VPEntity {
         // normalize to [0,1]
         // var chanceOfLiking = (totalFriendliness + 10) / 20 
         var chanceOfLiking = 1 / (1 + Math.exp(-1 * (totalFriendliness / 2))) 
+        // var chanceOfLiking = 0.5 + Math.pow(totalFriendliness/13, 3) // magic numbers came from desmos
         var petLikedActivity = Math.random() < chanceOfLiking
 
         if (Math.random() < randomness) {
@@ -553,26 +554,31 @@ export class VPet extends VPEntity {
 
     updatePetLikings(activityFinished : VPActivity, petLikedActivity : boolean, activityPartner ?: VPetRemoteRef | VPUserRemoteRef, 
         randomness : number = 0.1, 
-        likedActivityFriendlinessChange : number = 0.5, dislikedActivityFriendlinessChange : number = -0.6,
-        likedPartnerFriendlinessChange : number = 0.5, dislikedPartnerFriendlinessChange : number = -0.6
+        likedActivityFriendlinessChange : number = 0.5, dislikedActivityFriendlinessChange : number = -0.5,
+        likedPartnerFriendlinessChange : number = 0.5, dislikedPartnerFriendlinessChange : number = -0.5
 ){
 
+        var activityFriendliness = this.relationships[activityFinished!.name]?.friendliness
+        var partnerFriendliness = activityPartner ?  this.relationships[activityPartner.uniqueId]?.friendliness : undefined
+
+        var scale = 1 - Math.abs(activityFriendliness ? activityFriendliness-5 : 0) / 10
+        var delta = petLikedActivity ? likedActivityFriendlinessChange * scale : dislikedActivityFriendlinessChange * scale
 
         this.relationships[activityFinished!.name] = {
             otherEntity : activityFinished,
-            friendliness : this.relationships[activityFinished!.name]?.friendliness ? 
-            this.relationships[activityFinished!.name].friendliness + (petLikedActivity ? likedActivityFriendlinessChange : dislikedActivityFriendlinessChange) :
-            petLikedActivity ? likedActivityFriendlinessChange : dislikedActivityFriendlinessChange
+            friendliness : this.relationships[activityFinished!.name]?.friendliness ? this.relationships[activityFinished!.name].friendliness + delta : delta
         }
+
 
         this.relationships[activityFinished!.name].friendliness = Math.max(-5, Math.min(5, this.relationships[activityFinished!.name].friendliness))
 
         if (activityPartner) {
+        var partnerScale = 1 - Math.abs(partnerFriendliness ? partnerFriendliness-5 : 0) / 10
+        var partnerDelta = petLikedActivity ? likedPartnerFriendlinessChange * partnerScale : dislikedPartnerFriendlinessChange * partnerScale
+
             this.relationships[activityPartner.uniqueId] = {
                 otherEntity : activityPartner,
-                friendliness : this.relationships[activityPartner.uniqueId]?.friendliness ? 
-                this.relationships[activityPartner.uniqueId].friendliness + (petLikedActivity ? likedPartnerFriendlinessChange : dislikedPartnerFriendlinessChange) :
-                petLikedActivity ? likedPartnerFriendlinessChange : dislikedPartnerFriendlinessChange
+                friendliness : this.relationships[activityPartner.uniqueId]?.friendliness ?  this.relationships[activityPartner.uniqueId].friendliness + partnerDelta : partnerDelta
             }
 
             this.relationships[activityPartner.uniqueId].friendliness = Math.max(-5, Math.min(5, this.relationships[activityPartner.uniqueId].friendliness))  

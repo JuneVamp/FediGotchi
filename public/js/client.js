@@ -38,16 +38,18 @@ async function userAskPetToDoActivity(petName , activityName, baseURL) {
 
 async function userSelectEnvironment(environmentRemoteRef, petName, baseURL) {
     console.log(`User is asking pet ${petName} to move to environment ${environmentRemoteRef.id} at ${environmentRemoteRef.serverURL}, with baseURL ${baseURL}`);
-    const response = await fetch(`${baseURL}/pets/${petName}/set-environment`, {
+    // const response = await fetch(`${baseURL}/pets/${petName}/set-environment`, {
+    const response = await fetch(environmentRemoteRef.serverURL + "/environments/" + environmentRemoteRef.id + "/add-pet" ,{
         method: "POST",
         headers: {
             "Content-Type": "application/json"
         },
         body: JSON.stringify({
-            environmentId: environmentRemoteRef.id,
-            environmentServerURL: environmentRemoteRef.serverURL
+            petId: petName,
+            petServerURL: baseURL
         })
     });
+    console.log(response);
 }
 
 function userMovePetToNewEnvironment(petName, baseURL) {
@@ -62,7 +64,14 @@ function userMovePetToNewEnvironment(petName, baseURL) {
     environmentSelectorPopup.innerHTML = `
          <div class="environment-select-window">
             <h2>Select Environment</h2>
-
+            <div class="manual-environment">
+                <input
+                    type="text"
+                    class="manual-environment-url"
+                    placeholder="Paste environment URL..."
+                >
+                <button class="manual-add-button">Move</button>
+            </div>
             <div class="environment-list">
                 ${environments.map(env => `
                     <div class="environment-row">
@@ -88,6 +97,47 @@ function userMovePetToNewEnvironment(petName, baseURL) {
 
     environmentSelectorPopup.querySelector(".cancel-button").addEventListener("click", () => {
         environmentSelectorPopup.remove();
+    });
+
+    environmentSelectorPopup.querySelector(".manual-add-button")
+    .addEventListener("click", async () => {
+        const input = environmentSelectorPopup.querySelector(".manual-environment-url");
+        const url = input.value.trim();
+
+        if (!url) return;
+
+        try {
+            const parsed = new URL(url);
+
+            const parts = parsed.pathname.split("/").filter(Boolean);
+            const environmentIndex = parts.lastIndexOf("environments");
+            console.log("environmentIndex: " + environmentIndex);
+
+            if (environmentIndex === -1 || environmentIndex === parts.length - 1) {
+                alert("Invalid environment URL");
+                return;
+            }
+
+            const environmentId = parts[environmentIndex + 1];
+
+            const serverURL =
+                parsed.origin +
+                "/" +
+                parts.slice(0, environmentIndex).join("/");
+
+            await userSelectEnvironment(
+                {
+                    id: environmentId,
+                    serverURL
+                },
+                petName,
+                baseURL
+            );
+
+            environmentSelectorPopup.remove();
+        } catch {
+            alert("Invalid URL");
+        }
     });
 
     const moveButtons = environmentSelectorPopup.querySelectorAll(".move-button");

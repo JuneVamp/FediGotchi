@@ -1,7 +1,8 @@
 import {Context, Hono, Next} from "hono"
 import { serveStatic } from "@hono/node-server/serve-static"
-import { SERVER_URL } from "./serverConfig.ts"
+import { cors } from "hono/cors";
 import {setCookie, getCookie, deleteCookie} from "hono/cookie"
+import { SERVER_URL } from "./serverConfig.ts"
 
 import { VPActivityRemoteRef, VPEnvironmentRemoteRef, VPetRemoteRef, VPUserRemoteRef } from "./model/remoteRefs.ts"
 import { VPItem, VPEnvironment, VPUser } from "./model/otherModels"
@@ -22,6 +23,18 @@ type AppEnv = {
 }
 
 const app = new Hono<AppEnv>()
+
+app.use(
+  "/*",
+  cors({
+    origin: [
+      "https://bagging-childlike-subdivide.ngrok-free.dev",
+    ],
+    allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowHeaders: ["Content-Type"],
+    credentials: true,
+  })
+);
 // app.get("/assets/*", serveStatic({root : './'}))
 
 
@@ -327,10 +340,12 @@ app.post("/pets/:petId/activity-finished", async (c) => {
 app.post("/pets/:petId/set-environment", async (c) => {
   const pet = c.get("pet")
   const body = await c.req.json()
+  // const environment = new VPEnvironmentRemoteRef(body.environmentId, body.environmentServerURL)
+  // const response =  environment.addPet(pet.getRemoteRef())
   const response = await pet.setEnvironment(new VPEnvironmentRemoteRef(body.environmentId, body.environmentServerURL))
   return c.json({
-    message: `Pet ${pet.name} ${response.accepted ? 'successfully' : 'failed'} set to environment ${body.environmentId}`,
-    accepted: response.accepted
+    message: `Pet ${pet.name}  set to environment ${body.environmentId}`,
+    accepted: response
   })
 })
 
@@ -420,9 +435,26 @@ app.post("/environments/:environmentId/add-pet", async (c) => {
   
   const body = await c.req.json()
   const pet = new VPetRemoteRef(body.petId, body.petServerURL)
+  const petView = await pet.getView()
+  if (petView.environmentRemoteRef) {
+    const previousEnvironmentRemoteRef = new VPEnvironmentRemoteRef(petView.environmentRemoteRef!.id, petView.environmentRemoteRef!.serverURL )
+    await previousEnvironmentRemoteRef.removePet(pet)
+  }
   environment.addPet(pet)
   return c.json({
     message: `Pet ${body.petId} added to environment ${environmentId}`
+  })
+})
+
+
+app.post("/environments/:environmentId/remove-pet", async (c) => {
+  const environment = c.get("environment") as VPEnvironment
+  const body = await c.req.json()
+  const pet = new VPetRemoteRef(body.petId, body.petServerURL)
+  const response = await environment.removePet(pet)
+  return c.json({
+    message: `Pet ${body.petId} removed from environment ${environment.name}`,
+    accepted: response
   })
 })
 

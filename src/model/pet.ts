@@ -343,6 +343,25 @@ export class VPet extends VPEntity {
         }
     }
 
+
+    // #region ---------- logging methods ----------
+
+    logRelationships(){
+        const currentTimestamp = Date.now()
+
+        var relationshipsCsv = ""
+
+        for (const [otherEntityId, relationship] of Object.entries(this.relationships)) {
+            var tick_log_csv = `${currentTimestamp},${this.name},${otherEntityId},${relationship.friendliness}\n`
+            relationshipsCsv += tick_log_csv
+        }
+        
+        writeToCsvFile("logs/tick_log.csv", relationshipsCsv)
+
+    }
+
+    // #endregion
+
     // #region ---------------------Tick Methods--------------------
     tick(){
         //TODO 8 emit tick event
@@ -357,6 +376,10 @@ export class VPet extends VPEntity {
 
     perTickStatChanges(){
         this.processStatChanges(this.perTickStatChangesDict)
+
+        for (const [statName, value] of Object.entries(this.relationships)) {
+            this.relationships[statName].friendliness *= 0.995
+        }
     }
 
     processInitiations(){
@@ -408,14 +431,13 @@ export class VPet extends VPEntity {
         var activityFinishedCsv = `${finishTimestamp},${this.name},${activityFinished!.name},${activityPartner ? activityPartner.uniqueId : "null"},${petLikedActivity},${petActivityRelationship ? petActivityRelationship : "null"},${partnerActivityRelationship ? partnerActivityRelationship : "null"}\n`
 
         // csv for relationship log
-        var relationshipsCsv = ""
-        for (const [otherEntityId, relationship] of Object.entries(this.relationships)) {
-            relationshipsCsv += `${finishTimestamp},${this.name},${otherEntityId},${relationship.friendliness}\n`
-        }
+        // var relationshipsCsv = ""
+        //     relationshipsCsv += `${finishTimestamp},${this.name},${otherEntityId},${relationship.friendliness}\n`
+        // }
 
         // write to csv files
         writeToCsvFile("logs/activity_finished_log.csv", activityFinishedCsv)
-        writeToCsvFile("logs/relationships_log.csv", relationshipsCsv)
+        // writeToCsvFile("logs/relationships_log.csv", relationshipsCsv)
     }
 
     didPetLikeActivity(activity : VPActivity, activityPartner : VPetRemoteRef | VPUserRemoteRef, randomness : number = 0.01) : boolean{
@@ -430,7 +452,8 @@ export class VPet extends VPEntity {
         var totalFriendliness = (activityFriendliness ? activityFriendliness : 0) + (partnerFriendliness ? partnerFriendliness : 0)
 
         // normalize to [0,1]
-        var chanceOfLiking = (totalFriendliness + 10) / 20 
+        // var chanceOfLiking = (totalFriendliness + 10) / 20 
+        var chanceOfLiking = 1 / (1 + Math.exp(-1 * (totalFriendliness / 2))) 
         var petLikedActivity = Math.random() < chanceOfLiking
 
         if (Math.random() < randomness) {
@@ -440,20 +463,18 @@ export class VPet extends VPEntity {
         }
     }
 
-    updatePetLikings(activityFinished : VPActivity, petLikedActivity : boolean, activityPartner ?: VPetRemoteRef | VPUserRemoteRef, randomness : number = 0.1){
-        // % randomness chance to set the friendliness to a random value between -5 and 5
-        var randomFriendliness = getRandomIntInclusive(-5, 5)
-        var randomPartnerFriendliness = getRandomIntInclusive(-5, 5)
-        if (Math.random() < randomness) {
-            randomFriendliness = getRandomIntInclusive(-5, 5)
-            randomPartnerFriendliness = getRandomIntInclusive(-5, 5)
-        }
+    updatePetLikings(activityFinished : VPActivity, petLikedActivity : boolean, activityPartner ?: VPetRemoteRef | VPUserRemoteRef, 
+        randomness : number = 0.1, 
+        likedActivityFriendlinessChange : number = 0.5, dislikedActivityFriendlinessChange : number = -0.9,
+        likedPartnerFriendlinessChange : number = 0.5, dislikedPartnerFriendlinessChange : number = -0.9
+){
+
 
         this.relationships[activityFinished!.name] = {
             otherEntity : activityFinished,
             friendliness : this.relationships[activityFinished!.name]?.friendliness ? 
-            this.relationships[activityFinished!.name].friendliness + (petLikedActivity ? 1 : -1) :
-            petLikedActivity ? 1 : -1
+            this.relationships[activityFinished!.name].friendliness + (petLikedActivity ? likedActivityFriendlinessChange : dislikedActivityFriendlinessChange) :
+            petLikedActivity ? likedActivityFriendlinessChange : dislikedActivityFriendlinessChange
         }
 
         this.relationships[activityFinished!.name].friendliness = Math.max(-5, Math.min(5, this.relationships[activityFinished!.name].friendliness))
@@ -462,8 +483,8 @@ export class VPet extends VPEntity {
             this.relationships[activityPartner.uniqueId] = {
                 otherEntity : activityPartner,
                 friendliness : this.relationships[activityPartner.uniqueId]?.friendliness ? 
-                this.relationships[activityPartner.uniqueId].friendliness + (petLikedActivity ? 1 : -1) :
-                petLikedActivity ? 1 : -1
+                this.relationships[activityPartner.uniqueId].friendliness + (petLikedActivity ? likedPartnerFriendlinessChange : dislikedPartnerFriendlinessChange) :
+                petLikedActivity ? likedPartnerFriendlinessChange : dislikedPartnerFriendlinessChange
             }
 
             this.relationships[activityPartner.uniqueId].friendliness = Math.max(-5, Math.min(5, this.relationships[activityPartner.uniqueId].friendliness))  

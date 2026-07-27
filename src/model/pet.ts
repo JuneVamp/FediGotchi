@@ -45,7 +45,7 @@ export class VPet extends VPEntity {
     reservedForActivity ?: VPActivityRemoteRef
     state : petState = petState.idle
 
-    knownActivitesPetxPet : Array<VPActivity> = []
+    knownActivitesPetxPetNames : Array<string> = []
     timeBetweenActivityInitiation : number = 7 // HACK COMMENT
 
     activityTickTimer : number = -1
@@ -76,18 +76,20 @@ export class VPet extends VPEntity {
     remoteRef : VPetRemoteRef 
 
     logging : boolean
+    waitingSince : number = 0
 
-    constructor (name : string, serverURL : string, logging : boolean = false) {
+    constructor (name : string, serverURL : string, logging : boolean = true) {
         super(name)
 
         this.remoteRef = new VPetRemoteRef(this.name, serverURL)
 
         // HACK 7 : un-hardcode this
-        this.knownActivitesPetxPet = [ 
+        this.knownActivitesPetxPetNames = [ 
             "Talk", "Play", "Walk", "Explore","Sing", "Dance", "Exercise", "Fight"
-        ].map((activityName : string) => {
-            return parseActivityFromName(activityName)
-        });
+        ]
+        // .map((activityName : string) => {
+        //     return parseActivityFromName(activityName)
+        // });
 
 
         this.logging = logging
@@ -126,7 +128,8 @@ export class VPet extends VPEntity {
         });
 
         // Pet x Pet Activities
-        for (const activity of this.knownActivitesPetxPet) {
+        for (const activityName of this.knownActivitesPetxPetNames) {
+            const activity = VPActivity.fromStringData(activityName)
             if (!this.isActivityFeasable(activity)){ continue }
 
             priorityList.push({
@@ -152,6 +155,7 @@ export class VPet extends VPEntity {
 
         selectedActivity.remoteRef = undefined
         var remoteRef = selectedActivity.createRemoteRef(selectedActivity.createId(this.remoteRef.id), this.environment!.serverURL)
+        selectedActivity.addEntity(this.remoteRef)
         remoteRef.addStarterEntity(this.remoteRef, selectedActivity.name)
 
 
@@ -194,25 +198,51 @@ export class VPet extends VPEntity {
             // dont like the partner
             if (!needPartner && (selectedActivityPartnerWeight! -  selectedActivityWeight! < 5)){
                 this.doActivity(selectedActivity)
+                return
             }
 
-            
-            this.sendActivityRequest(remoteRef, selectedActivityPartner).then((accepted : any) => {
-                this.state = petState.idle
-                if (accepted === "accept") {
-                    this.doActivity(selectedActivity, selectedActivityPartner)
-                } 
-                else if (accepted === "not_willing"){
-                    this.gotRejectedByPartner(selectedActivityPartner)
-                } else {
-                    //TODO 5 ask next highest rating partner
-                }
-            })
+            // console.log(1, this.name, "->", selectedActivityPartner.id)
+            this.state = petState.waitingForActivityResponse
+            this.waitingSince = Date.now()
+            const response = await Promise.race([
+                selectedActivity.getRemoteRef()!.requestEntityToJoin(
+                    this.remoteRef,
+                    selectedActivityPartner
+                ),
+                new Promise<string>(resolve =>
+                    {setTimeout(() => resolve("timeout") , 500)}
+                )
+            ]);
+            // console.log(-1, this.name, response)
+            if (response === "accept") {
+                this.doActivity(selectedActivity, selectedActivityPartner);
+            } else if (response === "not_willing") {
+                this.state = petState.idle;
+                this.gotRejectedByPartner(selectedActivityPartner);
+            } else if (response === "timeout") {
+                this.state = petState.idle;
+                console.warn(999, `#timeout from ${this.remoteRef.id} to ${selectedActivityPartner.id} for ${selectedActivity.name}`, Date.now());
+            } else {
+                this.state = petState.idle;
+                // TODO 7 : ask next highest rating partner
+            }
         })
     }
 
     gotRejectedByPartner(partner : VPetRemoteRef | VPUserRemoteRef){
-        //TODO 3 lower friendliness
+        //HACK COMMENT  propotion decay
+        if (this.relationships[partner.uniqueId]) {
+            this.relationships[partner.uniqueId].friendliness -= 0.5 - 0.08 * this.relationships[partner.uniqueId].friendliness
+        } else {
+            this.relationships[partner.uniqueId] = {
+                otherEntity : partner,
+                friendliness : -0.5
+            }
+        }
+
+        if(this.logging){
+            this.logRejectionByPartner(partner)
+        }
     }
 
     acceptActivity(activity : VPActivity, activityPartner : VPetRemoteRef | VPUserRemoteRef) : string{
@@ -231,16 +261,17 @@ export class VPet extends VPEntity {
     }
 
     doActivity(activity : VPActivity, activityPartner?: VPetRemoteRef | VPUserRemoteRef, activityItem?: VPItem){
+        // console.log(9, this.name, activity.name, activityPartner?.id)
         this.state = petState.doingActivity
         this.timeBetweenActivityInitiation = 0
 
-        console.log(activity instanceof VPActivity, activityPartner instanceof VPetRemoteRef, activityItem instanceof VPItem)
+        activity.getRemoteRef()!.start()
 
-        activity.entitiesInvolved.push(this.remoteRef)
+        // activity.entitiesInvolved.push(this.remoteRef)
         
         // asking the partner should just add directly?
         if (activityPartner){
-            activity.entitiesInvolved.push(activityPartner)
+            activity.addEntity(activityPartner)
         }
 
         if (activityItem){
@@ -307,20 +338,22 @@ export class VPet extends VPEntity {
     // --------------------async methods--------------------
 
     async receiveActivityRequest(activity : VPActivity, activityPartner : VPetRemoteRef| VPUserRemoteRef ) : Promise<string>{
-        if (activityPartner instanceof VPetRemoteRef) {
-            // console.log(`${this.name} of ${this.remoteRef.serverURL} received activity request for ${activity.name} from ${activityPartner.id} of server ${activityPartner.serverURL}`)
-        }
         return new Promise((resolve, reject) => {
             resolve(this.acceptActivity(activity, activityPartner))
         })
     }
-
+    async environmentGetAllPets() : Promise<Array<VPetRemoteRef>>{
+        if (!this.environment) {
+            throw new Error(`${this.name} is not in an environment`)
+        }
+        const response = await this.environment.getAllPets()
+        return response
+    }
     async sendActivityRequest(activity : VPActivityRemoteRef, activityPartner : VPetRemoteRef | VPItem | VPUserRemoteRef) : Promise<string>{
         const activityID = this.remoteRef.id + "@" + this.remoteRef.serverURL + "@" + Date.now().toString()
 
         return new Promise((resolve, reject) => {
             if (activityPartner instanceof VPetRemoteRef) {
-                // console.log(`${this.name} of ${this.remoteRef.serverURL} is sending activity request for ${activity.name} to ${activityPartner.id} of server ${activityPartner.serverURL}`)
                 this.state = petState.waitingForActivityResponse
                 this.reservedForActivity = activity
                 this.reservedForActivity.timeout = setTimeout(() => {
@@ -360,28 +393,18 @@ export class VPet extends VPEntity {
         }
     }
 
-    async processActivityTick(){
-        console.log("processing activity tick for", this.name, this.currentActivity?.name)
-        if (this.currentActivity) { // TODO 9 not needed
-
-            this.processStatChanges(this.currentActivity.statAffected)
-
-            // this.activityTickTimer ++;
-            // if (this.activityTickTimer >= this.currentActivity.maxTicks) {
-            //     this.finishActivity()
-            //     this.currentActivity = undefined
-            //     this.state = petState.idle
-            //     this.activityTickTimer = -1
-            // }
+    async processActivityTick(actvityId : string, timestamp : number){
+        if (!this.currentActivity || this.currentActivity.getRemoteRef()?.id !== actvityId) {
+            console.error(`Activity tick received for activity ${actvityId} but current activity is ${this.currentActivity?.getRemoteRef()?.id}`)
+            return
         }
+        this.processStatChanges(this.currentActivity.statAffected)
     }
 
     async processActivityFinished(){
         this.finishActivity()
-        this.finishActivity()
         this.currentActivity = undefined
         this.state = petState.idle
-        this.activityTickTimer = -1
     }
 
 
@@ -429,11 +452,29 @@ export class VPet extends VPEntity {
         }
     }
 
+    logRejectionByPartner(partner : VPetRemoteRef | VPUserRemoteRef, timestamp ?: number){
+        const rejectionTimestamp = timestamp || Date.now()
+        const rejectionCsv = `${rejectionTimestamp},${this.name},${partner.id}\n`
+
+        if (!this.logs["activity_rejection"]) {
+            this.logs["activity_rejection"] = rejectionCsv
+        } else {
+            this.logs["activity_rejection"] += rejectionCsv
+        }
+    }
+
     // #endregion
 
     // #region ---------------------Tick Methods--------------------
-    tick(timestamp ?: number){
+    async tick(timestamp ?: number){
         //TODO 8 emit tick event
+        // console.log(2, this.state, this.name)
+        // if (this.state == petState.waitingForActivityResponse && (Date.now() - this.waitingSince >10000)) {
+        //     console.warn(999, `NO #timeout from ${this.remoteRef.id} for ${this.currentActivity?.name}`, Date.now());
+        //     this.state = petState.idle;
+        //     this.currentActivity = undefined;
+        // }
+
 
         if (this.state === petState.idle) {
             this.perTickStatChanges()
@@ -466,9 +507,8 @@ export class VPet extends VPEntity {
         }
     }
 
-
-
     finishActivity(){
+        // console.log(3, this.name, "finished activity", this.currentActivity?.name)
        var activityFinished = this.currentActivity
        var activityPartner = this.currentActivity?.entitiesInvolved.find((ent) => {
             if (ent instanceof VPetRemoteRef) {
@@ -483,9 +523,9 @@ export class VPet extends VPEntity {
         
         this.updatePetLikings(activityFinished!, petLikedActivity, activityPartner)
 
-        if (this.logging) {
-            this.logActivityFinished(activityFinished!, activityPartner, petLikedActivity)
-        }
+        // if (this.logging) {
+        //     this.logActivityFinished(activityFinished!, activityPartner, petLikedActivity)
+        // }
     }
 
     didPetLikeActivity(activity : VPActivity, activityPartner : VPetRemoteRef | VPUserRemoteRef, randomness : number = 0.01) : boolean{

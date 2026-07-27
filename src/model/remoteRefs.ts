@@ -20,6 +20,7 @@ export class VPEntityRemoteRef {
         if (entityTypeWithS === "activitys") {
             entityTypeWithS = "activities"
         }
+        // console.log(4, entityTypeWithS, this.id, endpointString)
         const response = await fetch(`${this.serverURL}/${entityTypeWithS}/${this.id}${endpointString}`, {
             method: "POST",
             headers: {
@@ -65,6 +66,7 @@ export class VPetRemoteRef extends VPEntityRemoteRef {
     // instead they can be handled by the server
     async sendActivityRequest(activity : VPActivityRemoteRef, activityPartner : VPetRemoteRef | VPUserRemoteRef) : Promise<any> {
         // const activityJson = activity.toJson();
+        // console.log(3, activity.id, ":", activityPartner.id, "->", this.id)
         activity.timeout = undefined // clear timeout if it exists
         const data = await this.postRequest("activity-request", {
             activity: activity,
@@ -72,6 +74,7 @@ export class VPetRemoteRef extends VPEntityRemoteRef {
             activityPartnerId: activityPartner.id,
             activityPartnerServerURL: activityPartner.serverURL,
         })
+        // console.log(-3, activity.id, ":", activityPartner.id, "->", this.id)
 
         return data.accepted;
     }
@@ -161,7 +164,7 @@ export class VPUserRemoteRef extends VPEntityRemoteRef {
 // TODO 1 URGENT
 export class VPActivityRemoteRef extends VPEntityRemoteRef{
 
-    entities: Array<VPetRemoteRef | VPUserRemoteRef> = []
+    // entities: Array<VPetRemoteRef | VPUserRemoteRef> = []
     name : string
     timeout ?: NodeJS.Timeout // For initater to wait
     // activity ?: VPActivity
@@ -221,15 +224,23 @@ export class VPActivityRemoteRef extends VPEntityRemoteRef{
         return activity;
     }
 
-    async requestEntityToJoin(entity: VPetRemoteRef | VPUserRemoteRef): Promise<boolean> {
-        return entity.sendActivityRequest(this, entity).then((accepted : boolean) => {
-            return accepted;
+    async requestEntityToJoin(activityStarter : VPetRemoteRef | VPUserRemoteRef, entity: VPetRemoteRef | VPUserRemoteRef): Promise<string> {
+        // console.log(2,activityStarter.id, "->", entity.id )
+        return entity.sendActivityRequest(this, activityStarter).then(async (response : string) => {
+            // console.log(4,activityStarter.id, "->", entity.id )
+            if (response === "accept") {
+                await this.postRequest("add-entity", {
+                    entityType: entity.entityType,
+                    entityId: entity.id,
+                    entityServerURL: entity.serverURL
+                })
+            }
+            return response;
         })
     }
 
     
     async tick(entities: Array<VPetRemoteRef | VPUserRemoteRef>) : Promise<void> {
-        console.log(`Activity ${this.name} ticked on server ${this.serverURL} for entities: ${entities.map(e => e.id).join(", ")}`)
         for (const entity of entities) {
             await entity.postRequest("activity-tick", {
                 activityId: this.id,
@@ -239,7 +250,16 @@ export class VPActivityRemoteRef extends VPEntityRemoteRef{
         }
     }
 
+    async start() : Promise<void> {
+        this.postRequest("start", {
+            activityId: this.id,
+            activityServerURL: this.serverURL,
+            name : this.name
+        })
+    }
+
     async finished(entities: Array<VPetRemoteRef | VPUserRemoteRef>) : Promise<void> {
+        // console.log(`Activity ${this.name} finished, notifying ${entities.length} entities with names: ${entities.map(e => e.id).join(", ")}`)
         for (const entity of entities) {
             await entity.postRequest("activity-finished", {
                 activityId: this.id,

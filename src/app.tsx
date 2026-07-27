@@ -83,6 +83,7 @@ if (useRemotePark) {
 
 
 setInterval(() => {
+  console.log(0)
   var timestamp = Date.now()
   for (const pet of pets.values()) {
     pet.tick(timestamp)
@@ -92,7 +93,7 @@ setInterval(() => {
     activity.tick(timestamp)
   }
 
-}, 1000)
+}, 100)
 
 
 
@@ -236,8 +237,9 @@ app.get("/pets/:petId", petMiddleware, async (c) => {
 app.post("/pets/:petId/activity-request", async (c) => {
   const pet = c.get("pet")
   const body = await c.req.json()
+  // console.log(5, pet.getRemoteRef().id )
 
-  var activity = new VPActivityRemoteRef(body.activity.id, body.activity.serverURL, body.activity.name)
+  var activityRemoteRef = new VPActivityRemoteRef(body.activity.id, body.activity.serverURL, body.activity.name)
 
   const activityPartnerType = body.activityPartnerType
 
@@ -262,10 +264,12 @@ app.post("/pets/:petId/activity-request", async (c) => {
     }, 400)
   }
 
-  var activityData = await activity.getActivityData()
-  console.log(activityData instanceof VPActivity)
+  var activityData = await activityRemoteRef.getActivityData()
 
-  const accepted = await pet.receiveActivityRequest(activityData, activityPartner);
+  var activity = VPActivity.fromJson(activityData)
+  activity.remoteRef = activityRemoteRef
+
+  const accepted = await pet.receiveActivityRequest(activity, activityPartner);
   return c.json({
     accepted: accepted
   });
@@ -280,9 +284,6 @@ app.post("/pets/:petId/activity-tick", async (c) => {
   var activityName = body.name
   var activity = new VPActivityRemoteRef(activityId, activityServerURL, activityName)
 
-  if(pet.currentActivity){
-    console.log(`Pet ${pet.name} current activity: ${typeof(pet.currentActivity)}, `)
-  }
 
   if(!pet.currentActivity || pet.currentActivity.getRemoteRef()?.id !== activityId){
     return c.json({
@@ -290,7 +291,7 @@ app.post("/pets/:petId/activity-tick", async (c) => {
       accepted: false
     }, 400)
   } else {
-    var response = await pet.processActivityTick()
+    var response = await pet.processActivityTick(activityId, Date.now())
     return c.json({
       message: `Pet ${pet.name} ticked activity ${activityId}`,
       accepted: true
@@ -307,6 +308,7 @@ app.post("/pets/:petId/activity-finished", async (c) => {
   var activity = new VPActivityRemoteRef(activityId, activityServerURL, activityName)
 
   if(!pet.currentActivity || pet.currentActivity.getRemoteRef()?.id !== activityId){
+    console.log(`Pet ${pet.name} is not currently in activity ${activityId}`)
     return c.json({
       message: `Pet ${pet.name} is not currently in activity ${activityId}`,
       accepted: false
@@ -484,6 +486,7 @@ app.get("/activities/:activityId/entities", activityMiddleware, async (c) => {
   })
 })
 
+// CREATES
 app.post("/activities/:activityId/add-starter-entity", async (c) => {
   var activityId = c.req.param("activityId")!
   var body = await c.req.json()
@@ -498,16 +501,61 @@ app.post("/activities/:activityId/add-starter-entity", async (c) => {
 
   var activity = VPActivity.fromStringData(activityName)
   activity.createRemoteRef(activityId, c.get("baseURL"))
-  activity.entitiesInvolved.push(entityType === "pet" ? new VPetRemoteRef(entityId, entityServerURL) : new VPUserRemoteRef(entityId, entityServerURL))
+  activity.addEntity(entityType === "pet" ? new VPetRemoteRef(entityId, entityServerURL) : new VPUserRemoteRef(entityId, entityServerURL))
   activity.status = "active"
   activities.set(activityId, activity)
-  running_activities.set(activityId, activity)
 
   return c.json({
     message: `Activity ${activityId} created with starter entity ${entityType} ${entityId}`
   })
 })
 
+// start activity
+app.post("/activities/:activityId/start", activityMiddleware, async (c) => {
+  var activity = c.get("activity") as VPActivity
+  var activityId = c.req.param("activityId")!
+
+  running_activities.set(activityId, activity)
+  activity.finishedCallback = () => {
+    running_activities.delete(activityId)
+  }
+
+  return c.json({
+    message: `Activity ${activityId} started`
+  })
+
+})
+
+app.post("/activities/:activityId/add-entity", activityMiddleware, async (c) => {
+  var activity = c.get("activity") as VPActivity
+  var body = await c.req.json()
+  var entityType = body.entityType
+  var entityId = body.entityId
+  var entityServerURL = body.entityServerURL
+
+  var entity = entityType === "pet" ? new VPetRemoteRef(entityId, entityServerURL) : new VPUserRemoteRef(entityId, entityServerURL)
+  activity.addEntity(entity)
+
+  return c.json({
+    message: `Entity ${entityType} ${entityId} added to activity ${activity.name}`
+  })
+})
+
+// app.post("/activities/:activityId/request-entity-join", activityMiddleware, async (c) => {
+//   var activity = c.get("activity") as VPActivity
+//   var body = await c.req.json()
+//   var entityType = body.entityType
+//   var entityId = body.entityId
+//   var entityServerURL = body.entityServerURL
+
+
+//   var entity = entityType === "pet" ? new VPetRemoteRef(entityId, entityServerURL) : new VPUserRemoteRef(entityId, entityServerURL)
+//   var response = await activity.requestEntityJoin(entity)
+//   return c.json({
+//     message: `Entity ${entityType} ${entityId} requested to join activity ${activity.name}`,
+//     response: response
+//   })
+// })
 
 
 // #endregion

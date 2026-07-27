@@ -1,8 +1,10 @@
-import { VPActivity, VPEntity} from "./petRepresentation";
+import { VPActivity } from "./petRepresentation";
 import jsonData from "./data.json" 
 import { VPEnvironment, VPItem } from "./otherModels";
 
-// HACK 8 : will not get the "live version"
+/**
+ * parses activity from local data.json file
+ */
 export function parseActivityFromName(activityName : string) : VPActivity {
 
     var activity : VPActivity = VPActivity.fromStringData("empty")

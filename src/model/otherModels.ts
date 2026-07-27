@@ -1,4 +1,5 @@
-import { VPEntity, VPActivity} from "./petRepresentation"
+import { VPEntity } from "./entity"
+import type { VPActivity } from "./petRepresentation"
 import {parseActivityFromName, parseEnvironmentFromName, parseItemFromName} from "./parser"
 import { VPEnvironmentRemoteRef, VPetRemoteRef, VPUserRemoteRef } from "./remoteRefs"
 
@@ -19,16 +20,15 @@ export class VPUser extends VPEntity{
     }
 
     // ----------------- async methods -----------------
-    askPetToDoActivity(pet : VPetRemoteRef, activityName : string, itemName ?: string) : Promise<boolean> {
-        var activity : VPActivity = VPActivity.fromStringData(activityName)
-        const activityID = this.remoteRef.id + "@" + this.remoteRef.serverURL + "@" + Date.now().toString()
+    // askPetToDoActivity(pet : VPetRemoteRef, activityName : string, itemName ?: string) : Promise<boolean> {
+    //     var activity = 
 
-        return new Promise((resolve) => {
-            pet.sendActivityRequest(activity, this.remoteRef, activityID).then((accepted : boolean) => {
-                resolve(accepted)
-            })
-        });
-    }
+    //     return new Promise((resolve) => {
+    //         pet.sendActivityRequest(activity, this.remoteRef).then((accepted : boolean) => {
+    //             resolve(accepted)
+    //         })
+    //     });
+    // }
 }
 
 export class VPItem {

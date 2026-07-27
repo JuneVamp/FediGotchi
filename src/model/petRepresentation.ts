@@ -1,14 +1,7 @@
-import { VPItem } from "./otherModels"
+import type { VPItem } from "./otherModels"
 import { parseActivityFromName } from "./parser"
-import { VPEnvironmentRemoteRef, VPetRemoteRef, VPUserRemoteRef } from "./remoteRefs"
-
-export class VPEntity {
-    name : string 
-    relationships : VPRelationshipDict = {}
-    constructor (name : string) {
-        this.name = name
-    }
-}
+import { VPEntity } from "./entity"
+import { VPActivityRemoteRef, VPEnvironmentRemoteRef, VPetRemoteRef, VPUserRemoteRef } from "./remoteRefs"
 
 //--------------------relationships--------------------
 export interface VPRelationship{
@@ -89,7 +82,7 @@ export interface VPActivityInterface {
 }
 
 export class VPActivity {
-    activityID : string
+    // activityId : string
     name : string
     statAffected : VPStats
     maxTicks : number
@@ -99,9 +92,13 @@ export class VPActivity {
     tags : Array<string> = []
     // events ?: Array<VPEvent>
     timeout ?: NodeJS.Timeout
+    remoteRef ?: VPActivityRemoteRef
+    numTicksDone : number = 0
+    status : "active" | "finished" = "active"
+    finishedCallback ?: () => void
 
-    constructor(activity : VPActivityInterface, activityID ?: string){
-        this.activityID = activityID || activity.name + "@" + Date.now().toString()
+    constructor(activity : VPActivityInterface){
+        // this.activityId = activityId
         this.name = activity.name
         this.statAffected = activity.statAffected
         this.maxTicks = activity.maxTicks
@@ -111,6 +108,7 @@ export class VPActivity {
         // this.events = activity.events
     }
 
+    // for activities on the same server, created from data.json with parser
     static fromStringData(activityName : string) : VPActivity{
         if (!activityName || activityName === "" || activityName === "empty") {
             return new VPActivity({
@@ -120,45 +118,111 @@ export class VPActivity {
                 entitiesInvolved : [],
                 entityLimit : {min : 0, max : 0},
                 tags : []
-            }
-            );
+            });
         }
         return parseActivityFromName(activityName)
     }
 
-    toJson() : any {
-        return {
-            name : this.name,
-            statAffected : this.statAffected,
-            maxTicks : this.maxTicks,
-            // entitiesInvolved : this.entitiesInvolved,
-            entityLimit : this.entityLimit,
-            tags : this.tags,
-            // events : this.events
+
+    // Ideally sending this directly should be okay?
+    // toJson() : any {
+    //     return {
+    //         name : this.name,
+    //         statAffected : this.statAffected,
+    //         maxTicks : this.maxTicks,
+    //         // entitiesInvolved : this.entitiesInvolved,
+    //         entityLimit : this.entityLimit,
+    //         tags : this.tags,
+    //         // events : this.events
+    //     }
+    // }
+
+    // static fromJson(jsonData : any) : VPActivity {
+    //     const checkIfValidActivity = (data : any) : boolean => {
+    //         return data && typeof data.name === "string" && typeof data.statAffected === "object" && typeof data.maxTicks === "number" ;
+    //     }
+    //     if (!checkIfValidActivity(jsonData)) {
+    //         // throw new Error("Invalid activity data");
+    //         return undefined as unknown as VPActivity; // HACK 9 to avoid breaking the server if the activity is invalid
+    //     }
+    //     const activity = new VPActivity({
+    //         name: jsonData.name,
+    //         statAffected: jsonData.statAffected,
+    //         maxTicks: jsonData.maxTicks,
+    //         // entitiesInvolved: jsonData.entitiesInvolved || [],
+    //         entityLimit: jsonData.entityLimit || {min: 1, max: 1},
+    //         tags: jsonData.tags || []
+    //     });
+    //     return activity;
+    // }
+
+    getRemoteRef() : VPActivityRemoteRef | undefined {
+        return this.remoteRef || undefined
+    }
+
+    createRemoteRef(id:string, serverURL : string) : VPActivityRemoteRef {
+        if(this.remoteRef) throw new Error("Activity remoteRef already exists. Cannot create a new one.")
+        this.remoteRef = new VPActivityRemoteRef(id, serverURL, this.name)
+        return this.remoteRef
+    }
+
+    createId(activityStarter : string) : string {
+        var timestamp = Date.now().toString()
+        return this.name + "_" + activityStarter + "_" + timestamp
+    }
+
+    getEntities() : Array<VPetRemoteRef | VPUserRemoteRef> {
+        return this.entitiesInvolved
+    }
+
+    // #region ----------------- async methods -----------------
+    startActivity(
+        activityStarter : VPetRemoteRef | VPUserRemoteRef, 
+        activityServerURL : string,
+        // activityPartner ?: VPetRemoteRef | VPUserRemoteRef, 
+        // activityItem ?: VPItem
+    ) : Promise<boolean> {
+        this.status = "active"
+        var remoteRef = this.createRemoteRef(this.createId(activityStarter.id), activityServerURL)
+        return remoteRef.addStarterEntity(activityStarter, this.name)
+    }
+
+    requestEntityJoin(entity : VPUserRemoteRef | VPetRemoteRef) : Promise<boolean> {
+        var remoteRef = this.getRemoteRef()
+        if (!remoteRef) {throw new Error("Activity remoteRef not set. Cannot request join.")}
+        return remoteRef.requestEntityToJoin(entity)
+        
+    }
+
+    tick(timestamp : number) : Promise<void> {
+        console.log(`Activity ${this.name} ticked at ${timestamp}, numTicksDone: ${this.numTicksDone}, maxTicks: ${this.maxTicks}`)
+        if (this.numTicksDone >= this.maxTicks) {
+            this.finished()
+            return Promise.resolve()
+        }
+
+        if (this.status === "finished") {
+            throw new Error("Activity is already finished. Cannot tick activity.")
+            // return Promise.resolve()
+        }
+
+        this.numTicksDone += 1
+        var entities = this.entitiesInvolved
+        var remoteRef = this.getRemoteRef()
+        if (!remoteRef) {throw new Error("Activity remoteRef not set. Cannot tick activity.")}
+        return remoteRef.tick(entities)
+    }
+
+    finished() : void {
+        this.status = "finished"
+        this.remoteRef!.finished(this.entitiesInvolved)
+        if (this.finishedCallback) {
+            this.finishedCallback()
         }
     }
 
-    static fromJson(jsonData : any) : VPActivity {
-        const checkIfValidActivity = (data : any) : boolean => {
-            return data && typeof data.name === "string" && typeof data.statAffected === "object" && typeof data.maxTicks === "number" ;
-        }
-        if (!checkIfValidActivity(jsonData)) {
-            // throw new Error("Invalid activity data");
-            return undefined as unknown as VPActivity; // HACK 9 to avoid breaking the server if the activity is invalid
-        }
-        const activity = new VPActivity({
-            name: jsonData.name,
-            statAffected: jsonData.statAffected,
-            maxTicks: jsonData.maxTicks,
-            entitiesInvolved: jsonData.entitiesInvolved || [],
-            entityLimit: jsonData.entityLimit || {min: 1, max: 1},
-            tags: jsonData.tags || []
-        });
-        return activity;
-    }
+    // #endregion
 }
-
-
 
 export interface ActivityHistory{
     activity : VPActivity, 

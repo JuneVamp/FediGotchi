@@ -3,7 +3,7 @@ import { serveStatic } from "@hono/node-server/serve-static"
 import { SERVER_URL } from "./serverConfig.ts"
 import {setCookie, getCookie, deleteCookie} from "hono/cookie"
 
-import { VPEnvironmentRemoteRef, VPetRemoteRef, VPUserRemoteRef } from "./model/remoteRefs.ts"
+import { VPActivityRemoteRef, VPEnvironmentRemoteRef, VPetRemoteRef, VPUserRemoteRef } from "./model/remoteRefs.ts"
 import { VPItem, VPEnvironment, VPUser } from "./model/otherModels"
 import { VPet } from "./model/pet"
 import { VPActivity } from "./model/petRepresentation.ts"
@@ -16,6 +16,7 @@ type AppEnv = {
     pet : VPet,
     environment : VPEnvironment,
     currentUserId : string,
+    activity : VPActivity,
     baseURL : string
   }
 }
@@ -28,6 +29,7 @@ var users = new Map<string, VPUser>()
 var pets = new Map<string, VPet>()
 var environments = new Map<string, VPEnvironment>()
 var activities = new Map<string, VPActivity>()
+var running_activities = new Map<string, VPActivity>()
 
 var user1 = new VPUser("userJune")
 users.set(user1.name, user1)
@@ -86,11 +88,15 @@ setInterval(() => {
     pet.tick(timestamp)
   }
 
-}, 500)
+  for (const activity of running_activities.values()) {
+    activity.tick(timestamp)
+  }
+
+}, 1000)
 
 
 
-// --------- login ---------
+// #region --------- login ---------
 
 app.post("/login", async (c) => {
   const body = await c.req.parseBody()
@@ -125,7 +131,9 @@ app.post("/logout", async (c) => {
   return c.redirect("/")
 })
 
-// --------- base urls -------
+// #endregion
+
+// #region --------- base urls -------
 
 app.use("/*" ,async (c : Context, next: Next)=> {
   const baseURL = new URL(c.req.url).origin
@@ -172,8 +180,9 @@ app.get("/api/environments", async (c) => {
   })
 })
 
+// #endregion
 
-// --------- pets -------
+// #region --------- pets -------
 
 const petMiddleware = async (c: Context, next: Next) => {
   const petName = c.req.param("petId")!.toLowerCase()
@@ -222,18 +231,13 @@ app.get("/pets/:petId", petMiddleware, async (c) => {
   })
 })
 
-// expects body to have activity or activityName, activityPartnerType, activityPartnerId, activityPartnerServerURL
+// expects body to have activityRemoteRef, activityPartnerType, activityPartnerId, activityPartnerServerURL
+// FIXME 1 The user CANNOT call this (they do right now)
 app.post("/pets/:petId/activity-request", async (c) => {
   const pet = c.get("pet")
   const body = await c.req.json()
-  var activity = undefined as unknown as VPActivity
 
-  if (body.activity){
-    activity = VPActivity.fromJson(body.activity)
-  }
-  else if (body.activityName){
-    activity = VPActivity.fromStringData(body.activityName)
-  }
+  var activity = new VPActivityRemoteRef(body.activity.id, body.activity.serverURL, body.activity.name)
 
   const activityPartnerType = body.activityPartnerType
 
@@ -242,6 +246,7 @@ app.post("/pets/:petId/activity-request", async (c) => {
     activityPartner = new VPetRemoteRef(body.activityPartnerId, body.activityPartnerServerURL)
   } 
   else if (activityPartnerType === "user") {
+    // FIXME 2 this might break because user server is not saved
     const userId = c.get("currentUserId") as string
     console.log("currentUserId", userId)
     if (!userId) {
@@ -257,12 +262,65 @@ app.post("/pets/:petId/activity-request", async (c) => {
     }, 400)
   }
 
-  const accepted = await pet.receiveActivityRequest(activity, activityPartner);
+  var activityData = await activity.getActivityData()
+  console.log(activityData instanceof VPActivity)
+
+  const accepted = await pet.receiveActivityRequest(activityData, activityPartner);
   return c.json({
     accepted: accepted
   });
 
 })
+
+app.post("/pets/:petId/activity-tick", async (c) => {
+  const pet = c.get("pet")
+  const body = await c.req.json()
+  var activityId = body.activityId
+  var activityServerURL = body.activityServerURL
+  var activityName = body.name
+  var activity = new VPActivityRemoteRef(activityId, activityServerURL, activityName)
+
+  if(pet.currentActivity){
+    console.log(`Pet ${pet.name} current activity: ${typeof(pet.currentActivity)}, `)
+  }
+
+  if(!pet.currentActivity || pet.currentActivity.getRemoteRef()?.id !== activityId){
+    return c.json({
+      message: `Pet ${pet.name} is not currently in activity ${activityId}`,
+      accepted: false
+    }, 400)
+  } else {
+    var response = await pet.processActivityTick()
+    return c.json({
+      message: `Pet ${pet.name} ticked activity ${activityId}`,
+      accepted: true
+    })
+  }
+})
+
+app.post("/pets/:petId/activity-finished", async (c) => {
+  const pet = c.get("pet")
+  const body = await c.req.json()
+  var activityId = body.activityId
+  var activityServerURL = body.activityServerURL
+  var activityName = body.name
+  var activity = new VPActivityRemoteRef(activityId, activityServerURL, activityName)
+
+  if(!pet.currentActivity || pet.currentActivity.getRemoteRef()?.id !== activityId){
+    return c.json({
+      message: `Pet ${pet.name} is not currently in activity ${activityId}`,
+      accepted: false
+    }, 400)
+  } else {
+    var response = await pet.processActivityFinished()
+    return c.json({
+      message: `Pet ${pet.name} finished activity ${activityId}`,
+      accepted: true
+    })
+  }
+
+})
+
 
 app.post("/pets/:petId/set-environment", async (c) => {
   const pet = c.get("pet")
@@ -285,7 +343,9 @@ app.post("/pets/:petId/set-owner", async (c) => {
   })
 })
 
-// --------- environments -------
+// #endregion
+
+// #region --------- environments -------
 const environmentMiddleware = async (c: Context, next: Next) => {
   const environmentId = c.req.param("environmentId")!.toLowerCase()
   const environment = environments.get(environmentId)
@@ -346,7 +406,7 @@ app.get("/environments/:environmentId/items", async (c) => {
     items: allItems.map(item => {
       return {
         name: item.name,
-        activity: item.getActivity() ? item.getActivity()!.toJson() : undefined
+        activity: item.getActivity() ? item.getActivity()! : undefined
       }
     })
   })
@@ -364,7 +424,9 @@ app.post("/environments/:environmentId/add-pet", async (c) => {
   })
 })
 
-// --------- users ----------
+// #endregion
+
+// #region --------- users ----------
 app.get("/users/:userId", async (c) => {
   // TODO 1
 })
@@ -383,20 +445,72 @@ app.get("/users/:userId", async (c) => {
 //   localStorage.setItem("currentUserId", userId)
 // })
 
-// ------------ activities ------------
-//TODO 10 someday
-// app.get("/activites/:activityId", async (c) =>{
-//   const activityId = c.req.param("activityId")
+// #endregion
 
-// })
+// #region ------------ activities ------------
+const activityMiddleware = async (c: Context, next: Next) => {
+  const activityId = c.req.param("activityId")!
+  const activity = activities.get(activityId)
+  if (!activity) {
+    return c.json({
+      message: `Activity ${activityId} not found`
+    }, 404)
+  }
 
-// //create activity
-// //TODO 10 someday
-// app.post("/activites/:activityId", async (c) => {
-//   const activityId = c.req.param("activityId")
+  c.set("activity", activity)
+  await next()
+}
 
-// })
+app.get("/activities/:activityId", activityMiddleware, async (c) =>{
+  const activity = c.get("activity") as VPActivity
+  return c.json({
+    activity: activity.getRemoteRef()
+  })
+})
 
+app.get("/activities/:activityId/data", activityMiddleware, async (c) => {
+  var activity = c.get("activity") as VPActivity
+
+  return c.json({
+    activity: activity
+  })
+
+})
+
+app.get("/activities/:activityId/entities", activityMiddleware, async (c) => {
+  var activity = c.get("activity") as VPActivity
+  return c.json({
+    entities: activity.getEntities()
+  })
+})
+
+app.post("/activities/:activityId/add-starter-entity", async (c) => {
+  var activityId = c.req.param("activityId")!
+  var body = await c.req.json()
+  var entityType = body.entityType
+  var entityId = body.entityId
+  var entityServerURL = body.entityServerURL
+  var activityName = body.activityName
+
+  if(activities.get(activityId)){
+    throw new Error(`Activity ${activityId} already exists, curent timestamp: ${Date.now()}`)
+  }
+
+  var activity = VPActivity.fromStringData(activityName)
+  activity.createRemoteRef(activityId, c.get("baseURL"))
+  activity.entitiesInvolved.push(entityType === "pet" ? new VPetRemoteRef(entityId, entityServerURL) : new VPUserRemoteRef(entityId, entityServerURL))
+  activity.status = "active"
+  activities.set(activityId, activity)
+  running_activities.set(activityId, activity)
+
+  return c.json({
+    message: `Activity ${activityId} created with starter entity ${entityType} ${entityId}`
+  })
+})
+
+
+
+// #endregion
 
 
 app.get("/*", serveStatic({root : './public'}))

@@ -223,16 +223,18 @@ app.get("/pets/:petId", petMiddleware, async (c) => {
   const accept = c.req.header("Content-Type") ?? ""
   const isJson = accept.includes("application/json")
 
+  const petBaseURL = pet.getRemoteRef().serverURL
+
   if (!isJson) {
     return c.html(
       htmlLayoutString(
         [
           loginBox(c.get("baseURL")),
-          petViewLayoutString(petView, c.get("baseURL"), [
-            petViewHtmlString(petView, c.get("baseURL")),
+          petViewLayoutString(petView, petBaseURL, [
+            petViewHtmlString(petView, petBaseURL),
             // petActivityHistoryHtmlString(),
             petRelationshipsHtmlString(),
-            petUserActionsHtmlString(pet, c.get("baseURL"))
+            petUserActionsHtmlString(pet, petBaseURL)
           ])
         ],
         c.get("baseURL"))

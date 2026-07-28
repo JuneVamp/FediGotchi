@@ -561,7 +561,7 @@ export class VPet extends VPEntity {
         var activityFriendliness = this.relationships[activityFinished!.name]?.friendliness
         var partnerFriendliness = activityPartner ?  this.relationships[activityPartner.uniqueId]?.friendliness : undefined
 
-        var scale = 1 - Math.abs(activityFriendliness ? activityFriendliness-5 : 0) / 10
+        var scale = 1 - Math.abs(activityFriendliness ? activityFriendliness-5 : 0) / 5
         var delta = petLikedActivity ? likedActivityFriendlinessChange * scale : dislikedActivityFriendlinessChange * scale
 
         this.relationships[activityFinished!.name] = {

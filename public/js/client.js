@@ -164,6 +164,16 @@ function refreshPetView(petName , baseURL) {
     const refreshPetViewOnce = async (petName , baseURL ) => {
         const data = await getPetView(petName, baseURL);
 
+        const imageHTML = document.querySelector(`#pet-${petName} img`);
+        const nameHTML = document.querySelector(`#pet-${petName} .pet-name`);
+
+        if (nameHTML) {
+            nameHTML.innerHTML = `<a href="${data.pet.remoteRef.serverURL}/pets/${data.pet.remoteRef.id}">${data.pet.name}</a>`;
+        }
+        // if (imageHTML) {
+        //     imageHTML.src = `<a href="${data.pet.remoteRef.serverURL}/pets/${data.pet.remoteRef.id}">${data.pet.imageSrc}</a>`;
+        // }
+
         const activityContainer = document.querySelector(`#pet-${petName} .pet-activity`);
         if (activityContainer) {
             activityContainer.innerHTML = `

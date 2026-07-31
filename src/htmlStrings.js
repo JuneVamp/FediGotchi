@@ -105,7 +105,9 @@ export const petViewHtmlString = (pet, baseURL) => {
             console.log('${baseURL}');
             refreshPetView('${pet.name}', '${baseURL}');
         </script>
-        <img src="${baseURL}/${pet.imageSrc}" />
+        <a href="${baseURL}/pets/${pet.remoteRef.id}">
+            <img src="${baseURL}/${pet.imageSrc}" />
+        </a>
         <div class="pet-name">${pet.name}</div>
         <div class="pet-activity"> CODE DEFINED </div>
         <div class="stats"> CODE DEFINE </div>

@@ -162,7 +162,6 @@ function userMovePetToNewEnvironment(petName, baseURL) {
 
 function refreshPetView(petName , baseURL) {
     const refreshPetViewOnce = async (petName , baseURL ) => {
-        console.log(`Refreshing pet view for ${petName} with baseURL ${baseURL}`);
         const data = await getPetView(petName, baseURL);
 
         const activityContainer = document.querySelector(`#pet-${petName} .pet-activity`);
@@ -176,7 +175,7 @@ function refreshPetView(petName , baseURL) {
                 <a href="${data.pet.activityPartnerRemoteRef ? data.pet.activityPartnerRemoteRef.serverURL 
                     + "/pets/" + 
                     data.pet.activityPartnerRemoteRef.id : "null"}">
-                    ${data.pet.currentActivityPartnerName} 
+                    ${data.pet.currentActivityPartnerName}
                 </a>
             </span> in 
             <span class="environment-name keyword"> 
@@ -216,17 +215,7 @@ function refreshPetView(petName , baseURL) {
 
         const relationshipsContainer = document.querySelector(`#pet-container-${petName} .pet-relationships`);
         if (relationshipsContainer){
-            relationshipsContainer.innerHTML = `
-            <h3> Relationships </h3>
-            <ul>
-                ${ Object.entries(data.pet.relationships).map(([thingName, relationship]) => `
-                    <li>
-                        <span class="relationship-thing-name keyword">${thingName}</span> : 
-                        <span class="relationship-friendliness">${relationship.friendliness}</span>
-                    </li>
-                `).join('')}
-            </ul>
-            `;
+            relationshipsContainer.innerHTML = processRelationships(data.pet.relationships).activities
         }
 
     }
@@ -237,6 +226,47 @@ function refreshPetView(petName , baseURL) {
         await refreshPetViewOnce(petName, baseURL);
     }, 1000);
 };
+
+function processRelationships(relationships){
+    // -5_-3 -3_-1 so on: hate, dislike, neutral, friendly, best friend
+    var activityRelationships = {};
+    var entityRelationships = {};
+    var numberToFriendliness = (number) => {
+        const friendliness = (number + 5) / 10; 
+        if (friendliness < 0.2) return "Hate";
+        if (friendliness < 0.4) return "Dislike";
+        if (friendliness < 0.6) return "Neutral";
+        if (friendliness < 0.8) return "Friendly";
+        return "Best Friend";
+    }
+
+    for (const [thingName, relationship] of Object.entries(relationships)) {
+        if ( thingName.includes("@")) { // entity
+            entityRelationships[thingName] = (relationship.friendliness+5)/10;
+        } else {
+            activityRelationships[thingName] = (relationship.friendliness+5)/10;
+        }
+    }
+    const activityHTML = '<ul>' + Object.entries(activityRelationships).map(([activityName, friendliness]) => `
+        <li>
+            <span class="activity-name keyword">${activityName}</span> : 
+            <span>${numberToFriendliness((friendliness*10)-5)}</span>
+        </li>
+    `).join('') +'</ul>';
+    const entityHTML = '<ul>' + Object.entries(entityRelationships).map(([entityName, friendliness]) => `
+        <li>
+            <span class="entity-name keyword">${entityName}</span> :
+            <span>${numberToFriendliness((friendliness*10)-5)}</span>
+        </li>
+    `).join('') +'</ul>';
+
+    return {
+        activities: activityHTML,
+        entities: entityHTML
+    }
+
+
+}
 
 function setupUserActions(petName, baseURL) {
     async function refreshUserActions() {

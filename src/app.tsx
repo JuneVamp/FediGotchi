@@ -10,7 +10,7 @@ import { VPEnvironment } from "./model/environment.ts";
 import { VPet } from "./model/pet"
 import { VPActivity } from "./model/activity.ts"
 
-import {htmlLayoutString, petViewLayoutString, petActivityHistoryHtmlString, petViewHtmlString, environmentHtmlString, loginBox, petUserActionsHtmlString, petRelationshipsHtmlString} from "./htmlStrings"
+import {htmlLayoutString, petViewLayoutString, petActivityHistoryHtmlString, petViewHtmlString, environmentHtmlString, loginBox, petUserActionsHtmlString, petRelationshipsHtmlString, aboutHtmlString} from "./htmlStrings"
 import { createSession, destroySession, getUser } from "./session.ts"
 
 type AppEnv = {
@@ -184,8 +184,14 @@ app.get("/", async (c) => {
   </div>
   `
   return c.html(htmlLayoutString([
-    loginBox(c.get("baseURL")),
     allPetsStrings
+  ], c.get("baseURL")))
+})
+
+
+app.get("/about", async (c) => {
+  return c.html(htmlLayoutString([
+    aboutHtmlString(c.get("baseURL"))
   ], c.get("baseURL")))
 })
 
@@ -245,7 +251,6 @@ app.get("/pets/:petId", petMiddleware, async (c) => {
     return c.html(
       htmlLayoutString(
         [
-          loginBox(c.get("baseURL")),
           petViewLayoutString(petView, petBaseURL, [
             petViewHtmlString(petView, petBaseURL),
             // petActivityHistoryHtmlString(),

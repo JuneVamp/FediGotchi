@@ -9,6 +9,11 @@ export const htmlLayoutString = ([...children], baseURL) => {
                 <meta charset="utf-8">
                 <title>FediFlock</title>
                 <link rel="stylesheet" href="${baseURL}/styles/style.css">
+                
+                <!-- header font -->
+                <link rel="preconnect" href="https://fonts.googleapis.com">
+                <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+                <link href="https://fonts.googleapis.com/css2?family=Grand+Hotel&family=Walter+Turncoat&display=swap" rel="stylesheet">
             </head>
             <body>
             <script>
@@ -16,11 +21,71 @@ export const htmlLayoutString = ([...children], baseURL) => {
             </script>
             <script src="${baseURL}/js/client.js"> </script>
             <script src="${baseURL}/js/apiHelper.js"> </script>
-                ${children.join("")}
+            ${headerHtmlString(baseURL)}
+            ${children.join("")}
             </body>
         </html>
     `
 }
+
+export const headerHtmlString = (baseURL) => {
+    return `
+        <header>
+            <h1><a href="${baseURL}/about">Fediflock</a></h1>
+            ${navbarHtmlString(baseURL)}
+            ${loginBox(baseURL)}
+        </header>
+    `
+}
+
+export const navbarHtmlString = (baseURL) => {
+    return `
+        <div class="navbar">
+            <a href="${baseURL}/about">About</a>
+            <a href="${baseURL}/">Home</a>
+            <a href="${baseURL}/environments">Environments</a>
+            <a href="${baseURL}/pets">Pets</a>
+        </div>
+    `
+}
+
+export const aboutHtmlString = (baseURL) => {
+    return `
+        <div class="about">
+            <h2>About FediFlock</h2>
+            <p> 
+            Hello, welcome to FediFlock a [[Federated]] virtual pet framework and implementation. 
+            Virtual pets have existed almost as long as we have had the power to create them. 
+            This project aims to provide a way for communication between these pets. 
+            The end goal is to have users be able to own/interact with these pets in a way that doesn't lock them onto the specific site 
+            (which inevitably will go down or someone will make a new version with different features.) 
+            </p>
+
+            <p>
+            We have designed this with the intention of other people creating not only their own pets and interacting with them across multiple [[servers]].
+            But also!! create your own server where the pets on your server can communicate and interact with other pets. 
+            </p>
+
+            <p>
+            Don't like the way the pets on my server have difficulty making friends, change parameters or implement your own friendship algorithm on your server. 
+            Want more environments, items or activities? change the data.json file on your server. 
+            Want to have your own custom pet creation page with cool art? Sure! 
+            </p>
+
+            <p>
+            The website is built on top of an api to the server, you can use the api however you like, make your own website for your pets. 
+            (there are some helper javascript function in the apiFunctions.js). 
+            I have tried my best to keep the communication protocol separate from the model of pets and environment. 
+            So as long as your pet on your server can follow the same communication protocol. They are part of the FediFlock!
+            </p>
+
+            <p>
+            Welcome to the FediFlock: Do not put your fish in a birdcage!
+            </p>
+        </div>
+    `
+}
+
 
 // PET STRINGS
 
@@ -94,14 +159,16 @@ export const environmentHtmlString = (environment, baseURL, [... petChildren]) =
 
 export const loginBox = (baseURL) => {
     return `
-        <form id="loginform" action="${baseURL}/login" method="POST">
-            <label for="username">Login: </label>
-            <input type="text" id="login-form-username" name="username">
-            <input type="submit" value="Submit">
-        </form>
-        <span id="login-information">
-            Not logged in
-        </span>
+        <div id="login-box">
+            <form id="loginform" action="${baseURL}/login" method="POST">
+                <label for="username">Login: </label>
+                <input type="text" id="login-form-username" name="username">
+                <input type="submit" value="Submit">
+            </form>
+            <span id="login-information">
+                Not logged in
+            </span>
+        </div>
         <script>
             updateLoginInformation('${baseURL}');
         </script>

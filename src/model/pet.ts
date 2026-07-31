@@ -656,6 +656,7 @@ export class VPet extends VPEntity {
         } else {
             this.tempPetView.currentActivityPartnerName = "null"
             this.tempPetView.currentActivityItemName = "null"
+            this.tempPetView.activityPartnerRemoteRef = undefined
         }
 
         

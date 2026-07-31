@@ -1,12 +1,107 @@
+
+:root {
+  --global-fill-kidcore-red: #efb0c7;
+  --global-fill-kidcore-yellow: #f7e7cf;
+  --global-fill-kidcore-green: #c7e9c7;
+  --global-fill-kidcore-purple: #d3aef3;
+  --global-fill-kidcore-blue: #bfbbf8;
+
+  --global-highlight-kidcore-red: #f7d9e8;
+  --global-highlight-kidcore-yellow: #fbf9ef;
+  --global-highlight-kidcore-green: #ebf4eb;
+  --global-highlight-kidcore-blue: #dfdef8;
+  --global-highlight-kidcore-purple: #ead3f7;
+
+  --global-border-kidcore-red: #7a2d3c;
+  --global-border-kidcore-yellow: #a58f73;
+  --global-border-kidcore-green: #818a5e;
+  --global-border-kidcore-purple: #62367a;
+  --global-border-kidcore-blue: #59589c;
+
+  --body-background-color: var(--global-highlight-kidcore-yellow);
+}
+
+
+
 body {
     font-family: Helvetica, Arial, sans-serif;
     margin: 0;
     padding: 0;
-    background-color: #ffe8e8;
-    color: #333;
+    background-color: var(--body-background-color);
+    /* color: #333; */
     display: flex;
     align-items: center;
     flex-direction: column;
+}
+
+header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-end;
+    width: 100%;
+    border-bottom: 2px solid var(--global-border-kidcore-red);
+    padding: 0px 0px;
+    margin: 0 0px;
+}
+
+h1 {
+    padding: 0px 10px;
+    margin: 0;
+    font-family: 'Grand Hotel', cursive;
+    font-style: normal;
+    font-weight: normal;
+    font-size: 48px;
+}
+
+h1 a {
+    text-decoration: none;
+    color: var(--global-border-kidcore-red);
+}
+
+
+.navbar {
+    /* display: flex; */
+    /* justify-content: center; */
+    /* background-color: var(--global-fill-kidcore-blue); */
+    align-items: center;
+    padding: 10px;
+    font-size: 24px;
+    /* font-family: cursive; */
+    /* border-bottom: 2px solid var(--global-border-kidcore-blue); */
+    text-decoration: none;
+    color: var(--global-border-kidcore-red);
+}
+
+.navbar a {
+    /* text-decoration: none; */
+    color: var(--global-border-kidcore-red);
+    padding: 0px 10px;
+}
+
+#login-box {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    /* padding: 5px 10px; */
+    /* margin-right: 10px; */
+    /* background-color: var(--global-fill-kidcore-blue);
+    border: 2px solid var(--global-border-kidcore-blue); */
+    /* border-radius: 10px; */
+}
+
+#login-information {
+    padding: 5px 5px;
+    font-size: large;
+}
+
+.about {
+    max-width: 800px;
+    margin: 20px auto;
+    padding: 20px;
+    background-color: var(--global-fill-kidcore-yellow);
+    border: 2px solid var(--global-border-kidcore-yellow);
+    border-radius: 10px;
 }
 
 #pets {
@@ -19,8 +114,8 @@ body {
 .pet {
     display: flex;
     flex-direction: column;
-    border: 3px solid #682323;
-    background-color: #fff0f0;
+    border: 3px solid var(--global-border-kidcore-green);
+    background-color: var(--global-fill-kidcore-green);
     margin: 20px 20px;
     padding: 10px;
     min-width: 300px;
@@ -53,9 +148,35 @@ body {
 
 .stats {
     margin-top: 10px;
+    padding: 5px 5px;
     font-size: 14px;
     color: #555;
+    border:var(--global-border-kidcore-green) 1px solid;
+    background-color: var(--global-highlight-kidcore-green);
 }
+
+.pet-relationships {
+    padding: 5px 5px;
+    margin-top: 10px;
+    font-size: 14px;
+    color: #555;
+    border:var(--global-border-kidcore-green) 1px solid;
+    background-color: var(--global-highlight-kidcore-green);
+}
+ul {
+    padding : 0;
+    margin : 0;
+}
+
+li {
+    list-style-type: none;
+}
+
+
+/* progress {
+    -webkit-appearance: none;
+    appearance: none;
+} */
 
 .user-actions {
     margin-top: 10px;
@@ -67,16 +188,17 @@ body {
 button {
     padding: 5px 10px;
     margin: 5px;
-    background-color: #682323;
+    background-color: var(--global-border-kidcore-green);
     color: white;
     border-radius : 10px;
-    border: 1px solid #682323;
+    border: 0px solid ;
 }
 
 /* hover effect for buttons */
 button:hover {
-    background-color: #a94444;
-    border-color: #a94444;
+    background-color: var(--global-highlight-kidcore-green);
+    color: var(--global-border-kidcore-green);
+    /* border-color: #a94444; */
     cursor: pointer;
 }
 
@@ -111,11 +233,6 @@ button:hover {
     margin : auto;
     justify-content: center;
 } */
-
-#login-information {
-    padding: 5px 5px;
-    font-size: large;
-}
 
 
 /* for popus */

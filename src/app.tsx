@@ -36,10 +36,12 @@ const app = new Hono<AppEnv>()
 //     credentials: true,
 //   })
 // );
-// app.get("/assets/*", serveStatic({root : './'}))
 app.use("/*",
   cors({
   origin: '*',
+  allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowHeaders: ['Content-Type'],
+  credentials: true,
 }));
 
 

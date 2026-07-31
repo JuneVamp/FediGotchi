@@ -380,11 +380,18 @@ export class VPet extends VPEntity {
     }
 
     async setEnvironment(environment : VPEnvironmentRemoteRef) : Promise<any>{
+        if (this.environment && this.environment.uniqueId === environment.uniqueId) {
+            return {
+                accepted : true
+            }
+        } else {
+            this.environment?.removePet(this.remoteRef)
+            environment.addPet(this.remoteRef)
+        }
+        // var saidYes = true
         this.environment = environment
-        // TODO 4 logic
-        var saidYes = true
         return {
-            accepted : saidYes
+            accepted : true
         }
     }
     

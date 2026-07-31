@@ -352,6 +352,7 @@ app.post("/pets/:petId/activity-finished", async (c) => {
 })
 
 
+// HACK 6 there should NOT be 2 ways (1 in env and 1 in pet) to  do this
 app.post("/pets/:petId/set-environment", async (c) => {
   const pet = c.get("pet")
   const body = await c.req.json()
@@ -450,14 +451,15 @@ app.post("/environments/:environmentId/add-pet", async (c) => {
   
   const body = await c.req.json()
   const pet = new VPetRemoteRef(body.petId, body.petServerURL)
-  const petView = await pet.getView()
-  if (petView.environmentRemoteRef) {
-    const previousEnvironmentRemoteRef = new VPEnvironmentRemoteRef(petView.environmentRemoteRef!.id, petView.environmentRemoteRef!.serverURL )
-    await previousEnvironmentRemoteRef.removePet(pet)
-  }
+  // const petView = await pet.getView()
+  // if (petView.environmentRemoteRef) {
+  //   const previousEnvironmentRemoteRef = new VPEnvironmentRemoteRef(petView.environmentRemoteRef!.id, petView.environmentRemoteRef!.serverURL )
+  //   await previousEnvironmentRemoteRef.removePet(pet)
+  // }
   environment.addPet(pet)
   return c.json({
-    message: `Pet ${body.petId} added to environment ${environmentId}`
+    message: `Pet ${body.petId} added to environment ${environmentId}`,
+    accepted: true
   })
 })
 

@@ -11,6 +11,9 @@ export const htmlLayoutString = ([...children], baseURL) => {
                 <link rel="stylesheet" href="${baseURL}/styles/style.css">
             </head>
             <body>
+            <script>
+                const baseURL = "${baseURL}";
+            
             <script src="${baseURL}/js/client.js"> </script>
             <script src="${baseURL}/js/apiHelper.js"> </script>
                 ${children.join("")}

@@ -75,7 +75,7 @@ async function sendActivityRequestToPet(petId, activityRequest, petServer = getB
  */
 async function setPetEnvironment(petId, environment, petServer = getBaseURL()) {
     if (!petId) throw new Error("petId is required");
-    if (!environment || !environment.environmentId || !environment.environmentServerURL) throw new Error("environment is required and must have environmentId and environmentServerURL");
+    if (!environment || !environment.id || !environment.serverURL) throw new Error("environment is required and must have id and serverURL");
     const response = await fetch(petServer + "/pets/" + petId + "/set-environment", {
         method: "POST",
         headers: {

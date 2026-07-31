@@ -363,9 +363,9 @@ app.post("/pets/:petId/set-environment", async (c) => {
   const body = await c.req.json()
   // const environment = new VPEnvironmentRemoteRef(body.environmentId, body.environmentServerURL)
   // const response =  environment.addPet(pet.getRemoteRef())
-  const response = await pet.setEnvironment(new VPEnvironmentRemoteRef(body.environmentId, body.environmentServerURL))
+  const response = await pet.setEnvironment(new VPEnvironmentRemoteRef(body.environment.id, body.environment.serverURL))
   return c.json({
-    message: `Pet ${pet.name}  set to environment ${body.environmentId}`,
+    message: `Pet ${pet.name}  set to environment ${body.environment.id}`,
     accepted: response
   })
 })

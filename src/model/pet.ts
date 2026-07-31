@@ -382,6 +382,7 @@ export class VPet extends VPEntity {
     async setEnvironment(environment : VPEnvironmentRemoteRef) : Promise<any>{
         if (this.environment && this.environment.uniqueId === environment.uniqueId) {
             return {
+                message : "Already in this environment",
                 accepted : true
             }
         } else {

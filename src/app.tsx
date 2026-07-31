@@ -37,7 +37,8 @@ const app = new Hono<AppEnv>()
 //   })
 // );
 // app.get("/assets/*", serveStatic({root : './'}))
-app.use(cors({
+app.use("/*",
+  cors({
   origin: '*',
 }));
 
@@ -410,8 +411,8 @@ app.get("/environments/:environmentId", environmentMiddleware, async (c) => {
         [
           environmentHtmlString(environment, c.get("baseURL"), [
             ...petViews.map(petView => {
-                return petViewLayoutString(petView, c.get("baseURL"), [
-                  petViewHtmlString(petView, c.get("baseURL"))
+                return petViewLayoutString(petView, petView.remoteRef.serverURL, [
+                  petViewHtmlString(petView, petView.remoteRef.serverURL)
                 ])
             })
           ])

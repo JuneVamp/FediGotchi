@@ -56,16 +56,8 @@ async function userAskPetToDoActivity(petName , activityName, baseURL) {
 async function userSelectEnvironment(environmentRemoteRef, petName, baseURL) {
     console.log(`User is asking pet ${petName} to move to environment ${environmentRemoteRef.id} at ${environmentRemoteRef.serverURL}, with baseURL ${baseURL}`);
     // const response = await fetch(`${baseURL}/pets/${petName}/set-environment`, {
-    const response = await fetch(environmentRemoteRef.serverURL + "/environments/" + environmentRemoteRef.id + "/add-pet" ,{
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
-        },
-        body: JSON.stringify({
-            petId: petName,
-            petServerURL: baseURL
-        })
-    });
+    const response = await setPetEnvironment(petName, {environmentId: environmentRemoteRef.id, environmentServerURL: environmentRemoteRef.serverURL}, baseURL);
+
     console.log(response);
 }
 

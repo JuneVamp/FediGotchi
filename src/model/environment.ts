@@ -30,7 +30,7 @@ export class VPEnvironment {
 
     addPet(pet: VPetRemoteRef) {
         this.pets.push(pet)
-        pet.setEnvironment(this.getRemoteRef())
+        // pet.setEnvironment(this.getRemoteRef())
     }
 
     removePet(pet: VPetRemoteRef) {

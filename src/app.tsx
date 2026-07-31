@@ -79,25 +79,29 @@ environments.set(homeEvironment.name.toLowerCase(), homeEvironment)
 environments.set(parkEnvironment.name.toLowerCase(), parkEnvironment)
 environments.set(schoolEnvironment.name.toLowerCase(), schoolEnvironment)
 
-const remoteServerURL = "https://utensil-ahoy-ferocity.ngrok-free.dev"
+// const remoteServerURL = "https://utensil-ahoy-ferocity.ngrok-free.dev"
 
-var useRemotePark : boolean = false
-const remotePark = new VPEnvironmentRemoteRef("Park", remoteServerURL, "Remote Park")
+// var useRemotePark : boolean = false
+// const remotePark = new VPEnvironmentRemoteRef("Park", remoteServerURL, "Remote Park")
 
-if (useRemotePark) {
-  pets.forEach(pet => {
-    if (Math.random() < 0.5) {
-      remotePark.addPet(pet.getRemoteRef())
-    }
-    else {
-      parkEnvironment.addPet(pet.getRemoteRef())
-    }
-  })
-} else {
-  pets.forEach(pet => {
-    parkEnvironment.addPet(pet.getRemoteRef())
-  })
-}
+// if (useRemotePark) {
+//   pets.forEach(pet => {
+//     if (Math.random() < 0.5) {
+//       remotePark.addPet(pet.getRemoteRef())
+//     }
+//     else {
+//       parkEnvironment.addPet(pet.getRemoteRef())
+//     }
+//   })
+// } else {
+//   // pets.forEach(pet => {
+//   //   parkEnvironment.addPet(pet.getRemoteRef())
+//   // })
+// }
+
+pets.forEach(pet => {
+  pet.setEnvironment(parkEnvironment.getRemoteRef())
+})
 
 
 setInterval(() => {

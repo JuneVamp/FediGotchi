@@ -170,6 +170,7 @@ function userMovePetToNewEnvironment(petName, baseURL) {
 
 function refreshPetView(petName , baseURL) {
     const refreshPetViewOnce = async (petName , baseURL ) => {
+        console.log(`Refreshing pet view for ${petName} with baseURL ${baseURL}`);
         const data = await getPetView(petName, baseURL);
 
         const activityContainer = document.querySelector(`#pet-${petName} .pet-activity`);

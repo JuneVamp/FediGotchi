@@ -2,3 +2,5 @@ node_modules
 package-lock.json
 logs/*.csv
 # logs/
+logs/archive/*.csv
+logs/*

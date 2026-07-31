@@ -1,6 +1,7 @@
-import { ActivityHistoryDict, createDefaultStats, VPActivity, VPRelationship, VPRelationshipDict, VPStats } from "./petRepresentation"
+import { ActivityHistoryDict, createDefaultStats, VPRelationship, VPRelationshipDict, VPStats } from "./petRepresentation"
 import { VPEntity } from "./entity"
-import { VPEnvironment, VPItem, VPUser } from "./otherModels"
+import { VPItem, VPUser } from "./otherModels"
+import { VPEnvironment } from "./environment"
 import { parseActivityFromName } from "./parser"
 import { weighted_random, getRandomInt, getRandomIntInclusive, writeToCsvFile } from "../utils"
 import {VPActivityRemoteRef, VPEnvironmentRemoteRef, VPUserRemoteRef, VPetRemoteRef} from "./remoteRefs"
@@ -9,6 +10,7 @@ import jsonData from "./data.json"
 // @ts-ignore - JavaScript module without type declarations.
 import { petViewLayoutString } from "./htmlStrings"
 import { stat } from "node:fs"
+import { VPActivity } from "./activity"
 
 export interface PetView{
     name : string
@@ -59,6 +61,7 @@ export class VPet extends VPEntity {
     activityHistory : ActivityHistoryDict = {}
     logs: { [k: string]: string } = {};
     verbose : boolean = true
+    tickCount : number = 0
 
 
     tempPetView : PetView = {
@@ -78,7 +81,7 @@ export class VPet extends VPEntity {
     logging : boolean
     waitingSince : number = 0
 
-    constructor (name : string, serverURL : string, logging : boolean = true) {
+    constructor (name : string, serverURL : string, logging : boolean = false) {
         super(name)
 
         this.remoteRef = new VPetRemoteRef(this.name, serverURL)
@@ -251,6 +254,7 @@ export class VPet extends VPEntity {
         if (this.state !== petState.idle && activityPartner instanceof VPetRemoteRef) {
             return "not_free"
         }
+        console.log(`Pet ${this.name} is considering activity ${activity.name} with partner ${activityPartner.id}`)
 
         if (this.willingToActivity(activity, activityPartner) < Math.random() * 10) {
             return "not_willing"
@@ -467,6 +471,7 @@ export class VPet extends VPEntity {
 
     // #region ---------------------Tick Methods--------------------
     async tick(timestamp ?: number){
+        this.tickCount ++
         //TODO 8 emit tick event
         // console.log(2, this.state, this.name)
         // if (this.state == petState.waitingForActivityResponse && (Date.now() - this.waitingSince >10000)) {
@@ -483,7 +488,7 @@ export class VPet extends VPEntity {
             // this.processActivityTick() // HACK COMMENT moved to activity remote ref, activity owns time
         }
 
-        if (this.logging) {
+        if (this.logging && this.tickCount % 10 === 0) {
             this.logRelationships(timestamp)
         }
     }

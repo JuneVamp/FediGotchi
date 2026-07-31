@@ -12,6 +12,7 @@ export const htmlLayoutString = ([...children], baseURL) => {
             </head>
             <body>
             <script src="${baseURL}/js/client.js"> </script>
+            <script src="${baseURL}/js/apiHelper.js"> </script>
                 ${children.join("")}
             </body>
         </html>

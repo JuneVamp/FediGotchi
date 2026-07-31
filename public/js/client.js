@@ -12,28 +12,45 @@
 // }
 
 
-
 async function userAskPetToDoActivity(petName , activityName, baseURL) {
     console.log(`User is asking pet ${petName} to do activity ${activityName}`);
-    const activityPartnerType = "user"
-    const response = await fetch(`/pets/${petName}/activity-request`, {
-        method: "POST",
-        headers: {
-            "Content-Type": "application/json"
+    const activityID = "user_" + activityName + "_" + Date.now(); 
+    const username = await getCurrentUser();
+    const activityRequest = {
+        activity: {
+            id: activityID,
+            name: activityName,
+            serverURL: baseURL
         },
-        body: JSON.stringify({
-            activityName: activityName,
-            activityPartnerType: activityPartnerType,
-            activityPartnerId: null,
-            activityPartnerServerURL: baseURL
-        })
-    });
-    console.log(`Response from asking pet ${petName} to do activity ${activityName}:`, response);
-    // if (!response.ok) {
-    //     console.error(`Failed to ask pet ${petName} to do activity ${activityName}: ${response.statusText}`);
-    // } else {
-    //     console.log(`Successfully asked pet ${petName} to do activity ${activityName}`);
-    // }
+        activityPartnerType: "user",
+        activityPartnerId: username,
+        activityPartnerServerURL: baseURL
+    }
+    //create activity on server
+    // const serve
+    await createActivityOnServerUser({id: activityID, name: activityName, serverURL: baseURL}, {id: username}, baseURL);
+    const response = await sendActivityRequestToPet(petName, activityRequest, baseURL)
+    if (response.accepted === "accept"){
+        await addPetToActivityOnServer(activityID, {id: petName, serverURL: baseURL}, baseURL);
+    }
+
+    // const response = await fetch(`/pets/${petName}/activity-request`, {
+    //     method: "POST",
+    //     headers: {
+    //         "Content-Type": "application/json"
+    //     },
+    //     body: JSON.stringify({
+    //         activity: {
+    //             id: activityID,
+    //             name: activityName,
+    //             serverURL: baseURL
+    //         },
+    //         activityPartnerType: activityPartnerType,
+    //         activityPartnerId: null,
+    //         activityPartnerServerURL: baseURL
+    //     })
+    // });
+    // console.log(`Response from asking pet ${petName} to do activity ${activityName}:`, response);
 };
 
 async function userSelectEnvironment(environmentRemoteRef, petName, baseURL) {
@@ -153,18 +170,7 @@ function userMovePetToNewEnvironment(petName, baseURL) {
 
 function refreshPetView(petName , baseURL) {
     const refreshPetViewOnce = async (petName , baseURL ) => {
-        const response = await fetch(`${baseURL}/pets/${petName}`, {
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json"
-            }
-        });
-        if (!response.ok) {
-            console.error(`Failed to refresh pet view for ${petName}: ${response.statusText}`);
-            return null;
-        }
-
-        const data = await response.json() ;
+        const data = await getPetView(petName, baseURL);
 
         const activityContainer = document.querySelector(`#pet-${petName} .pet-activity`);
         if (activityContainer) {
@@ -284,12 +290,21 @@ function refreshEnvironmentView(environmentName , baseURL) {
 
 function updateLoginInformation(baseURL) {
     const refreshLoginInformationOnce = async (baseURL) => {
-        const loginData = await fetch(`${baseURL}/me`)
+        const loginData = await fetch(`${baseURL}/current-user`)
 
-        const userData = await loginData.text();
-        document.getElementById("login-information").innerHTML = `
-            ${userData}<br>
-        `;
+        const userData = await loginData.json();
+        if (userData && userData.username) {
+            document.getElementById("login-information").innerHTML = `
+                Logged in as ${userData.username}<br>
+            `;
+        } else {
+            document.getElementById("login-information").innerHTML = `
+                Not logged in<br>
+            `;
+        }
+        // document.getElementById("login-information").innerHTML = `
+        //     ${userData}<br>
+        // `;
     }
 
     setInterval(async () => {

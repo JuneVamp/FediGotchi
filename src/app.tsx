@@ -5,9 +5,10 @@ import {setCookie, getCookie, deleteCookie} from "hono/cookie"
 import { SERVER_URL } from "./serverConfig.ts"
 
 import { VPActivityRemoteRef, VPEnvironmentRemoteRef, VPetRemoteRef, VPUserRemoteRef } from "./model/remoteRefs.ts"
-import { VPItem, VPEnvironment, VPUser } from "./model/otherModels"
+import { VPItem, VPUser } from "./model/otherModels"
+import { VPEnvironment } from "./model/environment.ts";
 import { VPet } from "./model/pet"
-import { VPActivity } from "./model/petRepresentation.ts"
+import { VPActivity } from "./model/activity.ts"
 
 import {htmlLayoutString, petViewLayoutString, petActivityHistoryHtmlString, petViewHtmlString, environmentHtmlString, loginBox, petUserActionsHtmlString, petRelationshipsHtmlString} from "./htmlStrings"
 import { createSession, destroySession, getUser } from "./session.ts"
@@ -24,18 +25,22 @@ type AppEnv = {
 
 const app = new Hono<AppEnv>()
 
-app.use(
-  "/*",
-  cors({
-    origin: [
-      "https://bagging-childlike-subdivide.ngrok-free.dev",
-    ],
-    allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowHeaders: ["Content-Type"],
-    credentials: true,
-  })
-);
+// app.use(
+//   "/*",
+//   cors({
+//     origin: [
+//       "https://bagging-childlike-subdivide.ngrok-free.dev",
+//     ],
+//     allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+//     allowHeaders: ["Content-Type"],
+//     credentials: true,
+//   })
+// );
 // app.get("/assets/*", serveStatic({root : './'}))
+app.use(cors({
+  origin: '*',
+}));
+
 
 
 var users = new Map<string, VPUser>()
@@ -106,7 +111,7 @@ setInterval(() => {
     activity.tick(timestamp)
   }
 
-}, 100)
+}, 1000)
 
 
 
@@ -127,15 +132,19 @@ app.post("/login", async (c) => {
   return c.redirect("/")
 })
 
-app.get("/me", async (c) => {
+app.get("/current-user", async (c) => {
   const session = getCookie(c, "sessionId")
   const username = getUser(session)
   
   if (!username) {
-    return c.text("Not logged in")
+    return c.json({
+      message: "User not logged in"
+    })
   }
 
-  return c.text(`Logged in as ${username}`)
+  return c.json ({
+      username: username
+  })
 })
 
 app.post("/logout", async (c) => {
@@ -253,6 +262,7 @@ app.post("/pets/:petId/activity-request", async (c) => {
   const pet = c.get("pet")
   const body = await c.req.json()
   // console.log(5, pet.getRemoteRef().id )
+  // const activityRequest = body as ActivityRequest
 
   var activityRemoteRef = new VPActivityRemoteRef(body.activity.id, body.activity.serverURL, body.activity.name)
 
@@ -268,14 +278,16 @@ app.post("/pets/:petId/activity-request", async (c) => {
     console.log("currentUserId", userId)
     if (!userId) {
       return c.json({
-        message: "User not logged in"
+        message: "User not logged in",
+        accepted: false
       }, 401)
     }
     activityPartner = new VPUserRemoteRef( userId, body.activityPartnerServerURL)
   } 
   else {
     return c.json({
-      message: `Activity partner type ${activityPartnerType} not supported`
+      message: `Activity partner type ${activityPartnerType} not supported`,
+      accepted: false
     }, 400)
   }
 
@@ -286,6 +298,7 @@ app.post("/pets/:petId/activity-request", async (c) => {
 
   const accepted = await pet.receiveActivityRequest(activity, activityPartner);
   return c.json({
+    message: `Pet ${pet.name} received activity request for activity ${activity.name} from ${activityPartnerType} ${activityPartner.id}`,
     accepted: accepted
   });
 
@@ -404,7 +417,7 @@ app.get("/environments/:environmentId", environmentMiddleware, async (c) => {
 
 
   return c.json({
-    environment: environment.getRemoteRef()
+    environment: environment.getView(),
   })
 })
 
@@ -506,6 +519,7 @@ app.get("/activities/:activityId", activityMiddleware, async (c) =>{
 
 app.get("/activities/:activityId/data", activityMiddleware, async (c) => {
   var activity = c.get("activity") as VPActivity
+  console.log(`Activity ${activity.name} data requested`)
 
   return c.json({
     activity: activity

@@ -1,6 +1,7 @@
-import { VPActivity } from "./petRepresentation";
+import { VPActivity } from "./activity";
 import jsonData from "./data.json" 
-import { VPEnvironment, VPItem } from "./otherModels";
+import { VPItem } from "./otherModels";
+import { VPEnvironment } from "./environment";
 
 /**
  * parses activity from local data.json file

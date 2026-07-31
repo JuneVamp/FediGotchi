@@ -1,6 +1,6 @@
 import { VPItem } from "./otherModels"
 import { PetView } from "./pet"
-import { VPActivity } from "./petRepresentation"
+import { VPActivity } from "./activity"
 
 export class VPEntityRemoteRef {
     id : string
@@ -250,6 +250,9 @@ export class VPActivityRemoteRef extends VPEntityRemoteRef{
     
     async tick(entities: Array<VPetRemoteRef | VPUserRemoteRef>) : Promise<void> {
         for (const entity of entities) {
+            if (entity instanceof VPUserRemoteRef) {
+                continue;
+            }
             await entity.postRequest("activity-tick", {
                 activityId: this.id,
                 activityServerURL: this.serverURL,
@@ -267,8 +270,11 @@ export class VPActivityRemoteRef extends VPEntityRemoteRef{
     }
 
     async finished(entities: Array<VPetRemoteRef | VPUserRemoteRef>) : Promise<void> {
-        // console.log(`Activity ${this.name} finished, notifying ${entities.length} entities with names: ${entities.map(e => e.id).join(", ")}`)
+        console.log(`Activity ${this.name} finished, notifying ${entities.length} entities with names: ${entities.map(e => e.id).join(", ")}`)
         for (const entity of entities) {
+            if (entity instanceof VPUserRemoteRef) {
+                continue;
+            }
             await entity.postRequest("activity-finished", {
                 activityId: this.id,
                 activityServerURL: this.serverURL,

@@ -1,7 +1,7 @@
 import { VPEntity } from "./entity"
-import type { VPActivity } from "./petRepresentation"
-import {parseActivityFromName, parseEnvironmentFromName, parseItemFromName} from "./parser"
-import { VPEnvironmentRemoteRef, VPetRemoteRef, VPUserRemoteRef } from "./remoteRefs"
+import { VPActivity} from "./activity"
+import {parseActivityFromName, parseItemFromName} from "./parser"
+import { VPUserRemoteRef } from "./remoteRefs"
 
 
 export class VPGroup extends VPEntity{
@@ -52,56 +52,5 @@ export class VPItem {
         const activity = parseActivityFromName(this.activityName)
         activity.item = this
         return activity
-    }
-}
-
-export class VPEnvironment {
-    name : string
-    items : Array<VPItem> = []
-    pets : Array<VPetRemoteRef> = []
-    remoteRef : VPEnvironmentRemoteRef 
-
-    constructor (name : string, serverURL : string = "", items : Array<VPItem> = []){
-        this.name = name
-        this.items = items
-        
-        this.remoteRef = new VPEnvironmentRemoteRef(this.name, serverURL)
-    }
-    
-    static fromStringData(envName : string) : VPEnvironment{
-        return parseEnvironmentFromName(envName)
-    }
-
-    addPet(pet : VPetRemoteRef){
-        this.pets.push(pet)
-        pet.setEnvironment(this.getRemoteRef())
-    }
-
-    removePet(pet : VPetRemoteRef){
-        this.pets = this.pets.filter(p => p !== pet)
-    }
-
-    getAllPets() : Array<VPetRemoteRef>{
-        return this.pets
-    }
-
-    addItem(item : VPItem){
-        this.items.push(item)
-    }
-
-    removeItem(item : VPItem){
-        this.items = this.items.filter(i => i !== item)
-    }
-
-    getAllItems() : Array<VPItem>{
-        return this.items
-    }
-
-
-    //------------------ remote methods -----------------
-    getRemoteRef() : VPEnvironmentRemoteRef{
-        this.remoteRef.id = this.name
-        this.remoteRef.displayName = this.name
-        return this.remoteRef
     }
 }

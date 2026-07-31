@@ -1,0 +1,22 @@
+  <html lang="en">
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1" />
+      <meta name="color-scheme" content="light dark" />
+      <script src="js/apiHelper.js"></script>
+    </head>
+
+    <body>
+      <script>
+        setBaseURL("http://localhost:3251");
+
+        console.log(1, "GetBaseURL", getBaseURL());
+
+        getPetView("alice").then((petView) => {
+          console.log(2, "GetPetView", petView);
+        });
+
+
+      </script>
+    </body>
+  </html>

@@ -325,7 +325,7 @@ function updateLoginInformation(baseURL) {
     const refreshLoginInformationOnce = async (baseURL) => {
         const loginData = await fetch(`${baseURL}/current-user`)
 
-        const userData = await loginData.json();
+        const userData = await getValidJson(loginData);
         if (userData && userData.username) {
             document.getElementById("login-information").innerHTML = `
                 Logged in as ${userData.username}<br>

@@ -1,3 +1,14 @@
+// #region utils
+function getValidJson(obj){
+    try {
+        return obj.json();
+    } catch (e) {
+        console.log("Invalid JSON: ", e);
+        return {};
+    }
+}
+
+// #endregion
 //#region base
 
 /** 
@@ -38,7 +49,7 @@ async function getPetView(petId, petServer = getBaseURL()){
             "Content-Type": "application/json"
         }
     });
-    return petView.json();
+    return getValidJson(petView);
 }
 
 
@@ -63,7 +74,7 @@ async function sendActivityRequestToPet(petId, activityRequest, petServer = getB
             activityPartnerServerURL: activityRequest.activityPartnerServerURL
         })
     });
-    return response.json();
+    return getValidJson(response);
 }
 
 
@@ -83,7 +94,7 @@ async function setPetEnvironment(petId, environment, petServer = getBaseURL()) {
         },
         body: JSON.stringify({ environment: environment })
     });
-    return response.json();
+    return getValidJson(response);
 }
 
 async function addPetToActivityOnServer(activityId, pet, serverURL = getBaseURL()){
@@ -100,7 +111,7 @@ async function addPetToActivityOnServer(activityId, pet, serverURL = getBaseURL(
             entityServerURL: pet.serverURL
         })
     });
-    return response.json();
+    return getValidJson(response);
 }
 
 //#endregion
@@ -154,7 +165,7 @@ async function createActivityOnServerUser(activity, user, serverURL = getBaseURL
             entityServerURL: serverURL
         })
     });
-    return response.json();
+    return getValidJson(response);
 }
 
 //#endregion
@@ -175,7 +186,7 @@ async function getCurrentUser(serverURL = getBaseURL()){
             "Content-Type": "application/json"
         }
     });
-    const data = await response.json();
+    const data = await getValidJson(response);
     if (data && data.username) {
         return data.username;
     } else {

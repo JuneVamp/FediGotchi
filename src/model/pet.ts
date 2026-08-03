@@ -676,4 +676,26 @@ export class VPet extends VPEntity {
         return this.remoteRef
     }
 
+    saveAsJson() : string {
+        const petData = {
+            name: this.name,
+            stats: this.stats,
+            relationships: this.relationships,
+            environment: this.environment ? {
+                id: this.environment.id,
+                serverURL: this.environment.serverURL,
+            } : null
+        };
+        return JSON.stringify(petData);
+    }
+
+    fromJson(jsonString: string) {
+        const petData = JSON.parse(jsonString);
+        this.name = petData.name;
+        this.stats = petData.stats;
+        this.relationships = petData.relationships; 
+        this.environment = petData.environment ? new VPEnvironmentRemoteRef(petData.environment.id, petData.environment.serverURL) : undefined;
+    }
+
+
 }

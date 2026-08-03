@@ -187,26 +187,32 @@ function refreshPetView(petName , baseURL) {
             <div>Boredom: ${data.pet.stats.boredom}</div>`;
         }
 
-        const activityHistoryContainer = document.querySelector(`#pet-container-${petName} .pet-activity-history`);
-        if (activityHistoryContainer) {
-            activityHistoryContainer.innerHTML = `
-                <h3>Activity History</h3>
-                <ul>
-                    ${ 
-                       Object.entries(data.pet.activityHistory).map(([timestamp, entry]) => `
-                        <li>
-                            <span class="activity-name keyword">${entry.activity.name}</span> with
-                            <span class="activity-partner keyword">${entry.partner?.id}</span> at
-                            <span class="activity-timestamp">${new Date(entry.timestamp).toLocaleString()}</span>
-                        </li>   
-                    `).join('')}
-                </ul>
+        const activityHistoryStatsContainer = document.querySelector(`#pet-container-${petName} .pet-activity-history`);
+        if (activityHistoryStatsContainer) {
+            const mostRecentActivity = data.pet.activityHistoryStats?.mostRecentActivity;
+            const activityCounts = data.pet.activityHistoryStats?.activityCounts || {};
+            const mostCommonActivity = Object.entries(activityCounts).reduce((max, [activityName, count]) => {
+                return count > max.count ? { activityName, count } : max;
+            }, { activityName: null, count: 0 });
+            const leastCommonActivity = Object.entries(activityCounts).reduce((min, [activityName, count]) => {
+                return count < min.count ? { activityName, count } : min;
+            }, { activityName: null, count: Infinity });
+
+            activityHistoryStatsContainer.innerHTML = `
+                <div>Most Recent Activity: ${mostRecentActivity ? mostRecentActivity.name : "None"}</div>
+                <div>Most Common Activity: ${mostCommonActivity.activityName || "None"} (${mostCommonActivity.count})</div>
+                <div>Least Common Activity: ${leastCommonActivity.activityName || "None"} (${leastCommonActivity.count === Infinity ? 0 : leastCommonActivity.count})</div>
                 `;
-            }
+        }
 
         const relationshipsContainer = document.querySelector(`#pet-container-${petName} .pet-relationships`);
         if (relationshipsContainer){
-            relationshipsContainer.innerHTML = processRelationships(data.pet.relationships).activities
+            relationshipsContainer.innerHTML = processRelationships(data.pet.relationships).entities
+        }
+        
+        const activityRelationshipsContainer = document.querySelector(`#pet-container-${petName} .pet-activity-relationships`);
+        if (activityRelationshipsContainer){
+            activityRelationshipsContainer.innerHTML = processRelationships(data.pet.relationships).activities
         }
 
     }
@@ -244,12 +250,16 @@ function processRelationships(relationships){
             <span>${numberToFriendliness((friendliness*10)-5)}</span>
         </li>
     `).join('') +'</ul>';
-    const entityHTML = '<ul>' + Object.entries(entityRelationships).map(([entityName, friendliness]) => `
+    const entityHTML = '<ul>' + Object.entries(entityRelationships).map(([entityName, friendliness]) => {
+        // TODO 5: add server link
+        var entityServer = entityName.split("-VP_UNIQUE_ID-")[0]
+        entityName = entityName.split("-VP_UNIQUE_ID-")[1]
+        return `
         <li>
             <span class="entity-name keyword">${entityName}</span> :
             <span>${numberToFriendliness((friendliness*10)-5)}</span>
         </li>
-    `).join('') +'</ul>';
+    `}).join('') +'</ul>';
 
     return {
         activities: activityHTML,

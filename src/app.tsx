@@ -27,22 +27,11 @@ type AppEnv = {
 
 const app = new Hono<AppEnv>()
 
-// app.use(
-//   "/*",
-//   cors({
-//     origin: [
-//       "https://bagging-childlike-subdivide.ngrok-free.dev",
-//     ],
-//     allowMethods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-//     allowHeaders: ["Content-Type"],
-//     credentials: true,
-//   })
-// );
 app.use("/*",
   cors({
   origin: '*',
   allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowHeaders: ['Content-Type'],
+  allowHeaders: ['Content-Type', 'ngrok-skip-browser-warning'],
   // credentials: true,
 }));
 
@@ -72,44 +61,17 @@ randomPetImageFiles.forEach((file : string) => {
     pets.set(pet.name.toLowerCase(), pet);
 });
 
-
+var numberOfEnvironments = 2;
 for (const envName of jsonData.Environments.all) {
+  numberOfEnvironments --;
+  if (numberOfEnvironments < 0) {
+    break;
+  }
   var env = VPEnvironment.fromStringData(envName)
   env.remoteRef.setServerURL(SERVER_URL)
   environments.set(env.name.toLowerCase(), env)
 }
 
-
-// var homeEvironment = VPEnvironment.fromStringData("Home") 
-// var parkEnvironment = VPEnvironment.fromStringData("Park")
-// var schoolEnvironment = VPEnvironment.fromStringData("School")
-
-// parkEnvironment.remoteRef.serverURL = SERVER_URL
-
-
-// environments.set(homeEvironment.name.toLowerCase(), homeEvironment)
-// environments.set(parkEnvironment.name.toLowerCase(), parkEnvironment)
-// environments.set(schoolEnvironment.name.toLowerCase(), schoolEnvironment)
-
-// const remoteServerURL = "https://utensil-ahoy-ferocity.ngrok-free.dev"
-
-// var useRemotePark : boolean = false
-// const remotePark = new VPEnvironmentRemoteRef("Park", remoteServerURL, "Remote Park")
-
-// if (useRemotePark) {
-//   pets.forEach(pet => {
-//     if (Math.random() < 0.5) {
-//       remotePark.addPet(pet.getRemoteRef())
-//     }
-//     else {
-//       parkEnvironment.addPet(pet.getRemoteRef())
-//     }
-//   })
-// } else {
-//   // pets.forEach(pet => {
-//   //   parkEnvironment.addPet(pet.getRemoteRef())
-//   // })
-// }
 
 pets.forEach(pet => {
   var pickEnvironmentInt = getRandomIntInclusive(0, environments.size - 1)
@@ -122,14 +84,22 @@ setInterval(() => {
   // console.log(0)
   var timestamp = Date.now()
   for (const pet of pets.values()) {
-    pet.tick(timestamp)
+    try {
+      pet.tick(timestamp)
+    } catch (error) {
+      console.error(`Error ticking pet ${pet.name}:`, error);
+    }
   }
 
   for (const activity of running_activities.values()) {
-    activity.tick(timestamp)
+    try {
+      activity.tick(timestamp)
+    } catch (error) {
+      console.error(`Error ticking activity ${activity.name}:`, error);
+    }
   }
 
-}, 1000)
+}, 50)
 
 
 
@@ -294,7 +264,7 @@ app.get("/pets/:petId", petMiddleware, async (c) => {
         [
           petViewLayoutString(petView, petBaseURL, [
             petViewHtmlString(petView, petBaseURL),
-            // petActivityHistoryHtmlString(),
+            petActivityHistoryHtmlString(),
             petRelationshipsHtmlString(),
             petUserActionsHtmlString(petView, petBaseURL)
           ])

@@ -286,6 +286,7 @@
     },
 
     "Environments" : {
+        "all" : ["Home", "Park", "School", "Cafe", "Playhouse"],
         "list" : {
             "Home" : {
                 "items" : ["Book", "Food", "Bed", "TV"]
@@ -302,7 +303,6 @@
             "Playhouse": {
                 "items" : ["Guitar", "GameConsole", "SingingMic"]
             }
-
         }
     }
 }

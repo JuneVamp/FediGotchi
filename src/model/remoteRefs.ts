@@ -12,7 +12,7 @@ export class VPEntityRemoteRef {
         this.id = id
         this.entityType = entityType
         this.serverURL = serverURL
-        this.uniqueId = serverURL + "@"  + id
+        this.uniqueId = serverURL.split("://")[1] + "@" + id
     }
 
     async postRequest(endpoint : string, body : any) : Promise<any> {

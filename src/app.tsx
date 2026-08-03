@@ -9,9 +9,11 @@ import { VPItem, VPUser } from "./model/otherModels"
 import { VPEnvironment } from "./model/environment.ts";
 import { VPet } from "./model/pet"
 import { VPActivity } from "./model/activity.ts"
+import jsonData from "./model/data.json"
 
 import {htmlLayoutString, petViewLayoutString, petActivityHistoryHtmlString, petViewHtmlString, environmentHtmlString, loginBox, petUserActionsHtmlString, petRelationshipsHtmlString, aboutHtmlString} from "./htmlStrings"
 import { createSession, destroySession, getUser } from "./session.ts"
+import { getRandomIntInclusive } from "./utils.ts";
 
 type AppEnv = {
   Variables : {
@@ -62,7 +64,7 @@ var path = require('path');
 var petImagesPath = path.join(__dirname, '../public/assets/images/beings');
 var petImageFiles = fs.readdirSync(petImagesPath).filter((file : string) => file.endsWith('.png'));
 // var randomPetImageFiles = petImageFiles.sort(() => 0.5 - Math.random()).slice(0, 6);
-var randomPetImageFiles = petImageFiles.slice(0, 6);
+var randomPetImageFiles = petImageFiles.slice(0, 18);
 randomPetImageFiles.forEach((file : string) => {
     var petName = file.replace('.png', '');
     var pet = new VPet(petName, SERVER_URL);
@@ -71,16 +73,23 @@ randomPetImageFiles.forEach((file : string) => {
 });
 
 
-var homeEvironment = VPEnvironment.fromStringData("Home") 
-var parkEnvironment = VPEnvironment.fromStringData("Park")
-var schoolEnvironment = VPEnvironment.fromStringData("School")
+for (const envName of jsonData.Environments.all) {
+  var env = VPEnvironment.fromStringData(envName)
+  env.remoteRef.serverURL = SERVER_URL
+  environments.set(env.name.toLowerCase(), env)
+}
 
-parkEnvironment.remoteRef.serverURL = SERVER_URL
+
+// var homeEvironment = VPEnvironment.fromStringData("Home") 
+// var parkEnvironment = VPEnvironment.fromStringData("Park")
+// var schoolEnvironment = VPEnvironment.fromStringData("School")
+
+// parkEnvironment.remoteRef.serverURL = SERVER_URL
 
 
-environments.set(homeEvironment.name.toLowerCase(), homeEvironment)
-environments.set(parkEnvironment.name.toLowerCase(), parkEnvironment)
-environments.set(schoolEnvironment.name.toLowerCase(), schoolEnvironment)
+// environments.set(homeEvironment.name.toLowerCase(), homeEvironment)
+// environments.set(parkEnvironment.name.toLowerCase(), parkEnvironment)
+// environments.set(schoolEnvironment.name.toLowerCase(), schoolEnvironment)
 
 // const remoteServerURL = "https://utensil-ahoy-ferocity.ngrok-free.dev"
 
@@ -103,7 +112,9 @@ environments.set(schoolEnvironment.name.toLowerCase(), schoolEnvironment)
 // }
 
 pets.forEach(pet => {
-  pet.setEnvironment(parkEnvironment.getRemoteRef())
+  var pickEnvironmentInt = getRandomIntInclusive(0, environments.size - 1)
+  pet.setEnvironment(Array.from(environments.values())[pickEnvironmentInt].getRemoteRef())
+  // pet.setEnvironment(parkEnvironment.getRemoteRef())
 })
 
 
@@ -235,6 +246,29 @@ const petMiddleware = async (c: Context, next: Next) => {
   await next() // FIXME 7 this throws an error... by nature? https://stackoverflow.com/questions/27101240/typeerror-converting-circular-structure-to-json-in-nodejs
 }
 app.use("/pets/:petId/*", petMiddleware)
+
+app.get("/pets", async (c) => {
+  const accept = c.req.header("Content-Type") ?? ""
+  const isJson = accept.includes("application/json")
+  
+  if (!isJson) {
+    const allPetsStrings = `
+    <div id="pets"> 
+      ${Array.from(pets.values()).map(pet => {
+        return petViewLayoutString(pet.getView(), c.get("baseURL"), [
+          petViewHtmlString(pet.getView(), c.get("baseURL"))
+        ]); 
+      }) .join("")} 
+    </div>
+    `
+    return c.html(htmlLayoutString([
+      allPetsStrings
+    ], c.get("baseURL")))
+  }
+  return c.json({
+    pets: Array.from(pets.values()).map(pet => { return pet.getView(); })
+  })
+})
 
 // HACK 7 COMMENT json requests should get everything that i use to make the website, anyone can make their own website with the json data
 // but i kinda return my own version of html for the pet view if looked up on browser 
@@ -405,6 +439,35 @@ const environmentMiddleware = async (c: Context, next: Next) => {
   await next()
 }
 app.use("/environments/:environmentId/*", environmentMiddleware)
+
+app.get("/environments", async (c) => {
+  const accept = c.req.header("Content-Type") ?? ""
+  const isJson = accept.includes("application/json")
+
+  if (!isJson) {
+    var allEnvironmentsHTML = ""
+    for (const environment of environments.values()) {
+      const pets = environment.getAllPets()
+      const petViews = await Promise.all(pets.map(async(pet) => await pet.getView()))
+
+      allEnvironmentsHTML += environmentHtmlString(environment, c.get("baseURL"), [
+        ...petViews.map(petView => {
+            return petViewLayoutString(petView, petView.remoteRef.serverURL, [
+              petViewHtmlString(petView, petView.remoteRef.serverURL)
+            ])
+        })
+      ])
+    }
+    return c.html(htmlLayoutString([
+      `<div id="environments">`
+      + allEnvironmentsHTML 
+      + `</div>`
+    ], c.get("baseURL")))
+  }
+  return c.json({
+    environments: Array.from(environments.values()).map(env => { return env.getRemoteRef(); })
+  })
+})
 
 app.get("/environments/:environmentId", environmentMiddleware, async (c) => {
   const environment = c.get("environment") as VPEnvironment

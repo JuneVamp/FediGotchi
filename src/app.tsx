@@ -277,6 +277,11 @@ app.get("/pets", async (c) => {
 app.get("/pets/:petId", petMiddleware, async (c) => {
   const pet = c.get("pet") as VPet
   const petView = pet.getView()
+  if (!petView) {
+    return c.json({
+      message: `Pet ${pet.name} view not found`
+    }, 404)
+  }
 
   const accept = c.req.header("Content-Type") ?? ""
   const isJson = accept.includes("application/json")

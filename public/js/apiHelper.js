@@ -17,6 +17,10 @@ function getValidId(idOrUniqueId){
     return idOrUniqueId;
 }
 
+function addNgrokSkipBrowserWarning(header) {
+    header.set("ngrok-skip-browser-warning", "true");
+}
+
 // #endregion
 //#region base
 
@@ -54,9 +58,9 @@ async function getPetView(petId, petServer = getBaseURL()){
     if (!petId) throw new Error("petId is required");
     const petView = await fetch(petServer + "/pets/" + getValidId(petId),{
         method: "GET",
-        headers: {
-            "Content-Type": "application/json"
-        }
+        headers: ngrokSkipBrowserWarning(new Headers({
+            "Content-Type": "application/json",
+        }))
     });
     return getValidJson(petView);
 }
@@ -73,9 +77,9 @@ async function sendActivityRequestToPet(petId, activityRequest, petServer = getB
     if (!activityRequest) throw new Error("activity is required");
     const response = await fetch(petServer + "/pets/" + getValidId(petId) + "/activity-request", {
         method: "POST",
-        headers: {
+        headers: ngrokSkipBrowserWarning(new Headers({
             "Content-Type": "application/json"
-        },
+        })),
         body: JSON.stringify({ 
             activity: activityRequest.activity,
             activityPartnerType: activityRequest.activityPartnerType,
@@ -98,9 +102,9 @@ async function setPetEnvironment(petId, environment, petServer = getBaseURL()) {
     if (!environment || !environment.id || !environment.serverURL) throw new Error("environment is required and must have id and serverURL");
     const response = await fetch(petServer + "/pets/" + getValidId(petId) + "/set-environment", {
         method: "POST",
-        headers: {
+        headers: ngrokSkipBrowserWarning(new Headers({
             "Content-Type": "application/json"
-        },
+        })),
         body: JSON.stringify({ environment: environment })
     });
     return getValidJson(response);
@@ -111,9 +115,9 @@ async function addPetToActivityOnServer(activityId, pet, serverURL = getBaseURL(
     if (!pet || !pet.id || !pet.serverURL) throw new Error("pet is required and must have id and serverURL");
     const response = await fetch(serverURL + "/activities/" + activityId + "/add-entity", {
         method: "POST",
-        headers: {
+        headers: ngrokSkipBrowserWarning(new Headers({
             "Content-Type": "application/json"
-        },
+        })),
         body: JSON.stringify({
             entityType: "pet",
             entityId: pet.id,
@@ -139,9 +143,9 @@ async function getEnvironmentView(environmentId, environmentServer = getBaseURL(
     if (!environmentId) throw new Error("environmentId is required");
     const environmentView = await fetch(environmentServer + "/environments/" + environmentId,{
         method: "GET",
-        headers: {
+        headers: ngrokSkipBrowserWarning(new Headers({
             "Content-Type": "application/json"
-        }
+        }))
     });
     return environmentView.json();
 }
@@ -164,9 +168,9 @@ async function createActivityOnServerUser(activity, user, serverURL = getBaseURL
     if (!activity) throw new Error("activity is required");
     const response = await fetch(activity.serverURL + "/activities/" + activity.id + "/add-starter-entity", {
         method: "POST",
-        headers: {
+        headers: ngrokSkipBrowserWarning(new Headers({
             "Content-Type": "application/json"
-        },
+        })),
         body: JSON.stringify({ 
             activityName: activity.name,
             entityType: "user",
@@ -191,9 +195,9 @@ async function createActivityOnServerUser(activity, user, serverURL = getBaseURL
 async function getCurrentUser(serverURL = getBaseURL()){
     const response = await fetch(serverURL + "/current-user", {
         method: "GET",
-        headers: {
+        headers: ngrokSkipBrowserWarning(new Headers({
             "Content-Type": "application/json"
-        }
+        }))
     });
     const data = await getValidJson(response);
     if (data && data.username) {

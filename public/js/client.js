@@ -26,36 +26,16 @@ async function userAskPetToDoActivity(petName , activityName, baseURL) {
         activityPartnerId: username,
         activityPartnerServerURL: baseURL
     }
-    //create activity on server
-    // const serve
+
     await createActivityOnServerUser({id: activityID, name: activityName, serverURL: baseURL}, {id: username}, baseURL);
     const response = await sendActivityRequestToPet(petName, activityRequest, baseURL)
     if (response.accepted === "accept"){
         await addPetToActivityOnServer(activityID, {id: petName, serverURL: baseURL}, baseURL);
     }
-
-    // const response = await fetch(`/pets/${petName}/activity-request`, {
-    //     method: "POST",
-    //     headers: {
-    //         "Content-Type": "application/json"
-    //     },
-    //     body: JSON.stringify({
-    //         activity: {
-    //             id: activityID,
-    //             name: activityName,
-    //             serverURL: baseURL
-    //         },
-    //         activityPartnerType: activityPartnerType,
-    //         activityPartnerId: null,
-    //         activityPartnerServerURL: baseURL
-    //     })
-    // });
-    // console.log(`Response from asking pet ${petName} to do activity ${activityName}:`, response);
 };
 
 async function userSelectEnvironment(environmentRemoteRef, petName, baseURL) {
     console.log(`User is asking pet ${petName} to move to environment ${environmentRemoteRef.id} at ${environmentRemoteRef.serverURL}, with baseURL ${baseURL}`);
-    // const response = await fetch(`${baseURL}/pets/${petName}/set-environment`, {
     const response = await setPetEnvironment(petName, {id: environmentRemoteRef.id, serverURL: environmentRemoteRef.serverURL}, baseURL);
 
     console.log(response);
@@ -284,9 +264,9 @@ function setupUserActions(petName, baseURL) {
         const userActionsContainer = document.querySelector(`#pet-container-${petName} .user-actions`);
         const activities = await fetch(`${baseURL}/pets/${getValidId(petName)}`, {
             method: "GET",
-            headers: {
+            headers: ngrokSkipBrowserWarning(new Headers({
                 "Content-Type": "application/json"
-            }
+            }))
         })
         .then(async res => {
             return await res.json().catch(() => null).then(data => {
@@ -324,7 +304,12 @@ function refreshEnvironmentView(environmentName , baseURL) {
 
 function updateLoginInformation(baseURL) {
     const refreshLoginInformationOnce = async (baseURL) => {
-        const loginData = await fetch(`${baseURL}/current-user`)
+        const loginData = await fetch(`${baseURL}/current-user`, {
+            method: "GET",
+            headers: ngrokSkipBrowserWarning(new Headers({
+                "Content-Type": "application/json"
+            }))
+        });
 
         const userData = await getValidJson(loginData);
         if (userData && userData.username) {

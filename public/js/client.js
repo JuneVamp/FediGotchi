@@ -264,7 +264,7 @@ function setupUserActions(petName, baseURL) {
         const userActionsContainer = document.querySelector(`#pet-container-${petName} .user-actions`);
         const activities = await fetch(`${baseURL}/pets/${getValidId(petName)}`, {
             method: "GET",
-            headers: ngrokSkipBrowserWarning(new Headers({
+            headers: addNgrokSkipBrowserWarning(new Headers({
                 "Content-Type": "application/json"
             }))
         })
@@ -306,9 +306,9 @@ function updateLoginInformation(baseURL) {
     const refreshLoginInformationOnce = async (baseURL) => {
         const loginData = await fetch(`${baseURL}/current-user`, {
             method: "GET",
-            headers: ngrokSkipBrowserWarning(new Headers({
+            headers: addNgrokSkipBrowserWarning({
                 "Content-Type": "application/json"
-            }))
+            })
         });
 
         const userData = await getValidJson(loginData);

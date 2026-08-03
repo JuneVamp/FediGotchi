@@ -20,8 +20,8 @@ export const htmlLayoutString = ([...children], baseURL) => {
                 window.baseURL = "${baseURL}";
                 console.log("baseURL", "${baseURL}");
             </script>
-            <script src="${baseURL}/js/client.js"> </script>
             <script src="${baseURL}/js/apiHelper.js"> </script>
+            <script src="${baseURL}/js/client.js"> </script>
             ${headerHtmlString(baseURL)}
             ${children.join("")}
             </body>

@@ -14,6 +14,7 @@ import { VPActivity } from "./activity"
 
 export interface PetView{
     name : string
+    uniqueId : string
     imageSrc : string
     environmentName : string
     boredom : number
@@ -66,6 +67,7 @@ export class VPet extends VPEntity {
 
     tempPetView : PetView = {
         name : this.name,
+        uniqueId : "",
         imageSrc : `assets/images/beings/${this.name}.png`,
         environmentName : this.environment ? this.environment.displayName : "null",
         stats : this.stats,
@@ -621,6 +623,8 @@ export class VPet extends VPEntity {
 
     // -------------View Methods--------------------
     getView() : PetView{
+        this.tempPetView.name = this.name
+        this.tempPetView.uniqueId = this.remoteRef.uniqueId
         this.tempPetView.boredom = this.stats.boredom
         this.tempPetView.stats = this.stats
         this.tempPetView.remoteRef = this.remoteRef

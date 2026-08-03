@@ -7,12 +7,12 @@ export class VPEntityRemoteRef {
     id : string
     entityType : string
     serverURL : string
-    uniqueId : string
+    uniqueId : string = ""
     constructor(id : string, entityType : string, serverURL : string){
         this.id = id
         this.entityType = entityType
         this.serverURL = serverURL
-        this.uniqueId = serverURL.split("://")[1] + "@" + id
+        this.updateUniqueId()
     }
 
     async postRequest(endpoint : string, body : any) : Promise<any> {
@@ -48,7 +48,27 @@ export class VPEntityRemoteRef {
         });
         return getValidJson(response);
     }
+
+    setServerURL(serverURL : string) {
+        this.serverURL = serverURL
+        this.updateUniqueId()
+    }
+
+    getServerURL() : string {
+        return this.serverURL
+    }
+
+    updateUniqueId() {
+        this.uniqueId = this.serverURL.split("://")[1] + "@" + this.id
+        if (!this.uniqueId) {
+            this.uniqueId = this.serverURL + "@" +  this.id
+        }
+        this.uniqueId = this.uniqueId.toLowerCase().replace(/[^a-z0-9@/-]/g, "")
+        this.uniqueId = this.uniqueId.replace(/@+/g, "-VP_UNIQUE_ID-")
+    }
+
 }
+
 
 export class VPetRemoteRef extends VPEntityRemoteRef {
     constructor(id : string, serverURL : string){

@@ -180,6 +180,7 @@ function refreshPetView(petName , baseURL) {
             is doing 
             <span class="activity-name keyword">
                     ${data.pet.currentActivityName}
+
             </span> with 
             <span class="activity-partner keyword"> 
                 <a href="${data.pet.activityPartnerRemoteRef ? data.pet.activityPartnerRemoteRef.serverURL 

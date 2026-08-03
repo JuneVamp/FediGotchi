@@ -61,7 +61,7 @@ export function parseEnvironmentFromName(envName : string) : VPEnvironment {
         }
     }
 
-    if (env.name == "-1") {
+    if (env.name === "-1") {
         throw new Error(`Environment ${envName} not found in data.json`)
     }
     return env

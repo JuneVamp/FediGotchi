@@ -75,7 +75,7 @@ randomPetImageFiles.forEach((file : string) => {
 
 for (const envName of jsonData.Environments.all) {
   var env = VPEnvironment.fromStringData(envName)
-  env.remoteRef.serverURL = SERVER_URL
+  env.remoteRef.setServerURL(SERVER_URL)
   environments.set(env.name.toLowerCase(), env)
 }
 
@@ -446,11 +446,11 @@ app.get("/environments", async (c) => {
 
   if (!isJson) {
     var allEnvironmentsHTML = ""
-    for (const environment of environments.values()) {
+    for (var environment of environments.values()) {
       const pets = environment.getAllPets()
       const petViews = await Promise.all(pets.map(async(pet) => await pet.getView()))
 
-      allEnvironmentsHTML += environmentHtmlString(environment, c.get("baseURL"), [
+      allEnvironmentsHTML += environmentHtmlString(environment.getView(), c.get("baseURL"), [
         ...petViews.map(petView => {
             return petViewLayoutString(petView, petView.remoteRef.serverURL, [
               petViewHtmlString(petView, petView.remoteRef.serverURL)

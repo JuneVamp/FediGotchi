@@ -5,6 +5,7 @@ import { VPetRemoteRef, VPEnvironmentRemoteRef } from "./remoteRefs";
 
 export interface VPEnvironmentView {
     id: string,
+    uniqueId: string,
     serverURL: string,
     name: string,
     items: Array<VPItem>,
@@ -57,6 +58,7 @@ export class VPEnvironment {
         var rr = this.getRemoteRef()
         return {
             id: rr.id,
+            uniqueId: rr.uniqueId,
             serverURL: rr.serverURL,
             name: this.name,
             items: this.items,

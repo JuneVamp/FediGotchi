@@ -8,6 +8,15 @@ function getValidJson(obj){
     }
 }
 
+function getValidId(idOrUniqueId){
+    if (idOrUniqueId.includes("@")) {
+        return idOrUniqueId.split("@")[1];
+    } else if (idOrUniqueId.includes("-VP_UNIQUE_ID-")) {
+        return idOrUniqueId.split("-VP_UNIQUE_ID-")[1];
+    }
+    return idOrUniqueId;
+}
+
 // #endregion
 //#region base
 
@@ -43,7 +52,7 @@ function setBaseURL(url){
 */
 async function getPetView(petId, petServer = getBaseURL()){
     if (!petId) throw new Error("petId is required");
-    const petView = await fetch(petServer + "/pets/" + petId,{
+    const petView = await fetch(petServer + "/pets/" + getValidId(petId),{
         method: "GET",
         headers: {
             "Content-Type": "application/json"
@@ -62,7 +71,7 @@ async function getPetView(petId, petServer = getBaseURL()){
 async function sendActivityRequestToPet(petId, activityRequest, petServer = getBaseURL()){
     if (!petId) throw new Error("petId is required");
     if (!activityRequest) throw new Error("activity is required");
-    const response = await fetch(petServer + "/pets/" + petId + "/activity-request", {
+    const response = await fetch(petServer + "/pets/" + getValidId(petId) + "/activity-request", {
         method: "POST",
         headers: {
             "Content-Type": "application/json"
@@ -87,7 +96,7 @@ async function sendActivityRequestToPet(petId, activityRequest, petServer = getB
 async function setPetEnvironment(petId, environment, petServer = getBaseURL()) {
     if (!petId) throw new Error("petId is required");
     if (!environment || !environment.id || !environment.serverURL) throw new Error("environment is required and must have id and serverURL");
-    const response = await fetch(petServer + "/pets/" + petId + "/set-environment", {
+    const response = await fetch(petServer + "/pets/" + getValidId(petId) + "/set-environment", {
         method: "POST",
         headers: {
             "Content-Type": "application/json"

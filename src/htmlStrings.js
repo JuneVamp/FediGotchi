@@ -92,8 +92,8 @@ export const aboutHtmlString = (baseURL) => {
 
 export const petViewLayoutString = (pet, baseURL, [...children]) => {
     return `
-        <div class="pet-container" id="pet-container-${pet.name}">
-            <div class="pet" id="pet-${pet.name}">
+        <div class="pet-container" id="pet-container-${pet.uniqueId}">
+            <div class="pet" id="pet-${pet.uniqueId}">
                 ${children.join("")}
             </div>
         </div>
@@ -104,12 +104,12 @@ export const petViewHtmlString = (pet, baseURL) => {
     return `
         <script>
             console.log('${baseURL}');
-            refreshPetView('${pet.name}', '${baseURL}');
+            refreshPetView('${pet.uniqueId}', '${baseURL}');
         </script>
         <a href="${baseURL}/pets/${pet.remoteRef.id}">
             <img src="${baseURL}/${pet.imageSrc}" />
         </a>
-        <div class="pet-name">${pet.name}</div>
+        <div class="pet-name">${pet.uniqueId}</div>
         <div class="pet-activity"> CODE DEFINED </div>
         <div class="stats"> CODE DEFINE </div>
     `;
@@ -136,9 +136,9 @@ export const petUserActionsHtmlString = (pet, baseURL) => {
     return `
         <div class="user-actions">  </div>
         <script>
-            setupUserActions('${pet.name}', '${baseURL}');
+            setupUserActions('${pet.uniqueId}', '${baseURL}');
         </script>
-        <button class="environment-move" onClick="userMovePetToNewEnvironment('${pet.name}', '${baseURL}')">move to new environment</button>
+        <button class="environment-move" onClick="userMovePetToNewEnvironment('${pet.uniqueId}', '${baseURL}')">move to new environment</button>
     `;
 }
 
@@ -146,7 +146,7 @@ export const petUserActionsHtmlString = (pet, baseURL) => {
 // ENVIRONMENT STRINGS
 
 export const environmentHtmlString = (environment, baseURL, [... petChildren]) => {
-    const environmentId = (environment.id ? environment.id : environment.name).toLowerCase();
+    const environmentId = (environment.id ? environment.id : environment.uniqueId).toLowerCase();
     return `
         <div class="environment" id="environment-${environmentId}">
             <script>

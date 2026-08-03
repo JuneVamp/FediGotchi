@@ -123,7 +123,10 @@ export const petActivityHistoryHtmlString = () => {
 
 export const petRelationshipsHtmlString = () => {
     return `
-        <div class="pet-relationships"></div>
+        <div class="pet-relationships-container">
+            <div class="pet-relationships"></div>
+            <div class="pet-activity-relationships"></div>
+        </div>
     `;
 
 }

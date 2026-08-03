@@ -27,6 +27,10 @@ export interface PetView{
     activityPartnerRemoteRef ?: VPetRemoteRef | VPUserRemoteRef
     activityItem ?: VPItem
     activityHistory ?: ActivityHistoryDict
+    activityHistoryStats ?: {
+        mostRecentActivity: VPActivity | undefined;
+        activityCounts: { [key: string]: number };
+    }
     relationships ?: VPRelationshipDict
     availableUserActivityNames ?: Array<string>
     ownerRemoteRef ?: VPUserRemoteRef
@@ -82,6 +86,14 @@ export class VPet extends VPEntity {
 
     logging : boolean
     waitingSince : number = 0
+
+    previousStats : VPStats = {
+        "hunger" : 0,
+        "boredom" : 0,
+        "happiness" : 0,
+        "energy" : 0
+    }
+    stuckCounter : number = 0
 
     constructor (name : string, serverURL : string, logging : boolean = false) {
         super(name)
@@ -193,6 +205,7 @@ export class VPet extends VPEntity {
             // I hate everyone kinda person lol
             // later can have personality tags inside this
             var selectedActivityPartnerWeight = partnerPriorityList.find(({item, weight}) => item === selectedActivityPartner)?.weight
+            selectedActivityPartnerWeight = Math.max(selectedActivityPartnerWeight!+1.5, 5)
             var selectedActivityWeight = priorityList.find(({activity, willingness}) => activity === selectedActivity)?.willingness
 
             if (!selectedActivityWeight || !selectedActivityPartnerWeight){
@@ -237,11 +250,11 @@ export class VPet extends VPEntity {
     gotRejectedByPartner(partner : VPetRemoteRef | VPUserRemoteRef){
         //HACK COMMENT  propotion decay
         if (this.relationships[partner.uniqueId]) {
-            this.relationships[partner.uniqueId].friendliness -= 0.1 - 0.02 * this.relationships[partner.uniqueId].friendliness
+            this.relationships[partner.uniqueId].friendliness -= 0.1 - 0.02 * Math.abs(this.relationships[partner.uniqueId].friendliness)
         } else {
             this.relationships[partner.uniqueId] = {
                 otherEntity : partner,
-                friendliness : -0.1
+                friendliness : 0
             }
         }
 
@@ -298,6 +311,20 @@ export class VPet extends VPEntity {
         this.currentActivity = activity
     }
 
+    getActivityHistoryStats() {
+        var mostRecentActivity = undefined
+        var activityCounts = {}
+
+        mostRecentActivity = Object.values(this.activityHistory).sort((a, b) => b.timestamp - a.timestamp)[0]?.activity
+        activityCounts = Object.values(this.activityHistory).reduce((acc, entry) => {
+            const activityName = entry.activity.name;
+            acc[activityName] = (acc[activityName] || 0) + 1;
+            return acc;
+        }, {} as { [key: string]: number });
+
+        return { mostRecentActivity, activityCounts };
+    }
+
     // TODO 9 Put in brain
     // TODO 10 when fighting check opposite for partner willingness
     //Returns willingness [0,10]
@@ -317,7 +344,7 @@ export class VPet extends VPEntity {
         // add 1 randomness
         var willingness = totalLike + getRandomIntInclusive(-1*randomness, randomness)
 
-        //normalize to 10 to -10 (i understand why gpt writes comments like this, without these i will forget what i was doing) // forgot-counter : 4
+        //normalize to 10 to -10 (i understand why gpt writes comments like this, without these i will forget what i was doing) // forgot-counter : 6
         willingness = ((willingness * 10 / (10 + randomness)) +10)/2
 
         return willingness
@@ -484,14 +511,14 @@ export class VPet extends VPEntity {
     // #region ---------------------Tick Methods--------------------
     async tick(timestamp ?: number){
         this.tickCount ++
-        //TODO 8 emit tick event
-        // console.log(2, this.state, this.name)
-        // if (this.state == petState.waitingForActivityResponse && (Date.now() - this.waitingSince >10000)) {
-        //     console.warn(999, `NO #timeout from ${this.remoteRef.id} for ${this.currentActivity?.name}`, Date.now());
-        //     this.state = petState.idle;
-        //     this.currentActivity = undefined;
-        // }
 
+        if (this.stuckCounter > 20) {
+            console.error(`Pet ${this.name} is stuck in state ${this.state} for too long, resetting to idle`)
+            this.state = petState.idle
+            this.currentActivity = undefined
+            this.reservedForActivity = undefined
+            this.stuckCounter = 0
+        }
 
         if (this.state === petState.idle) {
             this.perTickStatChanges()
@@ -503,6 +530,16 @@ export class VPet extends VPEntity {
         if (this.logging && this.tickCount % 10 === 0) {
             this.logRelationships(timestamp)
         }
+
+        for (const [statName, value] of Object.entries(this.stats)) {
+            if (value === this.previousStats[statName]) {
+                continue
+            } else {
+                this.stuckCounter = 0
+            }
+        }
+        this.previousStats = {...this.stats}
+        this.stuckCounter ++
     }
 
     perTickStatChanges(){
@@ -571,8 +608,8 @@ export class VPet extends VPEntity {
 
     updatePetLikings(activityFinished : VPActivity, petLikedActivity : boolean, activityPartner ?: VPetRemoteRef | VPUserRemoteRef, 
         randomness : number = 0.1, 
-        likedActivityFriendlinessChange : number = 0.5, dislikedActivityFriendlinessChange : number = -0.5,
-        likedPartnerFriendlinessChange : number = 0.5, dislikedPartnerFriendlinessChange : number = -0.5
+        likedActivityFriendlinessChange : number = 0.5, dislikedActivityFriendlinessChange : number = -0.3,
+        likedPartnerFriendlinessChange : number = 0.5, dislikedPartnerFriendlinessChange : number = -0.3
 ){
 
         var activityFriendliness = this.relationships[activityFinished!.name]?.friendliness
@@ -580,6 +617,7 @@ export class VPet extends VPEntity {
 
         var scale = 1 - Math.abs(activityFriendliness ? activityFriendliness-5 : 0) / 5
         var delta = petLikedActivity ? likedActivityFriendlinessChange * scale : dislikedActivityFriendlinessChange * scale
+
 
         this.relationships[activityFinished!.name] = {
             otherEntity : activityFinished,
@@ -631,6 +669,7 @@ export class VPet extends VPEntity {
         this.tempPetView.stats = this.stats
         this.tempPetView.remoteRef = this.remoteRef
         this.tempPetView.activityHistory = this.activityHistory
+        this.tempPetView.activityHistoryStats = this.getActivityHistoryStats()
         this.tempPetView.relationships = this.relationships
 
         this.tempPetView.availableUserActivityNames = jsonData.Activities.types.pet_user

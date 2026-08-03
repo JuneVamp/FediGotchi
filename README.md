@@ -24,6 +24,7 @@ npm install
 
 Fediflock requires a publicly accessible server URL for communication between instances.
 
+You are free to use any local tunnel or even put it on your own server. If you're using a local tunnel I've had best results with ngrok:
 ### 3.1 Using Ngrok
 Make an ngrok account and install it (https://ngrok.com/) \
 
@@ -37,16 +38,16 @@ Copy the generated HTTPS URL.
 
 Example:
 
-https://xxxx-xxxx.ngrok-free.app
+```https://your-ngrok-url.ngrok-free.app```
 
 ### 4. Configure your server URL
 
 Open ```src/serverConfig.ts```
 
-Update the server URL to your ngrok address:
+Update the server URL to your server address:
 
 ```TS
-export const serverURL = "https://your-ngrok-url.ngrok-free.app";
+export const SERVER_URL = "https://your-ngrok-url.ngrok-free.app";
 ```
 
 ### 5. Run Fediflock

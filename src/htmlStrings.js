@@ -17,7 +17,8 @@ export const htmlLayoutString = ([...children], baseURL) => {
             </head>
             <body>
             <script>
-                const baseURL = "${baseURL}";
+                window.baseURL = "${baseURL}";
+                console.log("baseURL", "${baseURL}");
             </script>
             <script src="${baseURL}/js/client.js"> </script>
             <script src="${baseURL}/js/apiHelper.js"> </script>

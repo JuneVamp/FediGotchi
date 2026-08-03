@@ -57,12 +57,14 @@ export function writeToCsvFile(filePath : string, data : string) {
 export async function getValidJson(response : Response) : Promise<any> {
     response = await response;
     if (!response.ok) {
-        throw new Error(`HTTP error! Status: ${response.status}`);
+        // throw new Error(`HTTP error! Status: ${response.status}`);
+        console.error(`HTTP error! Status: ${response.status}`);
     }
     try {
         const data = await response.json();
         return data;
     } catch (error) {
-        throw new Error(`Failed to parse JSON: ${error}`);
+        // throw new Error(`Failed to parse JSON: ${error}`);
+        console.error(`Failed to parse JSON: ${error}`);
     }
 };

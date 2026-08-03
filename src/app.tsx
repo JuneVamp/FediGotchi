@@ -169,6 +169,8 @@ app.use("/*" ,async (c : Context, next: Next)=> {
   const baseURL = new URL(c.req.url).origin
   const prefix = c.req.header("X-Forwarded-Prefix") || ""
   const prefixedURL = baseURL + prefix
+  // console.log("baseURL", baseURL)
+  console.log("prefixedURL", prefixedURL)
   c.set("baseURL", prefixedURL)
   await next()
 })

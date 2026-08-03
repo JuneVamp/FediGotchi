@@ -252,7 +252,7 @@ function processRelationships(relationships){
     }
 
     for (const [thingName, relationship] of Object.entries(relationships)) {
-        if ( thingName.includes("@")) { // entity
+        if ( thingName.includes("VP_UNIQUE_ID")) { // entity
             entityRelationships[thingName] = (relationship.friendliness+5)/10;
         } else {
             activityRelationships[thingName] = (relationship.friendliness+5)/10;
@@ -282,7 +282,7 @@ function processRelationships(relationships){
 function setupUserActions(petName, baseURL) {
     async function refreshUserActions() {
         const userActionsContainer = document.querySelector(`#pet-container-${petName} .user-actions`);
-        const activities = await fetch(`${baseURL}/pets/${petName}`, {
+        const activities = await fetch(`${baseURL}/pets/${getValidId(petName)}`, {
             method: "GET",
             headers: {
                 "Content-Type": "application/json"

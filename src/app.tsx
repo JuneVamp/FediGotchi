@@ -291,7 +291,7 @@ app.get("/pets/:petId", petMiddleware, async (c) => {
             petViewHtmlString(petView, petBaseURL),
             // petActivityHistoryHtmlString(),
             petRelationshipsHtmlString(),
-            petUserActionsHtmlString(pet, petBaseURL)
+            petUserActionsHtmlString(petView, petBaseURL)
           ])
         ],
         c.get("baseURL"))

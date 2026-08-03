@@ -259,9 +259,11 @@ export class VPet extends VPEntity {
         console.log(`Pet ${this.name} is considering activity ${activity.name} with partner ${activityPartner.id}`)
 
         if (this.willingToActivity(activity, activityPartner) < Math.random() * 10) {
+            console.log(`Pet ${this.name} rejected activity ${activity.name} with partner ${activityPartner.id}`)
             return "not_willing"
         }
 
+        console.log(`Pet ${this.name} accepted activity ${activity.name} with partner ${activityPartner.id}`)
         this.doActivity(activity, activityPartner)
         return "accept"
     }

@@ -64,7 +64,7 @@ var path = require('path');
 var petImagesPath = path.join(__dirname, '../public/assets/images/beings');
 var petImageFiles = fs.readdirSync(petImagesPath).filter((file : string) => file.endsWith('.png'));
 // var randomPetImageFiles = petImageFiles.sort(() => 0.5 - Math.random()).slice(0, 6);
-var randomPetImageFiles = petImageFiles.slice(0, 18);
+var randomPetImageFiles = petImageFiles.slice(0, 30);
 randomPetImageFiles.forEach((file : string) => {
     var petName = file.replace('.png', '');
     var pet = new VPet(petName, SERVER_URL);
@@ -119,7 +119,7 @@ pets.forEach(pet => {
 
 
 setInterval(() => {
-  console.log(0)
+  // console.log(0)
   var timestamp = Date.now()
   for (const pet of pets.values()) {
     pet.tick(timestamp)
@@ -181,7 +181,7 @@ app.use("/*" ,async (c : Context, next: Next)=> {
   const prefix = c.req.header("X-Forwarded-Prefix") || ""
   const prefixedURL = baseURL + prefix
   // console.log("baseURL", baseURL)
-  console.log("prefixedURL", prefixedURL)
+  // console.log("prefixedURL", prefixedURL)
   c.set("baseURL", prefixedURL)
   await next()
 })
@@ -598,7 +598,7 @@ app.get("/activities/:activityId", activityMiddleware, async (c) =>{
 
 app.get("/activities/:activityId/data", activityMiddleware, async (c) => {
   var activity = c.get("activity") as VPActivity
-  console.log(`Activity ${activity.name} data requested`)
+  // console.log(`Activity ${activity.name} data requested`)
 
   return c.json({
     activity: activity

@@ -63,10 +63,9 @@ export class VPEntityRemoteRef {
         if (!this.uniqueId) {
             this.uniqueId = this.serverURL + "@" +  this.id
         }
-        this.uniqueId = this.uniqueId.toLowerCase().replace(/[^a-z0-9@/-]/g, "")
+        this.uniqueId = this.uniqueId.toLowerCase().replace(/[^a-z0-9@-]/g, "")
         this.uniqueId = this.uniqueId.replace(/@+/g, "-VP_UNIQUE_ID-")
     }
-
 }
 
 

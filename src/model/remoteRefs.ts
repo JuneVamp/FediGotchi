@@ -159,6 +159,7 @@ export class VPEnvironmentRemoteRef extends VPEntityRemoteRef {
             petId: pet.id,
             petServerURL: pet.serverURL
         })
+        console.log(`Added pet ${pet.id} to environment ${this.id} on server ${this.serverURL}:`, data)
         return data.success;
     }
 

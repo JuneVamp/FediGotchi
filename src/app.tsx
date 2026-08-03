@@ -64,7 +64,7 @@ var path = require('path');
 var petImagesPath = path.join(__dirname, '../public/assets/images/beings');
 var petImageFiles = fs.readdirSync(petImagesPath).filter((file : string) => file.endsWith('.png'));
 // var randomPetImageFiles = petImageFiles.sort(() => 0.5 - Math.random()).slice(0, 6);
-var randomPetImageFiles = petImageFiles.slice(0, 30);
+var randomPetImageFiles = petImageFiles.slice(0, 6);
 randomPetImageFiles.forEach((file : string) => {
     var petName = file.replace('.png', '');
     var pet = new VPet(petName, SERVER_URL);
@@ -481,7 +481,7 @@ app.get("/environments/:environmentId", environmentMiddleware, async (c) => {
     return c.html(
       htmlLayoutString(
         [
-          environmentHtmlString(environment, c.get("baseURL"), [
+          environmentHtmlString(environment.getView(), c.get("baseURL"), [
             ...petViews.map(petView => {
                 return petViewLayoutString(petView, petView.remoteRef.serverURL, [
                   petViewHtmlString(petView, petView.remoteRef.serverURL)

@@ -315,6 +315,12 @@ app.post("/pets/:petId/activity-request", async (c) => {
   }
 
   var activityData = await activityRemoteRef.getActivityData()
+  if (activityData === null) {
+    return c.json({
+      message: `Activity data for activity ${activityRemoteRef.id} not found`,
+      accepted: false
+    }, 404)
+  }
 
   var activity = VPActivity.fromJson(activityData)
   activity.remoteRef = activityRemoteRef

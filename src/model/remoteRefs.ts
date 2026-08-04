@@ -237,6 +237,9 @@ export class VPActivityRemoteRef extends VPEntityRemoteRef{
     async getActivityData() : Promise<VPActivity> {
         const data = await this.getRequest("data");
         const activityFAKE = data.activity
+        if (activityFAKE === undefined) {
+            return null as unknown as VPActivity; // HACK 10 to avoid type errors, should never happen
+        }
         const activity = new VPActivity({
             name: activityFAKE.name,
             statAffected: activityFAKE.statAffected,

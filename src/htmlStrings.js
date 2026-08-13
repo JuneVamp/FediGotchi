@@ -46,6 +46,7 @@ export const navbarHtmlString = (baseURL) => {
             <a href="${baseURL}/">Home</a>
             <a href="${baseURL}/environments">Environments</a>
             <a href="${baseURL}/pets">Pets</a>
+            <a href="https://github.com/JuneVamp/FediGotchi">Install Your Own</a>
         </div>
     `
 }
@@ -55,7 +56,7 @@ export const aboutHtmlString = (baseURL) => {
         <div class="about">
             <h2>About FediFlock</h2>
             <p> 
-            Hello, welcome to FediFlock a [[Federated]] virtual pet framework and implementation. 
+            Hello, welcome to FediFlock a Federated virtual pet framework and implementation. 
             Virtual pets have existed almost as long as we have had the power to create them. 
             This project aims to provide a way for communication between these pets. 
             The end goal is to have users be able to own/interact with these pets in a way that doesn't lock them onto the specific site 
@@ -63,8 +64,8 @@ export const aboutHtmlString = (baseURL) => {
             </p>
 
             <p>
-            We have designed this with the intention of other people creating not only their own pets and interacting with them across multiple [[servers]].
-            But also!! create your own server where the pets on your server can communicate and interact with other pets. 
+            We have designed this with the intention of other people creating not only their own pets and interacting with them across multiple servers.
+            But also!! create your own server where the pets on your server can communicate and interact with other pets.
             </p>
 
             <p>
@@ -81,7 +82,7 @@ export const aboutHtmlString = (baseURL) => {
             </p>
 
             <p>
-            Welcome to the FediFlock: Do not put your fish in a birdcage!
+            Welcome to the FediFlock: The birds are free here (along with other pets).
             </p>
         </div>
     `

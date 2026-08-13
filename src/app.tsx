@@ -53,7 +53,7 @@ var path = require('path');
 var petImagesPath = path.join(__dirname, '../public/assets/images/beings');
 var petImageFiles = fs.readdirSync(petImagesPath).filter((file : string) => file.endsWith('.png'));
 // var randomPetImageFiles = petImageFiles.sort(() => 0.5 - Math.random()).slice(0, 6);
-var randomPetImageFiles = petImageFiles.slice(0, 6);
+var randomPetImageFiles = petImageFiles.slice(0, 20);
 randomPetImageFiles.forEach((file : string) => {
     var petName = file.replace('.png', '');
     var pet = new VPet(petName, SERVER_URL);
@@ -61,7 +61,7 @@ randomPetImageFiles.forEach((file : string) => {
     pets.set(pet.name.toLowerCase(), pet);
 });
 
-var numberOfEnvironments = 2;
+var numberOfEnvironments = 3;
 for (const envName of jsonData.Environments.all) {
   numberOfEnvironments --;
   if (numberOfEnvironments < 0) {

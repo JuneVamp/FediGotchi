@@ -13,7 +13,7 @@ import jsonData from "./model/data.json"
 
 import {htmlLayoutString, petViewLayoutString, petActivityHistoryHtmlString, petViewHtmlString, environmentHtmlString, loginBox, petUserActionsHtmlString, petRelationshipsHtmlString, aboutHtmlString} from "./htmlStrings"
 import { createSession, destroySession, getUser } from "./session.ts"
-import { getRandomIntInclusive } from "./utils.ts";
+import { getRandomIntInclusive, writeToJsonFile } from "./utils.ts";
 
 type AppEnv = {
   Variables : {
@@ -80,12 +80,21 @@ pets.forEach(pet => {
 })
 
 
+// save all pets and environments to json file
+var petsJson = Array.from(pets.values()).map(pet => pet.saveAsJson())
+var environmentsJson = Array.from(environments.values()).map(env => env.saveAsJson())
+
+writeToJsonFile('./data/pets.json', petsJson)
+writeToJsonFile('./data/environments.json', environmentsJson)
+
 setInterval(() => {
   // console.log(0)
   var timestamp = Date.now()
   for (const pet of pets.values()) {
     try {
-      pet.tick(timestamp)
+      pet.tick(timestamp).catch((error) => {
+        console.error(`Error ticking pet ${pet.name}:`, error);
+      })
     } catch (error) {
       console.error(`Error ticking pet ${pet.name}:`, error);
     }
@@ -93,7 +102,9 @@ setInterval(() => {
 
   for (const activity of running_activities.values()) {
     try {
-      activity.tick(timestamp)
+      activity.tick(timestamp).catch((error) => {
+        console.error(`Error ticking activity ${activity.name}:`, error);
+      })
     } catch (error) {
       console.error(`Error ticking activity ${activity.name}:`, error);
     }

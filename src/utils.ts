@@ -53,6 +53,19 @@ export function writeToCsvFile(filePath : string, data : string) {
     fs.appendFileSync(filePath, data);
 }
 
+export function writeToJsonFile(filePath : string, data : any) {
+    const fs = require('fs');
+    const path = require('path');
+    const jsonData = JSON.stringify(data, null, 2); // Pretty print with 2 spaces
+
+    // Ensure the directory exists
+    const dir = path.dirname(filePath);
+    if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+    }
+    fs.writeFileSync(filePath, jsonData);
+}
+
 
 export async function getValidJson(response : Response) : Promise<any> {
     response = await response;

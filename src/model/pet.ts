@@ -721,7 +721,7 @@ export class VPet extends VPEntity {
         return this.remoteRef
     }
 
-    saveAsJson() : string {
+    saveAsJson() : object {
         const petData = {
             name: this.name,
             stats: this.stats,
@@ -731,10 +731,10 @@ export class VPet extends VPEntity {
                 serverURL: this.environment.serverURL,
             } : null
         };
-        return JSON.stringify(petData);
+        return petData;
     }
 
-    fromJson(jsonString: string) {
+    fromJsonString(jsonString: string) {
         const petData = JSON.parse(jsonString);
         this.name = petData.name;
         this.stats = petData.stats;

@@ -352,7 +352,6 @@ app.post("/pets/:petId/activity-tick", async (c) => {
   var activityName = body.name
   var activity = new VPActivityRemoteRef(activityId, activityServerURL, activityName)
 
-
   if(!pet.currentActivity || pet.currentActivity.getRemoteRef()?.id !== activityId){
     return c.json({
       message: `Pet ${pet.name} is not currently in activity ${activityId}`,

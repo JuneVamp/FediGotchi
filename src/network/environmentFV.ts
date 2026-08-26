@@ -100,5 +100,4 @@ export class EnvironmentFV extends FederationView{
         return {accepted : false, message : "Did not receive a valid response from the server."}
     }
 
-
 }

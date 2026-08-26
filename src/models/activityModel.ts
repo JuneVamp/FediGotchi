@@ -1,4 +1,4 @@
-import  jsonData  from "./data.json";
+import  jsonData  from "../data/data.json";
 import { ActivityFV } from "../network/activityFV";
 import { PetFV } from "../network/petFV";
 import { UserFV } from "../network/userFV";
@@ -29,7 +29,8 @@ export class ActivityModel {
         var name : string | undefined = undefined
         var activity : ActivityModel | undefined = undefined
 
-        // TODO 7 need to test if values exist
+        // FIXME  7 can cause errors
+        // need to test if values exist
         for (const [key, value] of Object.entries(jsonData.Activities.list)) {
             if (key === activityString) {
                 name = key
@@ -42,5 +43,20 @@ export class ActivityModel {
         }
 
         return activity
+    }
+
+    partnerRequirement() : {needPartner : boolean, canHavePartner : boolean} {
+        var needPartner = false
+        var canHavePartner = false
+        this.entityLimit.min > 1 ? needPartner = true : needPartner = false
+        this.entityLimit.max > 1 ? canHavePartner = true : canHavePartner = false
+        return {needPartner, canHavePartner}
+    }
+
+    createFV(creator : PetFV | UserFV, serverURL : string) : ActivityFV {
+        const id = `${creator.uniqueID}-${this.name}-${Date.now()}`
+        const activityFV = new ActivityFV(id, serverURL)
+        this.FV = activityFV
+        return activityFV
     }
 }

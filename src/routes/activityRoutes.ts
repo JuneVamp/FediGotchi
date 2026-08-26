@@ -21,7 +21,7 @@ export function createActivityRoutes(activities : Map<string, ActivityModel>) {
     })
 
     // create new activity
-    // (activityName) -> (activityFV, accepted, message)
+    // (activityName) -> (accepted, message)
     router.post("/create", (c) => {
         return c.json({
             message: "NOTHING"

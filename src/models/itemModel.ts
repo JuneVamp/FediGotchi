@@ -1,5 +1,5 @@
 import { ActivityModel } from "./activityModel"
-import jsonData from "./data.json"
+import  jsonData  from "../data/data.json";
 
 export class ItemModel {
     name : string
@@ -24,12 +24,8 @@ export class ItemModel {
             }
         }
 
-        if (!name) {
-            console.error(`Item ${itemName} not found in data.json`)
-            return null
-        }
-        if (!activity) {
-            console.error(`Item ${itemName} does not have an associated activity in data.json`)
+        if (!name || !activity) {
+            console.error(`Item ${itemName} not found in correct format in data.json`)
             return null
         }
 

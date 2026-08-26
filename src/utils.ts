@@ -1,7 +1,7 @@
 // Source - https://stackoverflow.com/a/55671924
 // Posted by rydwolf, modified by community. See post 'Timeline' for change history
 // Retrieved 2026-06-16, License - CC BY-SA 4.0
-export function weighted_random(options: Array<{item : any, weight : number}>) : any {
+export function weighted_random<T>(options: Array<{item : T, weight : number}>) : T {
     var i;
 
     var weights = [options[0]!.weight];
@@ -86,8 +86,9 @@ export async function getJson(response : Response) : Promise<any> {
 
 
 // source : https://www.xjavascript.com/blog/typescript-emit-event/
+// im going to use this like godot signals....
 export interface EventListener<T> {
-    (data: T): void;
+    (data?: T): void;
 }
  
 export class EventEmitter<T> {
@@ -99,7 +100,7 @@ export class EventEmitter<T> {
     }
  
     // Method to emit an event
-    emit(data: T) {
-        this.listeners.forEach(listener => listener(data));
+    emit(data?: T) {
+        this.listeners.forEach(listener => data ? listener(data) : listener() );
     }
 }

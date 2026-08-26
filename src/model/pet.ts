@@ -119,105 +119,105 @@ export class VPet extends VPEntity {
 
     // #region ---------------------Activity Methods--------------------
     initiateActivity(){
-        // TODO 4 ask user
-        if (!this.environment) {
-            console.log(`${this.name} is not in an environment, cannot initiate activity`)
-            return
-        }
+        // // TODO 4 ask user
+        // if (!this.environment) {
+        //     console.log(`${this.name} is not in an environment, cannot initiate activity`)
+        //     return
+        // }
 
-        // activity selection
-        var priorityList : Array<{activity : VPActivity, willingness : number}> = []
+        // // activity selection
+        // var priorityList : Array<{activity : VPActivity, willingness : number}> = []
 
-        // Environment item Activites
-        this.environment.getAllItems().then((items) => {
-            items.forEach(item => {
-                var activity = item.getActivity()
-                if (activity && this.isActivityFeasable(activity)) {
-                    priorityList.push({
-                        activity : activity,
-                        willingness : this.willingToActivity(activity)
-                    })
-                }
-                else {
-                    console.warn("no activity on item : ", item.name)
-                }
-            })
-        });
+        // // Environment item Activites
+        // this.environment.getAllItems().then((items) => {
+        //     items.forEach(item => {
+        //         var activity = item.getActivity()
+        //         if (activity && this.isActivityFeasable(activity)) {
+        //             priorityList.push({
+        //                 activity : activity,
+        //                 willingness : this.willingToActivity(activity)
+        //             })
+        //         }
+        //         else {
+        //             console.warn("no activity on item : ", item.name)
+        //         }
+        //     })
+        // });
 
-        // Pet x Pet Activities
-        for (const activityName of this.knownActivitesPetxPetNames) {
-            const activity = VPActivity.fromStringData(activityName)
-            if (!this.isActivityFeasable(activity)){ continue }
+        // // Pet x Pet Activities
+        // for (const activityName of this.knownActivitesPetxPetNames) {
+        //     const activity = VPActivity.fromStringData(activityName)
+        //     if (!this.isActivityFeasable(activity)){ continue }
 
-            priorityList.push({
-                activity : activity,
-                willingness : this.willingToActivity(activity)
-            })
-        }
+        //     priorityList.push({
+        //         activity : activity,
+        //         willingness : this.willingToActivity(activity)
+        //     })
+        // }
 
-        priorityList = priorityList.sort((a, b) => b.willingness - a.willingness)
-        var selectedActivity : VPActivity = weighted_random(priorityList.map((entry) => {
-            return {
-                item : entry.activity,
-                weight : entry.willingness
-            }
-        }));
+        // priorityList = priorityList.sort((a, b) => b.willingness - a.willingness)
+        // var selectedActivity : VPActivity = weighted_random(priorityList.map((entry) => {
+        //     return {
+        //         item : entry.activity,
+        //         weight : entry.willingness
+        //     }
+        // }));
 
 
         //Does activity need partner / have capacity for partner
-        var needPartner = false
-        var canHavePartner = false
-        selectedActivity.entityLimit.min > 1 ? needPartner = true : needPartner = false
-        selectedActivity.entityLimit.max > 1 ? canHavePartner = true : canHavePartner = false
+        // var needPartner = false
+        // var canHavePartner = false
+        // selectedActivity.entityLimit.min > 1 ? needPartner = true : needPartner = false
+        // selectedActivity.entityLimit.max > 1 ? canHavePartner = true : canHavePartner = false
 
-        selectedActivity.remoteRef = undefined
-        var remoteRef = selectedActivity.createRemoteRef(selectedActivity.createId(this.remoteRef.id), this.environment!.serverURL)
-        selectedActivity.addEntity(this.remoteRef)
-        remoteRef.addStarterEntity(this.remoteRef, selectedActivity.name)
+        // selectedActivity.remoteRef = undefined
+        // var remoteRef = selectedActivity.createRemoteRef(selectedActivity.createId(this.remoteRef.id), this.environment!.serverURL)
+        // selectedActivity.addEntity(this.remoteRef)
+        // remoteRef.addStarterEntity(this.remoteRef, selectedActivity.name)
 
 
-        if (needPartner && !canHavePartner){
-            console.error("data is wrong for activity, min should be less than max for activity: ", selectedActivity)
-            return
-        } else if (!canHavePartner){
-            this.doActivity(selectedActivity)
-            return
-        }
+        // if (needPartner && !canHavePartner){
+        //     console.error("data is wrong for activity, min should be less than max for activity: ", selectedActivity)
+        //     return
+        // } else if (!canHavePartner){
+        //     this.doActivity(selectedActivity)
+        //     return
+        // }
 
         // partner selection and messaging (so much hinges on this "then" lol)
-        this.environment.getAllPets().then(async (pets) => {
-            const eligiblePets = pets.filter((pet) => !pet.checkEqual(this.remoteRef))
-            if (eligiblePets.length === 0) {
-                console.log(`No eligible pets for ${this.name} to do activity ${selectedActivity.name}`) 
-                return
-            }
+        // this.environment.getAllPets().then(async (pets) => {
+        //     const eligiblePets = pets.filter((pet) => !pet.checkEqual(this.remoteRef))
+        //     if (eligiblePets.length === 0) {
+        //         console.log(`No eligible pets for ${this.name} to do activity ${selectedActivity.name}`) 
+        //         return
+        //     }
 
-            var partnerPriorityList = eligiblePets.map((pet) => {
-                    return {
-                        item : pet,
-                        weight : this.willingToActivity(selectedActivity, pet)
-                    }
-                })
+        //     var partnerPriorityList = eligiblePets.map((pet) => {
+        //             return {
+        //                 item : pet,
+        //                 weight : this.willingToActivity(selectedActivity, pet)
+        //             }
+        //         })
 
-            var selectedActivityPartner = weighted_random(partnerPriorityList)
+        //     var selectedActivityPartner = weighted_random(partnerPriorityList)
 
             // HACK COMMENT if partner + activity < activity and activity can be done solo then do it solo
             // I hate everyone kinda person lol
             // later can have personality tags inside this
-            var selectedActivityPartnerWeight = partnerPriorityList.find(({item, weight}) => item === selectedActivityPartner)?.weight
-            selectedActivityPartnerWeight = Math.max(selectedActivityPartnerWeight!+1.5, 5)
-            var selectedActivityWeight = priorityList.find(({activity, willingness}) => activity === selectedActivity)?.willingness
+            // var selectedActivityPartnerWeight = partnerPriorityList.find(({item, weight}) => item === selectedActivityPartner)?.weight
+            // selectedActivityPartnerWeight = Math.max(selectedActivityPartnerWeight!+1.5, 5)
+            // var selectedActivityWeight = priorityList.find(({activity, willingness}) => activity === selectedActivity)?.willingness
 
-            if (!selectedActivityWeight || !selectedActivityPartnerWeight){
-                console.error("no activity selected or no partner selected")
-            }
+            // if (!selectedActivityWeight || !selectedActivityPartnerWeight){
+            //     console.error("no activity selected or no partner selected")
+            // }
 
-            // the < 5 is because the willingness is activity + partner so if partner is less than (5 more) than means we-
-            // dont like the partner
-            if (!needPartner && (selectedActivityPartnerWeight! -  selectedActivityWeight! < 5)){
-                this.doActivity(selectedActivity)
-                return
-            }
+            // // the < 5 is because the willingness is activity + partner so if partner is less than (5 more) than means we-
+            // // dont like the partner
+            // if (!needPartner && (selectedActivityPartnerWeight! -  selectedActivityWeight! < 5)){
+            //     this.doActivity(selectedActivity)
+            //     return
+            // }
 
             // console.log(1, this.name, "->", selectedActivityPartner.id)
             this.state = petState.waitingForActivityResponse

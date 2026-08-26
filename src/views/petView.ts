@@ -6,12 +6,15 @@ import { petActivityStatistics as PetActivityStatistics } from "../systems/pet/p
 
 export interface PetView {
     name : string;
-    imageSrc : string;
-    environmentFV : EnvironmentFV;
-    activity : { activity : ActivityFV, partner : PetFV | UserFV}
     FV : PetFV;
+    imageSrc : string;
+
     relationships : { [key : string] : number}; // pet or user uniqueID
     activityLikings : { [key : string] : number} // activity uniqueID
     stats : { [key : string] : number};
+
+    environmentFV : EnvironmentFV;
+    activity : { activity : ActivityFV, partner : PetFV | UserFV}
+
     activityStatistics : PetActivityStatistics;
 }

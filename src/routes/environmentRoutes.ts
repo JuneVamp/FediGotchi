@@ -38,7 +38,7 @@ export function createEnvironmentRoutes(environments : Map<string, EnvironmentMo
     })
 
     // get all pets in an environment
-    // () -> (petViews)
+    // () -> (petsFV)
     router.get("/:environmentID/pets", (c) => {
         return c.json(
             "NOTHING"

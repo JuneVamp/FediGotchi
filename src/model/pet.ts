@@ -12,29 +12,29 @@ import { petViewLayoutString } from "./htmlStrings"
 import { stat } from "node:fs"
 import { VPActivity } from "./activity"
 
-export interface PetView{
-    name : string
-    uniqueId : string
-    imageSrc : string
-    environmentName : string
-    boredom : number
-    currentActivityName : string
-    currentActivityPartnerName : string
-    currentActivityItemName : string
-    stats : VPStats,
-    remoteRef : VPetRemoteRef
-    environmentRemoteRef ?: VPEnvironmentRemoteRef
-    activityPartnerRemoteRef ?: VPetRemoteRef | VPUserRemoteRef
-    activityItem ?: VPItem
-    activityHistory ?: ActivityHistoryDict
-    activityHistoryStats ?: {
-        mostRecentActivity: VPActivity | undefined;
-        activityCounts: { [key: string]: number };
-    }
-    relationships ?: VPRelationshipDict
-    availableUserActivityNames ?: Array<string>
-    ownerRemoteRef ?: VPUserRemoteRef
-}
+// export interface PetView{
+//     name : string
+//     uniqueId : string
+//     imageSrc : string
+//     environmentName : string
+//     boredom : number
+//     currentActivityName : string
+//     currentActivityPartnerName : string
+//     currentActivityItemName : string
+//     stats : VPStats,
+//     remoteRef : VPetRemoteRef
+//     environmentRemoteRef ?: VPEnvironmentRemoteRef
+//     activityPartnerRemoteRef ?: VPetRemoteRef | VPUserRemoteRef
+//     activityItem ?: VPItem
+//     activityHistory ?: ActivityHistoryDict
+//     activityHistoryStats ?: {
+//         mostRecentActivity: VPActivity | undefined;
+//         activityCounts: { [key: string]: number };
+//     }
+//     relationships ?: VPRelationshipDict
+//     availableUserActivityNames ?: Array<string>
+//     ownerRemoteRef ?: VPUserRemoteRef
+// }
 
 export enum petState {
     idle = "idle",

@@ -58,12 +58,7 @@ export enum petActivityState {
 }
 
 export class petActivitySystem {
-    awaitingActivityRejected() {
-        throw new Error("Method not implemented.");
-    }
-    startAwaitingActivity() {
-        throw new Error("Method not implemented.");
-    }
+
     model : PetModel
 
     knownPetxPetActivities : Array<ActivityModel> = [];
@@ -112,6 +107,24 @@ export class petActivitySystem {
     }
 
     startActivity(activity : ActivityModel, partner ?: PetFV | UserFV ) {
+        this.state = petActivityState.doingActivity;
+        if(!activity.FV){
+            console.error(`Activity ${activity.name} does not have a valid FederationView`);
+            return;
+        }
+
+    }
+
+    awaitActivity(activityFV: ActivityFV) {
+        this.state = petActivityState.waitingForActivityResponse;
+    }
+
+    awaitingActivityRejected() {
+        throw new Error("Method not implemented.");
+    }
+
+    startAwaitingActivity() {
+        throw new Error("Method not implemented.");
     }
 
 }

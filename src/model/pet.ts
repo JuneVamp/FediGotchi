@@ -220,8 +220,8 @@ export class VPet extends VPEntity {
             // }
 
             // console.log(1, this.name, "->", selectedActivityPartner.id)
-            this.state = petState.waitingForActivityResponse
-            this.waitingSince = Date.now()
+            // this.state = petState.waitingForActivityResponse
+            // this.waitingSince = Date.now()
             const response = await Promise.race([
                 selectedActivity.getRemoteRef()!.requestEntityToJoin(
                     this.remoteRef,
@@ -244,7 +244,8 @@ export class VPet extends VPEntity {
                 this.state = petState.idle;
                 // TODO 7 : ask next highest rating partner
             }
-        })
+        // }
+    // )
     }
 
     gotRejectedByPartner(partner : VPetRemoteRef | VPUserRemoteRef){
@@ -283,7 +284,7 @@ export class VPet extends VPEntity {
 
     doActivity(activity : VPActivity, activityPartner?: VPetRemoteRef | VPUserRemoteRef, activityItem?: VPItem){
         // console.log(9, this.name, activity.name, activityPartner?.id)
-        this.state = petState.doingActivity
+        // this.state = petState.doingActivity
         this.timeBetweenActivityInitiation = 0
 
         activity.getRemoteRef()!.start()

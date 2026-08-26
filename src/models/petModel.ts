@@ -65,6 +65,7 @@ export class PetModel {
     }
 
     async sendActivityRequest(activityFV : ActivityFV, partner : PetFV) : Promise<{accepted: boolean, message: string}> {
+        this.activitySystem.awaitActivity(activityFV)
         return await this.communicationSystem.sendActivityRequest(activityFV, partner);
     }
 

@@ -5,7 +5,7 @@ import { PetFV } from "./petFV";
 
 /**
  * Represents the environment remotely
- * SHOULD implement all the routes of environmentRoutes.ts except / and /:id
+ * SHOULD implement all the routes of environmentRoutes.ts except /
  */
 export class EnvironmentFV extends FederationView{
 
@@ -13,91 +13,56 @@ export class EnvironmentFV extends FederationView{
         super(id, serverURL, "environment");
     }
 
-    async getPets(): Promise<Array<PetFV>> {
-        const response = await fetch(`${this.serverURL}/api/environments/${this.id}/pets`, {
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json",
-            }
-        })
-
-        const data = await getJson(response);
-
-        if (data) {
-            try {
-                const petFVs = data.petsFV.map((petData: any) => {
-                    if (!petData.id){
-                        console.error("Pet data does not contain an id:", petData);
-                        return null;
-                    }
-                    const petFV = new PetFV(petData.id, this.serverURL);
-                    return petFV;
-                }).filter((v : PetFV | null): v is PetFV => !!v);
-
-                return petFVs;
-            } catch (error) {
-                console.error("Error mapping petsFV to PetFV:", error);
-                return [];
-            }
+    async getView() : Promise<{accepted: boolean, message: string, environmentView?: any}> {
+        const response = await this.getRequest(`environments/${this.id}`);
+        if (!response.accepted || !response.environmentView) {
+            return {accepted: false, message: "Failed to get environment view"};
         }
-        return [];
+        return {accepted: true, message: "Environment view retrieved", environmentView: response.environmentView};
     }
 
-    async getItems() : Promise<Array<ItemModel>> {
-        const response = await fetch(`${this.serverURL}/api/environments/${this.id}/items`, {
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json",
-            }
-        });
-
-        const data = await getJson(response);
-
-        if (data) {
-            try {
-                return data.itemViews.map((itemData: any) => new ItemModel(itemData.id, itemData.activityName ));
-            } catch (error) {
-                console.error("Error mapping itemViews to ItemModel:", error);
-                return [];
-            }
+    async getPets(): Promise<Array<PetFV> | null> {
+        const response = await this.getRequest(`environments/${this.id}/pets`);
+        if (!response.accepted || !response.petsFV) {
+            return null;
         }
-        return [];
+        const petsFVData = response.petsFV;
+
+        try {
+            const petFVs = petsFVData.map((petData: any) => {
+                const petFV = new PetFV(petData.id, this.serverURL);
+                return petFV;
+            }).filter((v : PetFV | null): v is PetFV => !!v);
+
+            return petFVs;
+        } catch (error) {
+            console.error("Error mapping petsFV to PetFV:", error);
+            return null;
+        }
+    }
+
+    async getItems() : Promise<Array<ItemModel>| null> {
+        const response = await this.getRequest(`environments/${this.id}/items`);
+        if (!response.accepted || !response.itemViews) {
+            console.error(`Failed to get items for environment ${this.id}`);
+            return null;
+        }
+        const itemVewsData = response.itemViews;
+
+        try {
+            return itemVewsData.map((itemData: any) => new ItemModel(itemData.id, itemData.activityName ));
+        } catch (error) {
+            console.error("Error mapping itemViews to ItemModel:", error);
+            return null;
+        }
     }
 
     async addPet(petFV : PetFV) : Promise<{accepted : boolean, message: string}> {
-        const response = await fetch(`${this.serverURL}/api/environments/${this.id}/add-pet`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(petFV)
-        });
-
-        const data = await getJson(response);
-
-        if (data) {
-            return {accepted : data.accepted, message : data.message};
-        }
-
-        return {accepted : false, message : "Did not receive a valid response from the server."};
+        return this.postRequest(`environments/${this.id}/add-pet`, {petFV : petFV});
     }
 
     async removePet(petFV : PetFV) : Promise<{accepted : boolean, message: string}> {
-        const response = await fetch(`${this.serverURL}/api/environments/${this.id}/remove-pet`, {
-            method: "POST",
-            headers: {
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify(petFV)
-        });
-
-        const data = await getJson(response);
-
-        if (data) {
-            return {accepted : data.accepted, message : data.message};
-        }
-
-        return {accepted : false, message : "Did not receive a valid response from the server."}
+        return this.postRequest(`environments/${this.id}/remove-pet`, {petFV : petFV});
     }
 
 }

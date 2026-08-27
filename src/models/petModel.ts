@@ -17,12 +17,6 @@ export enum petState {
 }
 
 export class PetModel {
-    activityFinished(activityFV: ActivityFV): { accepted: any; message: any; } {
-        throw new Error("Method not implemented.");
-    }
-    processActivityTick(activityFV: ActivityFV): { accepted: any; message: any; } {
-        throw new Error("Method not implemented.");
-    }
     name : string;
     imageSrc ?: string;
     environmentFV : EnvironmentFV;
@@ -96,4 +90,11 @@ export class PetModel {
         this.activitySystem.awaitingActivityRejected();
     }
 
+    activityFinished(activityFV: ActivityFV): { accepted: any; message: any; } {
+        this.activitySystem.onActivityFinished(activityFV);
+        
+    }
+    processActivityTick(activityFV: ActivityFV): { accepted: any; message: any; } {
+        throw new Error("Method not implemented.");
+    }
 }

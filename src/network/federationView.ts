@@ -22,8 +22,16 @@ export class FederationView {
         return {id, serverURL};
     }
 
+    /**
+     * 
+     * @param endpoint The endpoint to send the POST request to, **RELATIVE** to the serverURL/api
+     * @param body The body of the POST request (make sure this is consistent with the server's expected body, hightlited in routes)
+     * @returns An object with the following properties:
+     * - accepted: boolean indicating if the request was successful
+     * - message: string containing a message from the server
+     */
     async postRequest(endpoint : string, body : any) : Promise<{accepted: boolean, message: string}> {
-        const response = await fetch(`${this.serverURL}/${endpoint}`, {
+        const response = await fetch(`${this.serverURL}/api/${endpoint}`, {
             method: "POST",
             headers: {
                 "Content-Type": "application/json"
@@ -42,8 +50,16 @@ export class FederationView {
         return result;
     }
 
+    /**
+     *
+     * @param endpoint The endpoint to send the GET request to, **RELATIVE** to the serverURL/api
+     * @returns An object with the following properties:
+     * - accepted: boolean indicating if the request was successful
+     * - message: string containing a message from the server
+     * - [key: string]: any additional properties returned by the server
+     */
     async getRequest(endpoint : string) : Promise<{accepted: boolean, message: string, [key: string]: any}> {
-        const response = await fetch(`${this.serverURL}/${endpoint}`, {
+        const response = await fetch(`${this.serverURL}/api/${endpoint}`, {
             method: "GET",
             headers: {
                 "Content-Type": "application/json"

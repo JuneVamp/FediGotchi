@@ -7,7 +7,7 @@ import { UserFV } from "./userFV";
 
 /**
  * Represents the pet remotely
- * SHOULD implement all the routes of petRoutes.ts except / and /:id
+ * SHOULD implement all the routes of petRoutes.ts except /
  */
 export class PetFV extends FederationView{
     
@@ -15,12 +15,14 @@ export class PetFV extends FederationView{
         super(id, serverURL, "pet");
     }
 
-    async getView() : Promise<PetView | null> {
-        const response = await this.getRequest(`pets/${this.id}/view`);
+    async getView() : Promise<{accepted: boolean, message: string, petView?: PetView}> {
+        const response = await this.getRequest(`pets/${this.id}`);
         if (!response.accepted || !response.petView) {
-            return null            
+            return {accepted: false, message: "Failed to get pet view"};
         }
-        return response.petView as PetView;
+        // HACK this does clean the response to only take the petview,,, maybe we don't wanna do that? 
+        // but I can't think of why soooo
+        return {accepted: true, message: "Pet view retrieved", petView: response.petView}; 
     }
 
     async setEnvironment(environmentFV : EnvironmentFV) : Promise<{accepted: boolean, message: string}> {

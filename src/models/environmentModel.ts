@@ -16,7 +16,7 @@ export class EnvironmentModel {
         this.items = items;
     }
 
-    // HACK 8 : not sure about sending item names
+    // NOTE : to get items, ask for items directly check FV and route for /items
     getView(): environmentView {
         return {
             name : this.name,

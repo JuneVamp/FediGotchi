@@ -57,6 +57,9 @@ export enum petActivityState {
     reservedForActivity = "reservedForActivity"
 }
 
+/**
+ * NOTE : this does NOT take care of the simulation of the activity, it only manages the state of the pet and the activity
+ */
 export class petActivitySystem {
 
     model : PetModel
@@ -112,7 +115,6 @@ export class petActivitySystem {
             console.error(`Activity ${activity.name} does not have a valid FederationView`);
             return;
         }
-
     }
 
     awaitActivity(activityFV: ActivityFV) {

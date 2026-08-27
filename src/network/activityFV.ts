@@ -1,11 +1,12 @@
 import { getJson } from "../utils";
+import { ActivityView } from "../views/activityView";
 import { FederationView } from "./federationView";
 import { PetFV } from "./petFV";
 import { UserFV } from "./userFV";
 
 /**
  * Represents the activity remotely
- * SHOULD implement all the routes of activityRoutes.ts except /(which does nothing) and /:id
+ * SHOULD implement all the routes of activityRoutes.ts except /(which does nothing)
  */
 export class ActivityFV extends FederationView{
 
@@ -13,36 +14,28 @@ export class ActivityFV extends FederationView{
         super(id, serverURL, "activity");
     }
 
-    async create(activityName : string) : Promise<{accepted: boolean, message: string}> {
-        
-        return {accepted: false, message: "NOT IMPLEMENTED"};
+    async create(activityName : string, activityFV : ActivityFV) : Promise<{accepted: boolean, message: string}> {
+        return this.postRequest(`activities/${this.id}/create`, {activityName : activityName, activityFV : activityFV});
     }
 
     async addPet(petFV : PetFV) : Promise<{accepted: boolean, message: string}> {
-        return {accepted: false, message: "NOT IMPLEMENTED"};
+        return this.postRequest(`activities/${this.id}/add-pet`, {petFV : petFV});
     }
 
     async addUser(userFV : UserFV) : Promise<{accepted: boolean, message: string}> {
-        return {accepted: false, message: "NOT IMPLEMENTED"};
+        return this.postRequest(`activities/${this.id}/add-user`, {userFV : userFV});
     }
 
     async start() : Promise<{accepted: boolean, message: string}> {
-        return {accepted: false, message: "NOT IMPLEMENTED"};
+        return this.postRequest(`activities/${this.id}/start`, {});
     }
 
-    async getView() : Promise<{accepted: boolean, message: string, activityView?: any}> {
-        const response = await fetch(`${this.serverURL}/activities/${this.id}`, {
-            method: "GET",
-            headers: {
-                "Content-Type": "application/json"
-            }
-        });
-        const data = await getJson(response);
-        return {
-            accepted: true, 
-            message: "Activity view retrieved", 
-            activityView: data.activityView
-        };
+    async getView() : Promise<ActivityView | null> {
+        const response = await this.getRequest(`activities/${this.id}`);
+        if (!response.accepted || !response.activityView) {
+            return null;
+        }
+        return response.activityView;
     }
 
 }

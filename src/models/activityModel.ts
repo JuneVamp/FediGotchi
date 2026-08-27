@@ -55,12 +55,12 @@ export class ActivityModel {
      */
     static async fromFV(activityFV : ActivityFV) : Promise<ActivityModel | null> {
         const activityView = await activityFV.getView();
-        if (!activityView.accepted || !activityView.activityView) {
-            console.error(`Activity ${activityFV.id} not found on remote server ${activityFV.serverURL}`)
+        if (!activityView) {
+            console.error(`Activity ${activityFV.id} not found on remote server`)
             return null
         }
-
-        const activityData = activityView.activityView
+        
+        const activityData = activityView
         const activity = new ActivityModel(
             activityData.name,
             activityData.statAffected,

@@ -5,7 +5,7 @@ import { ItemView } from "./itemView";
 
 export interface ActivityView {
     name : string;
-    FV : ActivityFV;
+    FV : ActivityFV | undefined;
 
     entityLimit : {min : number, max : number};
     statAffected : { [key : string] : number};

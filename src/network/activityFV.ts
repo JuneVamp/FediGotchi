@@ -1,3 +1,4 @@
+import { getJson } from "../utils";
 import { FederationView } from "./federationView";
 import { PetFV } from "./petFV";
 import { UserFV } from "./userFV";
@@ -27,6 +28,21 @@ export class ActivityFV extends FederationView{
 
     async start() : Promise<{accepted: boolean, message: string}> {
         return {accepted: false, message: "NOT IMPLEMENTED"};
+    }
+
+    async getView() : Promise<{accepted: boolean, message: string, activityView?: any}> {
+        const response = await fetch(`${this.serverURL}/activities/${this.id}`, {
+            method: "GET",
+            headers: {
+                "Content-Type": "application/json"
+            }
+        });
+        const data = await getJson(response);
+        return {
+            accepted: true, 
+            message: "Activity view retrieved", 
+            activityView: data.activityView
+        };
     }
 
 }

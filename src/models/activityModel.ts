@@ -2,6 +2,7 @@ import  jsonData  from "../data/data.json";
 import { ActivityFV } from "../network/activityFV";
 import { PetFV } from "../network/petFV";
 import { UserFV } from "../network/userFV";
+import { ActivityView } from "../views/activityView";
 import { ItemModel } from "./itemModel";
 
 export class ActivityModel {
@@ -17,6 +18,7 @@ export class ActivityModel {
 
     status : "active" | "finished" = "active"
     progress : number = 0
+    finishedCallbacks : Array<() => void> = []
 
     constructor(name : string, statAffected : { [key : string] : number }, maxTicks : number, entityLimit : {min : number, max : number}){
         this.name = name
@@ -25,6 +27,8 @@ export class ActivityModel {
         this.entityLimit = entityLimit
     }
 
+
+    // #region utils
     static fromStringData(activityString: string): ActivityModel | null {
         var name : string | undefined = undefined
         var activity : ActivityModel | undefined = undefined
@@ -45,6 +49,29 @@ export class ActivityModel {
         return activity
     }
 
+    /**
+     * IMPORTANT: This should only be called if you are sure the activity exists on the remote server,
+     * otherwise it will return null
+     */
+    static async fromFV(activityFV : ActivityFV) : Promise<ActivityModel | null> {
+        const activityView = await activityFV.getView();
+        if (!activityView.accepted || !activityView.activityView) {
+            console.error(`Activity ${activityFV.id} not found on remote server ${activityFV.serverURL}`)
+            return null
+        }
+
+        const activityData = activityView.activityView
+        const activity = new ActivityModel(
+            activityData.name,
+            activityData.statAffected,
+            activityData.maxTicks,
+            activityData.entityLimit
+        )
+        activity.FV = activityFV
+
+        return activity;
+    }
+
     partnerRequirement() : {needPartner : boolean, canHavePartner : boolean} {
         var needPartner = false
         var canHavePartner = false
@@ -58,5 +85,37 @@ export class ActivityModel {
         const activityFV = new ActivityFV(id, serverURL)
         this.FV = activityFV
         return activityFV
+    }
+    // #endregion
+
+    start() {
+        throw new Error("Method not implemented.");
+    }
+    addUser(arg0: UserFV) {
+        throw new Error("Method not implemented.");
+    }
+    addPet(arg0: PetFV) {
+        throw new Error("Method not implemented.");
+    }
+
+    getView() : ActivityView {
+        if (!this.FV) {
+            console.warn(`Activity ${this.name} has no FV, returning view with undefined FV`)
+        }
+
+        return {
+            name : this.name,
+            FV : this.FV, // HACK 8 this can be undefined... shouldn't be though
+
+            entityLimit : this.entityLimit,
+            statAffected : this.statAffected,
+            maxTicks : this.maxTicks,
+
+            item : this.item?.getView(),
+            entitiesInvolved : this.entitiesInvolved,
+
+            status : this.status,
+            progress : this.progress
+        }
     }
 }

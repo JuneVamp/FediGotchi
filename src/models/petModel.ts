@@ -17,6 +17,12 @@ export enum petState {
 }
 
 export class PetModel {
+    activityFinished(activityFV: ActivityFV): { accepted: any; message: any; } {
+        throw new Error("Method not implemented.");
+    }
+    processActivityTick(activityFV: ActivityFV): { accepted: any; message: any; } {
+        throw new Error("Method not implemented.");
+    }
     name : string;
     imageSrc ?: string;
     environmentFV : EnvironmentFV;
@@ -53,6 +59,9 @@ export class PetModel {
         }
     }
 
+    setEnvironment(environmentFV: EnvironmentFV): Promise<{ accepted: boolean; message: string; }> {
+        throw new Error("Method not implemented.");
+    }
 
     // System Management
     async getPossibleActivities() : Promise<Array<ActivityModel>> {
@@ -67,6 +76,10 @@ export class PetModel {
     async sendActivityRequest(activityFV : ActivityFV, partner : PetFV) : Promise<{accepted: boolean, message: string}> {
         this.activitySystem.awaitActivity(activityFV)
         return await this.communicationSystem.sendActivityRequest(activityFV, partner);
+    }
+
+    async recieveActivityRequest(activityModel: ActivityModel, partnerFV: PetFV | UserFV) : Promise<{ accepted: boolean; message: string; }> {
+        throw new Error("Method not implemented.");
     }
 
     activityAccepted() {

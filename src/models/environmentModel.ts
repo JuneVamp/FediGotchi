@@ -1,6 +1,7 @@
 import  jsonData  from "../data/data.json";
 import { EnvironmentFV } from "../network/environmentFV";
 import { PetFV } from "../network/petFV";
+import { environmentView } from "../views/environmentView";
 import { ItemModel } from "./itemModel";
 
 export class EnvironmentModel {
@@ -13,6 +14,16 @@ export class EnvironmentModel {
         this.name = name;
         this.FV = new EnvironmentFV(name, serverURL);
         this.items = items;
+    }
+
+    // HACK 8 : not sure about sending item names
+    getView(): environmentView {
+        return {
+            name : this.name,
+            items : this.items.map(item => item.name),
+            FV : this.FV,
+            petsFV : this.petsFV
+        }
     }
 
     static fromStringData(name : string, serverURL : string) : EnvironmentModel | null{
@@ -41,6 +52,31 @@ export class EnvironmentModel {
         }
 
         return environment
+    }
+
+    getAllPetsFV(): Array<PetFV> {
+        return this.petsFV
+    }
+
+
+    // TODO 9 : return response instead of just warn
+    removePet(pet: PetFV) {
+        const index = this.petsFV.findIndex(p => p.id === pet.id && p.serverURL === pet.serverURL);
+        if (index !== -1) {
+            this.petsFV.splice(index, 1);
+        } else {
+            console.warn(`Pet with id ${pet.id} and serverURL ${pet.serverURL} not found in environment ${this.name}`);
+        }
+    }
+
+    // TODO 9 : return response instead of just warn
+    addPet(pet: PetFV) {
+        const existingPet = this.petsFV.find(p => p.id === pet.id && p.serverURL === pet.serverURL);
+        if (!existingPet) {
+            this.petsFV.push(pet);
+        } else {
+            console.warn(`Pet with id ${pet.id} and serverURL ${pet.serverURL} already exists in environment ${this.name}`);
+        }
     }
 
 }

@@ -1,5 +1,6 @@
 import { ActivityModel } from "./activityModel"
 import  jsonData  from "../data/data.json";
+import { ItemView } from "../views/itemView";
 
 export class ItemModel {
     name : string
@@ -40,5 +41,14 @@ export class ItemModel {
 
         activity.item = this
         return activity
+    }
+
+    getView(): ItemView{
+        return {
+            name: this.name,
+            available: this.available,
+            numUsers: this.numUsers,
+            activityName: this.activityName
+        }
     }
 }

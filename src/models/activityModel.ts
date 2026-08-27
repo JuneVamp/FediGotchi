@@ -14,9 +14,9 @@ export class ActivityModel {
     entityLimit : {min : number, max : number}
 
     item ?: ItemModel
-    entitiesInvolved ?: Array<PetFV | UserFV>
+    entitiesInvolved : Array<PetFV | UserFV> = []
 
-    status : "active" | "finished" = "active"
+    status : "active" | "finished" | "waitingToBeStarted" = "active"
     progress : number = 0
     finishedCallbacks : Array<() => void> = []
 
@@ -89,13 +89,53 @@ export class ActivityModel {
     // #endregion
 
     start() {
-        throw new Error("Method not implemented.");
+        if (this.status === "active") {
+            console.warn(`Activity ${this.name} is already active`)
+            return
+        }
+
+        this.status = "active"
     }
-    addUser(arg0: UserFV) {
-        throw new Error("Method not implemented.");
+
+    addUser(userFV: UserFV) {
+        this.entitiesInvolved.push(userFV)
+        this.finishedCallbacks.push(() => {
+            userFV.activityFinished(this.FV!)
+        })
     }
-    addPet(arg0: PetFV) {
-        throw new Error("Method not implemented.");
+
+    addPet(petFV: PetFV) {
+        this.entitiesInvolved.push(petFV)
+        this.finishedCallbacks.push(() => {
+            petFV.activityFinished(this.FV!)
+        })
+    }
+
+    tick() {
+        if (this.progress >= this.maxTicks) {
+            this.finished()
+            return
+        }
+
+        if (this.status != "active") {
+            console.error(`Activity ${this.name} is not active. Cannot tick.`)
+            return
+        }
+
+        if (!this.FV) {
+            console.error(`Activity ${this.name} has no FV. Cannot tick.`)
+            return
+        }
+
+        this.progress++
+        this.entitiesInvolved?.forEach(entity => {
+            entity.activityTick(this.FV!)
+        })
+    }
+
+    finished() {
+            this.status = "finished"
+            this.finishedCallbacks.forEach(callback => callback())
     }
 
     getView() : ActivityView {

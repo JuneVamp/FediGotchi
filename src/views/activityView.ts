@@ -14,6 +14,6 @@ export interface ActivityView {
     item ?: ItemView;
     entitiesInvolved ?: Array<PetFV | UserFV>;
 
-    status : "active" | "finished";
+    status : "active" | "finished" | "waitingToBeStarted";
     progress : number;
 }

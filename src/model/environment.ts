@@ -72,4 +72,16 @@ export class VPEnvironment {
         this.remoteRef.displayName = this.name
         return this.remoteRef
     }
+
+
+    saveAsJson(): string {
+        var envData = {
+            id: this.name,
+            serverURL: this.remoteRef.serverURL,
+            name: this.name,
+            items: this.items.map(item => item),
+            pets: this.pets.map(pet => pet),
+        };
+        return JSON.stringify(envData);
+    }
 }

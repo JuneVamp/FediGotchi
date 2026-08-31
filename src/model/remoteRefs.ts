@@ -1,7 +1,7 @@
 import { VPItem } from "./otherModels"
 import { PetView } from "./pet"
 import { VPActivity } from "./activity"
-import { getValidJson } from "../utils"
+import { getJson } from "../utils"
 
 export class VPEntityRemoteRef {
     id : string
@@ -30,7 +30,7 @@ export class VPEntityRemoteRef {
             body: JSON.stringify(body)
         });
 
-        return getValidJson(response);
+        return getJson(response);
     }
 
     async getRequest(endpoint : string) : Promise<any> {
@@ -46,7 +46,7 @@ export class VPEntityRemoteRef {
                 "Content-Type": "application/json"
             }
         });
-        return getValidJson(response);
+        return getJson(response);
     }
 
     setServerURL(serverURL : string) {
@@ -127,7 +127,7 @@ export class VPEnvironmentRemoteRef extends VPEntityRemoteRef {
     async getAllPets() : Promise<Array<VPetRemoteRef>> {
         try {
             const response = await fetch(`${this.serverURL}/environments/${this.id}/pets`);
-            const data : any = await getValidJson(response);
+            const data : any = await getJson(response);
             return data.pets.map((petData : any) => {
                 return new VPetRemoteRef(petData.id, this.serverURL)
             });
@@ -140,7 +140,7 @@ export class VPEnvironmentRemoteRef extends VPEntityRemoteRef {
     async getAllItems() : Promise<Array<VPItem>> {
         try {
             const response = await fetch(`${this.serverURL}/environments/${this.id}/items`);
-            const data : any = await getValidJson(response);
+            const data : any = await getJson(response);
             return data.items.map((itemData : any) => {
                 itemData.getActivity = function() : VPActivity {
                     return itemData.activity;

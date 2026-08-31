@@ -1,29 +1,13 @@
-import {Context, Hono, Next} from "hono"
-import { serveStatic } from "@hono/node-server/serve-static"
+import { Hono } from "hono";
 import { cors } from "hono/cors";
-import {setCookie, getCookie, deleteCookie} from "hono/cookie"
-import { SERVER_URL } from "./serverConfig.ts"
+import { Simulation } from "./simulation";
+import { SERVER_URL } from "./serverConfig";
+import { createPetRoutes } from "./routes/petRoutes";
+import { createEnvironmentRoutes } from "./routes/environmentRoutes";
+import { createActivityRoutes } from "./routes/activityRoutes";
+import { serveStatic } from "@hono/node-server/serve-static";
 
-import { VPActivityRemoteRef, VPEnvironmentRemoteRef, VPetRemoteRef, VPUserRemoteRef } from "./model/remoteRefs.ts"
-import { VPItem, VPUser } from "./model/otherModels"
-import { VPEnvironment } from "./model/environment.ts";
-import { VPet } from "./model/pet"
-import { VPActivity } from "./model/activity.ts"
-import jsonData from "./model/data.json"
-
-import {htmlLayoutString, petViewLayoutString, petActivityHistoryHtmlString, petViewHtmlString, environmentHtmlString, loginBox, petUserActionsHtmlString, petRelationshipsHtmlString, aboutHtmlString} from "./htmlStrings"
-import { createSession, destroySession, getUser } from "./session.ts"
-import { getRandomIntInclusive } from "./utils.ts";
-
-type AppEnv = {
-  Variables : {
-    pet : VPet,
-    environment : VPEnvironment,
-    currentUserId : string,
-    activity : VPActivity,
-    baseURL : string
-  }
-}
+type AppEnv = {}
 
 const app = new Hono<AppEnv>()
 
@@ -32,46 +16,15 @@ app.use("/*",
   origin: '*',
   allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   allowHeaders: ['Content-Type', 'ngrok-skip-browser-warning'],
-  // credentials: true,
 }));
 
+// HACK 8 Temporary bandwidth tracking middleware
 
+let totalReceived = 0;
+let totalSent = 0;
 
-var users = new Map<string, VPUser>()
-var pets = new Map<string, VPet>()
-var environments = new Map<string, VPEnvironment>()
-var activities = new Map<string, VPActivity>()
-var running_activities = new Map<string, VPActivity>()
-
-var user1 = new VPUser("userJune")
-users.set(user1.name, user1)
-
-
-// adding random pets based on beings images
-var fs = require('fs');
-var path = require('path');
-var petImagesPath = path.join(__dirname, '../public/assets/images/beings');
-var petImageFiles = fs.readdirSync(petImagesPath).filter((file : string) => file.endsWith('.png'));
-// var randomPetImageFiles = petImageFiles.sort(() => 0.5 - Math.random()).slice(0, 6);
-var randomPetImageFiles = petImageFiles.slice(0, 20);
-randomPetImageFiles.forEach((file : string) => {
-    var petName = file.replace('.png', '');
-    var pet = new VPet(petName, SERVER_URL);
-    // pet.imageSrc = `/assets/images/beings/${file}`;
-    pets.set(pet.name.toLowerCase(), pet);
-});
-
-var numberOfEnvironments = 3;
-for (const envName of jsonData.Environments.all) {
-  numberOfEnvironments --;
-  if (numberOfEnvironments < 0) {
-    break;
-  }
-  var env = VPEnvironment.fromStringData(envName)
-  env.remoteRef.setServerURL(SERVER_URL)
-  environments.set(env.name.toLowerCase(), env)
-}
-
+app.use("*", async (c, next) => {
+    const contentLength = c.req.header("content-length");
 
 pets.forEach(pet => {
   var pickEnvironmentInt = getRandomIntInclusive(0, environments.size - 1)
@@ -182,14 +135,10 @@ app.get("/about", async (c) => {
   ], c.get("baseURL")))
 })
 
-app.get("/federation/me", async (c) => {
-  const baseURL = new URL(c.req.url).origin
-  const prefixedURL = baseURL + c.req.header("X-Forwarded-Prefix") 
+    await next();
 
-  return c.json({
-    serverURL: prefixedURL,
-  })
-})
+    const response = c.res.clone();
+    const body = await response.arrayBuffer();
 
 app.get("/api/pets", async (c) => {
   return c.json({
@@ -561,119 +510,24 @@ app.get("/users/:userId", async (c) => {
 
 // #endregion
 
-// #region ------------ activities ------------
-const activityMiddleware = async (c: Context, next: Next) => {
-  const activityId = c.req.param("activityId")!
-  const activity = activities.get(activityId)
-  if (!activity) {
+app.get("/bandwidth", (c) => {
     return c.json({
-      message: `Activity ${activityId} not found`
-    }, 404)
-  }
+        receivedBytes: totalReceived,
+        sentBytes: totalSent,
+        totalBytes: totalReceived + totalSent,
+    });
+});
 
-  c.set("activity", activity)
-  await next()
-}
+const mainSimulation = new Simulation(SERVER_URL);
 
-app.get("/activities/:activityId", activityMiddleware, async (c) =>{
-  const activity = c.get("activity") as VPActivity
-  return c.json({
-    activity: activity.getRemoteRef()
-  })
-})
+mainSimulation.initializeEnvironments();
+mainSimulation.initializePets();
+mainSimulation.startSimulationTicker();
 
-app.get("/activities/:activityId/data", activityMiddleware, async (c) => {
-  var activity = c.get("activity") as VPActivity
-  // console.log(`Activity ${activity.name} data requested`)
+app.route("/api/pets", createPetRoutes(mainSimulation.pets));
+app.route("/api/environments", createEnvironmentRoutes(mainSimulation.environments));
+app.route("/api/activities", createActivityRoutes(mainSimulation.activities));
 
-  return c.json({
-    activity: activity
-  })
-
-})
-
-app.get("/activities/:activityId/entities", activityMiddleware, async (c) => {
-  var activity = c.get("activity") as VPActivity
-  return c.json({
-    entities: activity.getEntities()
-  })
-})
-
-// CREATES
-app.post("/activities/:activityId/add-starter-entity", async (c) => {
-  var activityId = c.req.param("activityId")!
-  var body = await c.req.json()
-  var entityType = body.entityType
-  var entityId = body.entityId
-  var entityServerURL = body.entityServerURL
-  var activityName = body.activityName
-
-  if(activities.get(activityId)){
-    throw new Error(`Activity ${activityId} already exists, curent timestamp: ${Date.now()}`)
-  }
-
-  var activity = VPActivity.fromStringData(activityName)
-  activity.createRemoteRef(activityId, c.get("baseURL"))
-  activity.addEntity(entityType === "pet" ? new VPetRemoteRef(entityId, entityServerURL) : new VPUserRemoteRef(entityId, entityServerURL))
-  activity.status = "active"
-  activities.set(activityId, activity)
-
-  return c.json({
-    message: `Activity ${activityId} created with starter entity ${entityType} ${entityId}`
-  })
-})
-
-// start activity
-app.post("/activities/:activityId/start", activityMiddleware, async (c) => {
-  var activity = c.get("activity") as VPActivity
-  var activityId = c.req.param("activityId")!
-
-  running_activities.set(activityId, activity)
-  activity.finishedCallback = () => {
-    running_activities.delete(activityId)
-  }
-
-  return c.json({
-    message: `Activity ${activityId} started`
-  })
-
-})
-
-app.post("/activities/:activityId/add-entity", activityMiddleware, async (c) => {
-  var activity = c.get("activity") as VPActivity
-  var body = await c.req.json()
-  var entityType = body.entityType
-  var entityId = body.entityId
-  var entityServerURL = body.entityServerURL
-
-  var entity = entityType === "pet" ? new VPetRemoteRef(entityId, entityServerURL) : new VPUserRemoteRef(entityId, entityServerURL)
-  activity.addEntity(entity)
-
-  return c.json({
-    message: `Entity ${entityType} ${entityId} added to activity ${activity.name}`
-  })
-})
-
-// app.post("/activities/:activityId/request-entity-join", activityMiddleware, async (c) => {
-//   var activity = c.get("activity") as VPActivity
-//   var body = await c.req.json()
-//   var entityType = body.entityType
-//   var entityId = body.entityId
-//   var entityServerURL = body.entityServerURL
-
-
-//   var entity = entityType === "pet" ? new VPetRemoteRef(entityId, entityServerURL) : new VPUserRemoteRef(entityId, entityServerURL)
-//   var response = await activity.requestEntityJoin(entity)
-//   return c.json({
-//     message: `Entity ${entityType} ${entityId} requested to join activity ${activity.name}`,
-//     response: response
-//   })
-// })
-
-
-// #endregion
-
-
-app.get("/*", serveStatic({root : './public'}))
+app.get("/*", serveStatic({ root: "./public" }));
 
 export default app

@@ -15,7 +15,7 @@ export class Simulation {
 
     serverURL: string;
 
-    simulationTickInterval: number = 1000; // in milliseconds
+    simulationTickInterval: number = 1000;
     simulationTicker : NodeJS.Timeout | undefined = undefined;
 
     constructor(serverURL: string) {
@@ -29,6 +29,7 @@ export class Simulation {
             const environmentList = jsonData.Environments.all;
             var env = EnvironmentModel.fromStringData(environmentList[i % environmentList.length], this.serverURL);
             if (env){
+                env.imageSrc = "/assets/images/backgrounds/" + environmentList[i % environmentList.length] + ".png";
                 this.environments.set(env.name, env);
             }
         }

@@ -9,11 +9,13 @@ export class EnvironmentModel {
     FV : EnvironmentFV;
     items : Array<ItemModel>;
     petsFV : Array<PetFV> = [];
+    imageSrc ?: string;
 
-    constructor(name : string, serverURL : string, items : Array<ItemModel>){
+    constructor(name : string, serverURL : string, items : Array<ItemModel>, imageSrc?: string){
         this.name = name;
         this.FV = new EnvironmentFV(name, serverURL);
         this.items = items;
+        this.imageSrc = imageSrc;
     }
 
     // NOTE : to get items, ask for items directly check FV and route for /items
@@ -22,7 +24,8 @@ export class EnvironmentModel {
             name : this.name,
             items : this.items.map(item => item.name),
             FV : this.FV,
-            petsFV : this.petsFV
+            petsFV : this.petsFV,
+            imageSrc : this.imageSrc || ""
         }
     }
 

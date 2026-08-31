@@ -4,4 +4,5 @@ logs/*.csv
 logs/archive/*.csv
 logs/*
 TODO.md
+output1.txt
 client/dist/*

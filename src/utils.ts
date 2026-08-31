@@ -58,13 +58,14 @@ export async function getValidJson(response : Response) : Promise<any> {
     response = await response;
     if (!response.ok) {
         // throw new Error(`HTTP error! Status: ${response.status}`);
-        console.error(`HTTP error! Status: ${response.status}`);
+        console.error(`HTTP error! Status: ${response.status} for the response:`, response);
+        return null;
     }
     try {
         const data = await response.json();
         return data;
     } catch (error) {
         // throw new Error(`Failed to parse JSON: ${error}`);
-        console.error(`Failed to parse JSON: ${error}`);
+        console.error(`Failed to parse JSON: ${error} for the response:`, response);
     }
 };

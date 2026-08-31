@@ -85,7 +85,9 @@ setInterval(() => {
   var timestamp = Date.now()
   for (const pet of pets.values()) {
     try {
-      pet.tick(timestamp)
+      pet.tick(timestamp).catch((error) => {
+        console.error(`Error ticking pet ${pet.name}:`, error);
+      });
     } catch (error) {
       console.error(`Error ticking pet ${pet.name}:`, error);
     }
@@ -93,13 +95,15 @@ setInterval(() => {
 
   for (const activity of running_activities.values()) {
     try {
-      activity.tick(timestamp)
+      activity.tick(timestamp).catch((error) => {
+        console.error(`Error ticking activity ${activity.name}:`, error);
+      });
     } catch (error) {
       console.error(`Error ticking activity ${activity.name}:`, error);
     }
   }
 
-}, 1000)
+}, 300)
 
 
 
@@ -509,6 +513,7 @@ app.post("/environments/:environmentId/add-pet", async (c) => {
   
   const body = await c.req.json()
   const pet = new VPetRemoteRef(body.petId, body.petServerURL)
+  console.log(`Adding pet ${body.petId} to environment ${environmentId}`)
   // const petView = await pet.getView()
   // if (petView.environmentRemoteRef) {
   //   const previousEnvironmentRemoteRef = new VPEnvironmentRemoteRef(petView.environmentRemoteRef!.id, petView.environmentRemoteRef!.serverURL )

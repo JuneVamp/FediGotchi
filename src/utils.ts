@@ -70,7 +70,8 @@ export function writeToJsonFile(filePath : string, data : any) {
 export async function getJson(response : Response) : Promise<any> {
     response = await response;
     if (!response.ok) {
-        console.error(`HTTP error! Status: ${response.status} on ${response.url}`);
+        // throw new Error(`HTTP error! Status: ${response.status}`);
+        console.error(`HTTP error! Status: ${response.status} for the response:`, response);
         return null;
     }
     try {
@@ -78,28 +79,6 @@ export async function getJson(response : Response) : Promise<any> {
         return data;
     } catch (error) {
         // throw new Error(`Failed to parse JSON: ${error}`);
-        console.error(`Failed to parse JSON: ${error}`);
-        return null;
-    }
-};
-
-
-// source : https://www.xjavascript.com/blog/typescript-emit-event/
-// im going to use this like godot signals....
-export interface EventListener<T> {
-    (data?: T): void;
-}
- 
-export class EventEmitter<T> {
-    private listeners: EventListener<T>[] = [];
- 
-    // Method to register a listener
-    on(listener: EventListener<T>) {
-        this.listeners.push(listener);
-    }
- 
-    // Method to emit an event
-    emit(data?: T) {
-        this.listeners.forEach(listener => data ? listener(data) : listener() );
+        console.error(`Failed to parse JSON: ${error} for the response:`, response);
     }
 }

@@ -1,10 +1,6 @@
 node_modules
-logs/*.csv
-# logs/
-logs/archive/*.csv
 logs/*
 TODO.md
 output1.txt
-client/dist/*
 bandwidth.csv
 python/*

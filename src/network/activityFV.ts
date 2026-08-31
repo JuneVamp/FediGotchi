@@ -1,3 +1,4 @@
+import { ActivityModel } from "../models/activityModel";
 import { getJson } from "../utils";
 import { ActivityView } from "../views/activityView";
 import { FederationView } from "./federationView";
@@ -9,9 +10,11 @@ import { UserFV } from "./userFV";
  * SHOULD implement all the routes of activityRoutes.ts except /(which does nothing)
  */
 export class ActivityFV extends FederationView{
+    name : string;
 
-    constructor(id : string, serverURL : string) {
+    constructor(id : string, serverURL : string, name : string) {
         super(id, serverURL, "activity");
+        this.name = name;
     }
 
     async create(activityName : string, activityFV : ActivityFV) : Promise<{accepted: boolean, message: string}> {
@@ -36,6 +39,21 @@ export class ActivityFV extends FederationView{
             return null;
         }
         return response.activityView;
+    }
+
+    async getModel() : Promise<{accepted: boolean, message: string, activityModel : ActivityModel | null}> {
+        const view = await this.getView();
+        if (!view) {
+            return {accepted: false, message: "Failed to get activity view", activityModel: null};
+        }
+
+        const activityModel = new ActivityModel(view.name, view.statAffected, view.maxTicks, view.entityLimit);
+        activityModel.FV = this;
+        activityModel.entitiesInvolved = view.entitiesInvolved || [];
+        activityModel.status = view.status;
+        activityModel.progress = view.progress;
+
+        return {accepted: true, message: "Activity model retrieved", activityModel: activityModel};
     }
 
 }

@@ -8,11 +8,12 @@ export class UserFV extends FederationView{
     }
 
     async activityTick(activityFV : ActivityFV) : Promise<{ accepted: boolean, message: string }> {
-        // TODO 9 : implement activityTick for user
+        // TODO 10 : implement activityTick for user
         return { accepted: false, message: "activityTick not implemented for user" }
     }
 
     activityFinished(activityFV: ActivityFV) {
+        // TODO 10 : implement activityFinished for user
         console.warn(`user activityFinished not implemented for user ${this.id} on server ${this.serverURL}`)
     }
 }

@@ -68,7 +68,7 @@ export function createPetRoutes(pets : Map<string, PetModel>) {
         const pet = c.get("pet") as PetModel;
         const body = await c.req.json();
 
-        const activityFV = new ActivityFV(body.activityFV.id, body.activityFV.serverURL);
+        const activityFV = new ActivityFV(body.activityFV.id, body.activityFV.serverURL, body.activityFV.name);
         const activityModel = await ActivityModel.fromFV(activityFV);
         if (!activityModel) {
             return c.json({
@@ -95,7 +95,7 @@ export function createPetRoutes(pets : Map<string, PetModel>) {
 
         // HACK: this assumes the other pet starts the activity
         // TODO this pet can have a timeout for activity to start
-        const response = await pet.recieveActivityRequest(activityModel, partnerFV);
+        const response = await pet.recieveActivityRequest(activityFV, partnerFV);
 
         return c.json({
             accepted: response.accepted,
@@ -115,9 +115,9 @@ export function createPetRoutes(pets : Map<string, PetModel>) {
                 message: "activityFV with id and serverURL is required"
             })
         }
-        const activityFV = new ActivityFV(body.activityFV.id, body.activityFV.serverURL);
+        const activityFV = new ActivityFV(body.activityFV.id, body.activityFV.serverURL, body.activityFV.name);
 
-        const {accepted, message} = pet.processActivityTick(activityFV);
+        const {accepted, message} = await pet.processActivityTick(activityFV);
 
         return c.json({
             accepted: accepted,
@@ -137,7 +137,7 @@ export function createPetRoutes(pets : Map<string, PetModel>) {
                 message: "activityFV with id and serverURL is required"
             })
         }
-        const activityFV = new ActivityFV(body.activityFV.id, body.activityFV.serverURL);
+        const activityFV = new ActivityFV(body.activityFV.id, body.activityFV.serverURL, body.activityFV.name);
 
         const {accepted, message} = pet.activityFinished(activityFV);
 

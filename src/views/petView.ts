@@ -9,8 +9,8 @@ export interface PetView {
     FV : PetFV;
     imageSrc : string;
 
-    relationships : { [key : string] : number}; // pet or user uniqueID
-    activityLikings : { [key : string] : number} // activity uniqueID
+    entityRelationships : { [key : string] : number}; // pet or user uniqueID
+    activityRelationships : { [key : string] : number} // activity name
     stats : { [key : string] : number};
 
     environmentFV : EnvironmentFV;

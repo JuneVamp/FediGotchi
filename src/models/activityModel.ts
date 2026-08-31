@@ -80,9 +80,10 @@ export class ActivityModel {
         return {needPartner, canHavePartner}
     }
 
+    /** id format : creatorUniqueID-activityName-timestamp */
     createFV(creator : PetFV | UserFV, serverURL : string) : ActivityFV {
         const id = `${creator.uniqueID}-${this.name}-${Date.now()}`
-        const activityFV = new ActivityFV(id, serverURL)
+        const activityFV = new ActivityFV(id, serverURL, this.name)
         this.FV = activityFV
         return activityFV
     }

@@ -76,7 +76,7 @@ export function createActivityRoutes(activities : Map<string, ActivityModel>) {
                 message: "activityFV with id and serverURL is required"
             })
         }
-        activity.FV = new ActivityFV(body.activityFV.id, body.activityFV.serverURL);
+        activity.FV = new ActivityFV(body.activityFV.id, body.activityFV.serverURL, activityName);
 
         const activityID = body.activityID;
         if (!activityID) {

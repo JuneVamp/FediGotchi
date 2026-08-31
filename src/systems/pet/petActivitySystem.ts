@@ -61,6 +61,9 @@ export enum petActivityState {
  * NOTE : this does NOT take care of the simulation of the activity, it only manages the state of the pet and the activity
  */
 export class petActivitySystem {
+    onActivityTick(activityModel: ActivityModel) : { accepted: boolean; message: string; } {
+        throw new Error("Method not implemented.");
+    }
 
     model : PetModel
 
@@ -68,7 +71,10 @@ export class petActivitySystem {
 
     state : petActivityState = petActivityState.idle;
     currentActivity : ActivityModel | undefined;
+    currentActivityPartner : PetFV | UserFV | undefined;
+
     reservedActivity : ActivityModel | undefined;
+    reservedActivityPartner : PetFV | UserFV | undefined;
 
     statistics : petActivityStatistics = new petActivityStatistics();
 
@@ -109,24 +115,79 @@ export class petActivitySystem {
         return possibleActivities;
     }
 
+    // TODO 9 check if the transition is valid before transitoning the state
     startActivity(activity : ActivityModel, partner ?: PetFV | UserFV ) {
         this.state = petActivityState.doingActivity;
         if(!activity.FV){
             console.error(`Activity ${activity.name} does not have a valid FederationView`);
             return;
         }
+
+        this.currentActivity = activity;
+        this.currentActivityPartner = partner;
     }
 
-    awaitActivity(activityFV: ActivityFV) {
+    // TODO 9 check if the transition is valid before transitoning the state
+    awaitActivity(activity: ActivityModel, partner: PetFV | UserFV) {
         this.state = petActivityState.waitingForActivityResponse;
+
+        this.reservedActivity = activity;
+        this.reservedActivityPartner = partner;
     }
 
+    // TODO 9 check if the transition is valid before transitoning the state
     awaitingActivityRejected() {
-        throw new Error("Method not implemented.");
+        this.state = petActivityState.idle; 
+
+        this.reservedActivity = undefined;
+        this.reservedActivityPartner = undefined;
     }
 
+    /** Starts the activity that was reserved for the pet, and clears the reserved activity and partner */
+    // TODO 9 check if the transition is valid before transitoning the state
     startAwaitingActivity() {
-        throw new Error("Method not implemented.");
+        this.state = petActivityState.doingActivity;
+
+        this.currentActivity = this.reservedActivity;
+        this.reservedActivity = undefined;
+
+        this.currentActivityPartner = this.reservedActivityPartner;
+        this.reservedActivityPartner = undefined
+    }
+
+    // TODO 9 check if the transition is valid before transiitoning the state
+    onActivityFinished(activityFV: ActivityFV) : { accepted: any; message: any; } {
+        this.state = petActivityState.idle;
+        this.currentActivity = undefined;
+        this.currentActivityPartner = undefined;
+        return { accepted: true, message: "Activity finished successfully" };
+    }
+
+    getCurrentActivity() : { activity : ActivityFV, partner : PetFV | UserFV} {
+        var activityFV : ActivityFV ;
+        var partnerFV : PetFV | UserFV;
+
+        if (!this.currentActivity) {
+            activityFV = new ActivityFV("","" , "");
+            partnerFV = new PetFV("", "");
+            console.warn(`Pet ${this.model.name} has no current activity, returning empty activity and partner`);
+            return { activity : activityFV, partner : partnerFV }
+        }
+
+        if (!this.currentActivity.FV) {
+            activityFV = new ActivityFV("","" , "");
+            console.warn(`Pet ${this.model.name} has no current activity FV, returning empty activity`);
+        } else {
+            activityFV = this.currentActivity.FV;
+        }
+
+        if (!this.currentActivityPartner) {
+            partnerFV = new PetFV("", "");
+        } else {
+            partnerFV = this.currentActivityPartner;
+        }
+    
+        return { activity : activityFV, partner : partnerFV }
     }
 
 }

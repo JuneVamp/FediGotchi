@@ -54,7 +54,7 @@ export class petDecisionSystem {
 
     // TAG:SOLO
     wantToDoActivitySolo(activity : ActivityModel) : boolean {
-        return false
+        return this.model.petConstants.SOLO_ACTIVITY_WILLINGNESS_THRESHOLD > Math.random()
     }
 
     /** @returns  PetModel from weighted random based on willingness from willingnessToPickPartner() function */

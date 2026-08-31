@@ -1,7 +1,7 @@
 // Source - https://stackoverflow.com/a/55671924
 // Posted by rydwolf, modified by community. See post 'Timeline' for change history
 // Retrieved 2026-06-16, License - CC BY-SA 4.0
-export function weighted_random(options: Array<{item : any, weight : number}>) : any {
+export function weighted_random<T>(options: Array<{item : T, weight : number}>) : T {
     var i;
 
     var weights = [options[0]!.weight];
@@ -53,8 +53,21 @@ export function writeToCsvFile(filePath : string, data : string) {
     fs.appendFileSync(filePath, data);
 }
 
+export function writeToJsonFile(filePath : string, data : any) {
+    const fs = require('fs');
+    const path = require('path');
+    const jsonData = JSON.stringify(data, null, 2); // Pretty print with 2 spaces
 
-export async function getValidJson(response : Response) : Promise<any> {
+    // Ensure the directory exists
+    const dir = path.dirname(filePath);
+    if (!fs.existsSync(dir)) {
+        fs.mkdirSync(dir, { recursive: true });
+    }
+    fs.writeFileSync(filePath, jsonData);
+}
+
+
+export async function getJson(response : Response) : Promise<any> {
     response = await response;
     if (!response.ok) {
         // throw new Error(`HTTP error! Status: ${response.status}`);
@@ -68,4 +81,4 @@ export async function getValidJson(response : Response) : Promise<any> {
         // throw new Error(`Failed to parse JSON: ${error}`);
         console.error(`Failed to parse JSON: ${error} for the response:`, response);
     }
-};
+}

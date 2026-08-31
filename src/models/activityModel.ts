@@ -21,6 +21,7 @@ export class ActivityModel {
     status : "active" | "finished" | "waitingToBeStarted" = "waitingToBeStarted"
     progress : number = 0
     finishedCallbacks : Array<() => void> = []
+    timeoutHandle : NodeJS.Timeout | undefined = undefined
 
     constructor(name : string, statAffected : { [key : string] : number }, maxTicks : number, entityLimit : {min : number, max : number}){
         this.name = name
@@ -128,6 +129,14 @@ export class ActivityModel {
 
         if (this.status != "active") {
             console.error(`Activity ${this.name} is not active. Cannot tick. id: ${this.FV?.id}`)
+            if (!this.timeoutHandle) {
+                this.timeoutHandle = setTimeout(() => {
+                    if (this.status === "waitingToBeStarted") {
+                        console.warn(`Activity ${this.name} was not started in time, marking as finished`)
+                        this.finished()
+                    }
+                }, 15000) 
+            }
             return
         }
 

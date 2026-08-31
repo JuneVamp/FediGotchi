@@ -1,5 +1,8 @@
 import { useEffect, useMemo, useState } from 'react';
 
+type PetView = {
+    petView: Pet
+}
 type Pet = {
   name: string;
   imageSrc?: string;
@@ -99,7 +102,11 @@ function App() {
     return () => {
       alreadyRan = true;
     };
-  }, [serverUrl, manualUpdate]);
+  }, [serverUrl]);
+
+//   setInterval(() => {
+//     setManualUpdate((prev) => !prev); // Toggle the state to trigger a re-fetch
+//   }, 5000); // Every 5 seconds
 
   const renderAbout = () => (
     <section className="content-panel about-panel">
@@ -127,35 +134,10 @@ function App() {
       <h2>Pets</h2>
       <div className="pet-list">
         {pets.map((pet) => (
-          <div key={pet.FV?.id || pet.name} className="pet-detail-card">
-            <div className="pet-detail-header">
-              <img src={getAssetUrl(serverUrl, pet.imageSrc)} alt={pet.name} />
-              <div className="pet-detail-header-text">
-                <h3>{pet.name}</h3>
-                <p>{pet.FV?.serverURL || serverUrl}</p>
-              </div>
-            </div>
-
-            <div className="pet-details">
-              <div>
-                <label>Current activity</label>
-                <span>{pet.activity?.activity?.name || 'Idle'}</span>
-              </div>
-              <div>
-                <label>Environment</label>
-                <span>{pet.environmentFV?.name || 'Unknown'}</span>
-              </div>
-            </div>
-
-            <div className="table-like">
-              {Object.entries(pet.stats || {}).map(([key, value]) => (
-                <div key={`${pet.name}-stats-${key}`} className="metric-row">
-                  <span>{key}</span>
-                  <strong>{value}</strong>
-                </div>
-              ))}
-            </div>
-          </div>
+          <PetView
+            key={pet.FV?.id || pet.name}
+            petInit={pet}
+          />
         ))}
       </div>
     </section>
@@ -217,21 +199,74 @@ function App() {
         </div>
       </header>
 
-      <main className="app-main">
-        {error ? <div className="error-banner">{error}</div> : null}
+      <main className="app-main">{/* while this works i feel evil doing this*/}
+
+        {activeView === 'about' && renderAbout()} 
+
+        {error && activeView!=='about'? <div className="error-banner">{error}</div> : null}
 
         {!loading && !error && (
-          <>{/* while this works i feel evil doing this*/}
-            {activeView === 'about' && renderAbout()} 
+          <>
             {activeView === 'pets' && renderPets()}
             {activeView === 'environments' && renderEnvironments()}
           </>
         )}
 
-        {loading ? <div className="loading">Loading FediFlock data...</div> : null}
+        {loading && activeView !== 'about' ? <div className="loading">Loading FediFlock data...</div> : null}
       </main>
     </div>
   );
+}
+
+function PetView({ petInit }: { petInit: Pet }) {
+    const serverUrl = petInit.FV?.serverURL || defaultServerUrl;
+    const [pet, setPetState] = useState<Pet>(petInit);
+
+    const petId = petInit.FV?.id;
+
+    useEffect(() => {
+        const interval = setInterval(async () => {
+            try {
+                const updatedPet = await fetchJson<PetView>(`/api/pets/${pet.FV?.id}`, serverUrl);
+                setPetState(updatedPet.petView);
+            } catch (error) {
+                console.error(`Failed to fetch updated data for pet ${pet.FV?.id}:`, error);
+            }
+        }, 1000); // Fetch every 1 second
+
+        return () => clearInterval(interval);
+    }, [petId, serverUrl]);
+
+    return (
+    <div key={pet.FV?.id || pet.name} className="pet-detail-card">
+        <div className="pet-detail-header">
+            <img src={getAssetUrl(serverUrl, pet.imageSrc)} alt={pet.name} />
+            <div className="pet-detail-header-text">
+            <h3>{pet.name}</h3>
+            <p>{pet.FV?.serverURL || serverUrl}</p>
+            </div>
+        </div>
+
+        <div className="pet-details">
+            <div>
+            <label>Current activity</label>
+            <span>{pet.activity?.activity?.name || 'Idle'}</span>
+            </div>
+            <div>
+            <label>Environment</label>
+            <span>{pet.environmentFV?.name || 'Unknown'}</span>
+            </div>
+        </div>
+
+        <div className="table-like">
+            {Object.entries(pet.stats || {}).map(([key, value]) => (
+            <div key={`${pet.name}-stats-${key}`} className="metric-row">
+                <span>{key}</span>
+                <strong>{value}</strong>
+            </div>
+            ))}
+        </div>
+    </div>)
 }
 
 export default App;

@@ -46,6 +46,18 @@ app.get("/bandwidth", (c) => {
     });
 });
 
+
+// save the totalBytes to a csv every 2 seconds
+setInterval(() => {
+    const fs = require("fs");
+    const data = {
+        receivedBytes: totalReceived,
+        sentBytes: totalSent,
+        totalBytes: totalReceived + totalSent,
+    };
+    fs.appendFileSync("bandwidth.csv", `${data.receivedBytes},${data.sentBytes},${data.totalBytes}\n`);
+}, 2000);
+
 const mainSimulation = new Simulation(SERVER_URL);
 
 mainSimulation.initializeEnvironments();

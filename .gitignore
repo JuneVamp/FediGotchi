@@ -6,3 +6,4 @@ logs/*
 TODO.md
 output1.txt
 client/dist/*
+bandwidth.csv

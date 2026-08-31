@@ -62,7 +62,7 @@ function App() {
   const [manualUpdate, setManualUpdate] = useState(false); // State to trigger manual updates
   const [pets, setPets] = useState<Pet[]>([]);
   const [environments, setEnvironments] = useState<Environment[]>([]);
-  const [activeView, setActiveView] = useState<'about' | 'environments' | 'pets'>('about');
+  const [activeView, setActiveView] = useState<'about' | 'environments' | 'pets' | 'installation'>('about');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -105,9 +105,6 @@ function App() {
     };
   }, [serverUrl]);
 
-//   setInterval(() => {
-//     setManualUpdate((prev) => !prev); // Toggle the state to trigger a re-fetch
-//   }, 5000); // Every 5 seconds
 
   const renderAbout = () => (
     <section className="content-panel about-panel">
@@ -165,6 +162,21 @@ function App() {
     </section>
   );
 
+  const renderInstallationPage = () => (
+    <section className="content-panel installation-panel">
+      <h2>Installation</h2>
+      <p>
+        To install FediFlock, follow these steps:
+      </p>
+      <ol>
+        <li>Clone the repository from <a href="https://github.com/juneVamp/FediGotchi">GitHub</a>.</li>
+        <li>Install the required dependencies using npm.</li>
+        <li>Configure the API server URL in the application settings.</li>
+        <li>Start the development server and access the application in your browser.</li>
+      </ol>
+    </section>
+  )
+
   return (
     <div className="app-shell">
       <header className="app-header">
@@ -186,6 +198,9 @@ function App() {
           <button type="button" className={activeView === 'pets' ? 'active' : ''} onClick={() => setActiveView('pets')}>
             Pets
           </button>
+          <button type="button" className={activeView === 'installation' ? 'active' : ''} onClick={() => setActiveView('installation')}>
+            Installation
+          </button>
         </nav>
 
         <div className="toolbar">
@@ -202,9 +217,12 @@ function App() {
 
       <main className="app-main">{/* while this works i feel evil doing this*/}
 
-        {activeView === 'about' && renderAbout()} 
+        <>
+          {activeView === 'about' && renderAbout()} 
+          {activeView === 'installation' && renderInstallationPage()}
+        </>
 
-        {error && activeView!=='about'? <div className="error-banner">{error}</div> : null}
+        {error && activeView!=='about' && activeView!=='installation' ? <div className="error-banner">{error}</div> : null}
 
         {!loading && !error && (
           <>
@@ -213,7 +231,7 @@ function App() {
           </>
         )}
 
-        {loading && activeView !== 'about' ? <div className="loading">Loading FediFlock data...</div> : null}
+        {loading && activeView !== 'about' && activeView !== 'installation' ? <div className="loading">Loading FediFlock data...</div> : null}
       </main>
     </div>
   );

@@ -15,7 +15,8 @@ export class FederationView {
 
     static createUniqueID(id : string, serverURL : string) : string {
         const httpStrippedURL = serverURL.replace(/^https?:\/\//, '');
-        return `${id}@${httpStrippedURL}`;
+        const slashStrippedURL = httpStrippedURL.replace(/\/$/, '');
+        return `${id}@${slashStrippedURL}`;
     }
 
     static parseUniqueID(uniqueID : string) : {id: string, serverURL: string} {

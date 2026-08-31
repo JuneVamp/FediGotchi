@@ -62,7 +62,7 @@
                     "hunger" : 2
                 },
                 "maxTicks" : 10,
-                "entityLimit" : {"min" : 1, "max" : 4},
+                "entityLimit" : {"min" : 2, "max" : 4},
                 "tags" : ["Social"]
             },
             "Read": {
@@ -118,7 +118,7 @@
                     "hunger" : 1
                 },
                 "maxTicks" : 10,
-                "entityLimit" : {"min" : 1, "max" : 2},
+                "entityLimit" : {"min" : 2, "max" : 2},
                 "tags" : ["Alone"]
             },
             "Dance":{
@@ -128,7 +128,7 @@
                     "hunger" : 3
                 },
                 "maxTicks" : 10,
-                "entityLimit" : {"min" : 1, "max" : 4},
+                "entityLimit" : {"min" : 2, "max" : 4},
                 "tags" : ["Alone"]
             },
             "ListenMusic":{
@@ -259,10 +259,10 @@
                 "activity" : "Sleep"
             },
             "TV" : {
-                "activity" : "WatchingTV"
+                "activity" : "WatchTV"
             },
             "MusicPlayer" : {
-                "activity" : "ListeningMusic"
+                "activity" : "ListenMusic"
             },
             "Skateboard" : {
                 "activity" : "Play"

@@ -29,22 +29,27 @@ export function createActivityRoutes(activities : Map<string, ActivityModel>) {
         await next();
     }
 
-    router.use("/:activityID/*", activityMiddleware)
+    // HACK DO NOT USE THIS globally (it messes up the create)
+    // router.use("/:activityID/*", activityMiddleware)
 
     // returns nothing
-    // () -> (message)
+    // () -> (accepted, message)
     router.get("/", (c) => {
         return c.json({
-            message: "This returns nothing to reduce amount of data transfered, try /activities/:activityID instead"
+            accepted: false,
+            message: "This returns nothing to reduce amount of data transfered, try /activities/:activityID instead",
+            allActiveActivitiesViews : Array.from(activities.values()).map(activity => activity.getView())
         })
     })
 
     // returns activity's view
-    // () -> (activityView)
+    // () -> (accepted, message, activityView)
     router.get("/:activityID", activityMiddleware, (c) => {
         const activity = c.get("activity") as ActivityModel;
         const activityView = activity.getView();
         return c.json({
+            accepted: true,
+            message: "Activity view retrieved successfully",
             activityView : activityView
         })
     })
@@ -73,30 +78,34 @@ export function createActivityRoutes(activities : Map<string, ActivityModel>) {
         if (!body.activityFV || !body.activityFV.id || !body.activityFV.serverURL) {
             return c.json({
                 accepted: false,
-                message: "activityFV with id and serverURL is required"
+                message: "activityFV with id and serverURL is required" + (JSON.stringify(body.activityFV))
             })
         }
         activity.FV = new ActivityFV(body.activityFV.id, body.activityFV.serverURL, activityName);
 
-        const activityID = body.activityID;
-        if (!activityID) {
-            return c.json({
-                accepted: false,
-                message: "activityID is required"
-            })
-        }
 
-        activities.set(activityID, activity);
+        activities.set(body.activityFV.id, activity);
 
         return c.json({
             accepted: true,
-            message: `Activity ${activityName} created with ID ${activityID}`
+            message: `Activity ${activityName} created with ID ${body.activityFV.id}`
+        })
+    })
+
+    // delete activity
+    // () -> (accepted, message)
+    router.post("/:activityID/delete", activityMiddleware, async (c) => {
+        const activity = c.get("activity") as ActivityModel;
+        activities.delete(activity.FV?.id || "");
+        return c.json({
+            accepted: true,
+            message: `Activity ${activity.name} deleted`
         })
     })
 
     // add pet to activity
     // (petFV) -> (accepted, message)
-    router.post("/:activityID/add-pet" , async (c) => {
+    router.post("/:activityID/add-pet" , activityMiddleware, async (c) => {
         const activity = c.get("activity") as ActivityModel;
         const body = await c.req.json();
 
@@ -116,7 +125,7 @@ export function createActivityRoutes(activities : Map<string, ActivityModel>) {
 
     // add user to activity
     // (userFV) -> (accepted, message)
-    router.post("/:activityID/add-user" , async (c) => {
+    router.post("/:activityID/add-user" , activityMiddleware, async (c) => {
         const activity = c.get("activity") as ActivityModel;
         const body = await c.req.json();
 
@@ -136,7 +145,7 @@ export function createActivityRoutes(activities : Map<string, ActivityModel>) {
 
     // start activity
     // () -> (accepted, message)
-    router.post("/:activityID/start" , async (c) => {
+    router.post("/:activityID/start" , activityMiddleware, async (c) => {
         const activity = c.get("activity") as ActivityModel;
         activity.start()
 

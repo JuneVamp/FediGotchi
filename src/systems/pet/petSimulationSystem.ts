@@ -60,6 +60,29 @@ export class petSimulationSystem {
                 this.stats[statName] = 100
             }
         }
+
+        // test for stat thresholds
+        for (const [functionName, statThresholds] of Object.entries(this.model.petConstants.STAT_THRESHOLDS)) {
+            var callFunction = true
+            for (const [statName, thresholds] of Object.entries(statThresholds)) {
+                if (this.stats.hasOwnProperty(statName)) {
+                    const statValue = this.stats[statName];
+
+                    if (thresholds.low !== undefined && statValue > thresholds.low) {
+                        callFunction = false;
+                    }
+
+                    if (thresholds.high !== undefined && statValue < thresholds.high) {
+                        callFunction = false;
+                    }
+                }
+            }
+
+            if (callFunction) {
+                this.model.tryToCallDecisionSystemFunction(functionName);
+            }
+        }
+
     }
 
     isActivityFeasable(){

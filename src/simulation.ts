@@ -54,6 +54,7 @@ export class Simulation {
                 this.environments.get(Array.from(this.environments.keys())[envIndex])!.FV,
                 `/assets/images/beings/${file}`);
             this.pets.set(pet.name, pet);
+            this.environments.get(Array.from(this.environments.keys())[envIndex])!.addPet(pet.FV);
         });
     }
 

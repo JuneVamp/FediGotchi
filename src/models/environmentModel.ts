@@ -33,7 +33,7 @@ export class EnvironmentModel {
         // FIXME  7 can cause errors
         // need to test if values exist
         for (const [key, value] of Object.entries(jsonData.Environments.list)) {
-            if (key === envName) {
+            if (key === name) {
                 envName = key
 
                 var items : Array<ItemModel> = []

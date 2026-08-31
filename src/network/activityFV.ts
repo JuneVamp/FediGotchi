@@ -17,8 +17,8 @@ export class ActivityFV extends FederationView{
         this.name = name;
     }
 
-    async create(activityName : string, activityFV : ActivityFV) : Promise<{accepted: boolean, message: string}> {
-        return this.postRequest(`activities/${this.id}/create`, {activityName : activityName, activityFV : activityFV});
+    async create() : Promise<{accepted: boolean, message: string}> {
+        return this.postRequest(`activities/${this.id}/create`, {activityName : this.name, activityFV : this});
     }
 
     async addPet(petFV : PetFV) : Promise<{accepted: boolean, message: string}> {
@@ -33,16 +33,21 @@ export class ActivityFV extends FederationView{
         return this.postRequest(`activities/${this.id}/start`, {});
     }
 
-    async getView() : Promise<ActivityView | null> {
+    async delete() {
+        return this.postRequest(`activities/${this.id}/delete`, {});
+    }
+
+    async getView() : Promise<{accepted: boolean, message: string, activityView: ActivityView | null}> {
         const response = await this.getRequest(`activities/${this.id}`);
         if (!response.accepted || !response.activityView) {
-            return null;
+            return {accepted: false, message: "Failed to get activity view", activityView: null};
         }
-        return response.activityView;
+        return {accepted: true, message: "Activity view retrieved", activityView: response.activityView};
     }
 
     async getModel() : Promise<{accepted: boolean, message: string, activityModel : ActivityModel | null}> {
-        const view = await this.getView();
+        const response = await this.getView();
+        const view = response.activityView;
         if (!view) {
             return {accepted: false, message: "Failed to get activity view", activityModel: null};
         }

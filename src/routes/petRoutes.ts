@@ -30,7 +30,7 @@ export function createPetRoutes(pets : Map<string, PetModel>) {
     };
 
     // returns all pets' views 
-    // () -> (allPetViews)
+    // () -> (accepted, message, allPetViews)
     router.get("/", (c) => {
         return c.json({
             allPetViews : Array.from(pets.values()).map(pet => pet.getView())
@@ -40,7 +40,7 @@ export function createPetRoutes(pets : Map<string, PetModel>) {
     router.use("/:petID/*", petMiddleWare)
 
     // return pet's view
-    // () -> (petView)
+    // () -> (accepted, message, petView)
     router.get("/:petID", petMiddleWare, (c) => {
         return c.json({
             petView: (c.get("pet") as PetModel).getView()

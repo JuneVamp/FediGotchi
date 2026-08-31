@@ -21,10 +21,11 @@ export class EnvironmentFV extends FederationView{
         return {accepted: true, message: "Environment view retrieved", environmentView: response.environmentView};
     }
 
-    async getPets(): Promise<Array<PetFV> | null> {
+    async getPets(): Promise<{accepted: boolean, message: string, pets: Array<PetFV> | null}> {
         const response = await this.getRequest(`environments/${this.id}/pets`);
-        if (!response.accepted || !response.petsFV) {
-            return null;
+        if (!response.petsFV) {
+            console.error(`Failed to get pets for environment ${this.id}, message: ${response.message}`);
+            return {accepted: false, message: "Failed to get pets", pets: null};
         }
         const petsFVData = response.petsFV;
 
@@ -34,26 +35,27 @@ export class EnvironmentFV extends FederationView{
                 return petFV;
             }).filter((v : PetFV | null): v is PetFV => !!v);
 
-            return petFVs;
+            return {accepted: true, message: "Pets retrieved", pets: petFVs};
         } catch (error) {
             console.error("Error mapping petsFV to PetFV:", error);
-            return null;
+            return {accepted: false, message: "Failed to map pets", pets: null};
         }
     }
 
-    async getItems() : Promise<Array<ItemModel>| null> {
+    async getItems() : Promise<{accepted: boolean, message:string, items: Array<ItemModel>| null}> {
         const response = await this.getRequest(`environments/${this.id}/items`);
-        if (!response.accepted || !response.itemViews) {
-            console.error(`Failed to get items for environment ${this.id}`);
-            return null;
+        if (!response.itemViews) {
+            console.error(`Failed to get items for environment ${this.id}, message: ${response.message}`);
+            return {accepted: false, message: "Failed to get items", items: null};
         }
         const itemVewsData = response.itemViews;
 
         try {
-            return itemVewsData.map((itemData: any) => new ItemModel(itemData.id, itemData.activityName ));
+            const items = itemVewsData.map((itemData: any) => new ItemModel(itemData.id, itemData.activityName ));
+            return {accepted: true, message: "Items retrieved", items: items};
         } catch (error) {
             console.error("Error mapping itemViews to ItemModel:", error);
-            return null;
+            return {accepted: false, message: "Failed to map items", items: null};
         }
     }
 

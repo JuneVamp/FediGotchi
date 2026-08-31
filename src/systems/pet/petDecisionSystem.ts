@@ -1,6 +1,7 @@
 import { ActivityModel } from "../../models/activityModel";
 import { PetModel } from "../../models/petModel";
 import { PetFV } from "../../network/petFV";
+import { UserFV } from "../../network/userFV";
 import { weighted_random } from "../../utils";
 
 export class petDecisionSystem {
@@ -24,6 +25,21 @@ export class petDecisionSystem {
 
     didPetLikeActivity(){
 
+    }
+
+    // TODO 3 put the willingess threshold here?
+    /** make sure the pet is available when it gets here */
+    respondToActivityRequest(activityModel : ActivityModel, partner : PetFV | UserFV) : {accepted: boolean, message: string} {
+        if (this.willingToDoActivity(activityModel) > 0) {
+            console.log(`${this.model.name} accepted the activity request for ${activityModel.name} from ${partner.id}`);
+
+            this.model.startActivity(activityModel, partner);
+            // HACK 4 fix this to be more organized
+            activityModel.FV?.addPet(this.model.FV);
+            
+            return {accepted: true, message: "accepted"};
+        }
+        return {accepted: false, message: "rejected"};
     }
 
     // #region ACTIVITY PICKING
@@ -97,16 +113,24 @@ export class petDecisionSystem {
         }
 
         var {needPartner, canHavePartner} = selectedActivity.partnerRequirement();
-        var activityFV = selectedActivity.createFV(this.model.FV, this.model.environmentFV.serverURL); // signifies confirming that the pet will try to do this activity
+
+        // signifies confirming that the pet will try to do this activity
+        var activityFV = selectedActivity.createFV(this.model.FV, this.model.environmentFV.serverURL); 
 
         // if the activity can't have a partner, then do it solo
         // if the activity can be done solo and the pet WANTS to do it solo, then do it solo
         if ( !canHavePartner || (!needPartner && !this.wantToDoActivitySolo(selectedActivity))) {
-            this.model.startActivity(selectedActivity);
+            //HACK 4 fix this to be more organized 
+            await activityFV.create();
+            await activityFV.addPet(this.model.FV);
+
+            // console.log("starting activity solo: ", selectedActivity.name);
+            await this.model.startActivity(selectedActivity);
             return;
         }
 
-        const partnerList = await this.model.environmentFV.getPets();
+        const response = await this.model.environmentFV.getPets();
+        var partnerList = response.pets;
         if (!partnerList || partnerList.length === 0) {
             console.warn("No partners available in the environment.");
             return;
@@ -118,50 +142,29 @@ export class petDecisionSystem {
             return;
         }
 
-        this.model.sendActivityRequest(selectedActivity.FV!, selectedPartner);
+        // HACK 4 fix this to be more organized
+        await activityFV.create();
+        await activityFV.addPet(this.model.FV);
+
+        await this.model.sendActivityRequest(selectedActivity, selectedPartner);
     }
 
-    // triggers when certain stat reaches certain thresholds
-    triggerStatLow(stat: string, value: number) {
-
-        switch(stat) {
-            case "boredom":
-                if(value < 20) {
-                    this.petIsBored();
-                }
-                break;
-            case "hunger":
-                if(value < 20) {
-                    this.petIsHungry();
-                }
-                break;
-            case "energy":
-                if(value < 20) {
-                    this.petIsLowEnergy();
-                }
-                break;
-            case "happiness":
-                if(value < 20) {
-                    this.petIsUnhappy();
-                }
-                break;
+    triggerStatThresholdBasedFunction(functionName : string) {
+        if(Object.getPrototypeOf(this).hasOwnProperty(functionName)) {
+            const functionToCall = (this as any)[functionName];
+            if (typeof functionToCall === "function") {
+                functionToCall.call(this);
+            }
         }
-
     }
 
-    petIsBored() {
-    }
-
-    petIsHungry() {
-
-    }
-
-    petIsLowEnergy() {
-
-    }
-
-    petIsUnhappy() {
-
+    bored_start_activity(petDecisionSystem : petDecisionSystem) {
+        // HACK 2 put in model isntead of here
+        if (this.model.activitySystem.state !== "idle") {
+            // console.warn(`${this.model.name} is not idle and cannot start a new activity.`);
+            return;
+        }
+        this.tryToDoActivity();
     }
 
     // #endregion

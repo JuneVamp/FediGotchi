@@ -6,6 +6,8 @@ import { ActivityView } from "../views/activityView";
 import { ItemModel } from "./itemModel";
 
 export class ActivityModel {
+    // TODO 2 if not ticked for 30 ticks then delete
+    // currently it is deleted when finished, and the creator's responsibility
     name : string
     FV ?: ActivityFV
 
@@ -16,7 +18,7 @@ export class ActivityModel {
     item ?: ItemModel
     entitiesInvolved : Array<PetFV | UserFV> = []
 
-    status : "active" | "finished" | "waitingToBeStarted" = "active"
+    status : "active" | "finished" | "waitingToBeStarted" = "waitingToBeStarted"
     progress : number = 0
     finishedCallbacks : Array<() => void> = []
 
@@ -54,7 +56,8 @@ export class ActivityModel {
      * otherwise it will return null
      */
     static async fromFV(activityFV : ActivityFV) : Promise<ActivityModel | null> {
-        const activityView = await activityFV.getView();
+        const response = await activityFV.getView();
+        const activityView = response.activityView;
         if (!activityView) {
             console.error(`Activity ${activityFV.id} not found on remote server`)
             return null
@@ -94,7 +97,7 @@ export class ActivityModel {
             console.warn(`Activity ${this.name} is already active`)
             return
         }
-
+        console.log(`Activity ${this.FV?.id} is starting`)
         this.status = "active"
     }
 
@@ -118,8 +121,13 @@ export class ActivityModel {
             return
         }
 
+        if (this.status === "finished") {
+            console.warn(`Activity ${this.name} is already finished`)
+            return
+        }
+
         if (this.status != "active") {
-            console.error(`Activity ${this.name} is not active. Cannot tick.`)
+            console.error(`Activity ${this.name} is not active. Cannot tick. id: ${this.FV?.id}`)
             return
         }
 
@@ -135,8 +143,8 @@ export class ActivityModel {
     }
 
     finished() {
-            this.status = "finished"
-            this.finishedCallbacks.forEach(callback => callback())
+        this.status = "finished"
+        this.finishedCallbacks.forEach(callback => callback())
     }
 
     getView() : ActivityView {

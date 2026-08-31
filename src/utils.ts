@@ -70,8 +70,7 @@ export function writeToJsonFile(filePath : string, data : any) {
 export async function getJson(response : Response) : Promise<any> {
     response = await response;
     if (!response.ok) {
-        // throw new Error(`HTTP error! Status: ${response.status}`);
-        console.error(`HTTP error! Status: ${response.status}`);
+        console.error(`HTTP error! Status: ${response.status} on ${response.url}`);
         return null;
     }
     try {

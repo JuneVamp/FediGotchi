@@ -61,8 +61,13 @@ export enum petActivityState {
  * NOTE : this does NOT take care of the simulation of the activity, it only manages the state of the pet and the activity
  */
 export class petActivitySystem {
+
     onActivityTick(activityModel: ActivityModel) : { accepted: boolean; message: string; } {
-        throw new Error("Method not implemented.");
+        // TODO 2 I FORGOT What i wanted to do here
+        // probably update progress or smth idk
+        // throw new Error("Method not implemented.");
+        // console.log(`Pet ${this.model.name} is ticking activity ${activityModel.name}`);
+        return { accepted: true, message: "Activity ticked successfully" };
     }
 
     model : PetModel
@@ -97,7 +102,8 @@ export class petActivitySystem {
         // activities from the items in the environment
         var env = this.model.environmentFV
 
-        var items = await env.getItems();
+        var response = await env.getItems();
+        var items = response.items;
         if (!items) return [];
 
         items.forEach(item => {
@@ -133,6 +139,10 @@ export class petActivitySystem {
 
         this.reservedActivity = activity;
         this.reservedActivityPartner = partner;
+    }
+
+    deleteAwaitingActivity() {
+        this.reservedActivity?.FV?.delete();
     }
 
     // TODO 9 check if the transition is valid before transitoning the state

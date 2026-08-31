@@ -27,7 +27,7 @@ function addNgrokSkipBrowserWarning(header) {
 //#region base
 
 /** 
- *  Only works if the server is not running in a directory
+ *  Only works if the server is not running in a directory (eg localhost:4000/fediflock)
  *  Helper if called after setBaseURL()
  *  @returns {string} base URL for this server
  */

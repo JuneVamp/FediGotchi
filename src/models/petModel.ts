@@ -2,7 +2,7 @@ import { ActivityFV } from "../network/activityFV";
 import { EnvironmentFV } from "../network/environmentFV";
 import { PetFV } from "../network/petFV";
 import { UserFV } from "../network/userFV";
-import { petActivitySystem } from "../systems/pet/petActivitySystem";
+import { petActivityState, petActivitySystem } from "../systems/pet/petActivitySystem";
 import { petCommunicationSystem } from "../systems/pet/petCommunicationSystem";
 import { petConstants } from "../systems/pet/petConstants";
 import { petDecisionSystem } from "../systems/pet/petDecisionSystem";
@@ -11,17 +11,8 @@ import { petSimulationSystem } from "../systems/pet/petSimulationSystem";
 import { PetView } from "../views/petView";
 import { ActivityModel } from "./activityModel";
 
-export enum petState {
-    idle = "idle",
-    doingActivity = "doingActivity",
-    waitingForActivityResponse = "waitingForActivityResponse",
-    reservedForActivity = "reservedForActivity"
-}
 
 export class PetModel {
-    tick() {
-        throw new Error("Method not implemented.");
-    }
     name : string;
     imageSrc ?: string;
     environmentFV : EnvironmentFV;
@@ -63,31 +54,53 @@ export class PetModel {
     }
 
     // System Management
+    tick() {
+        if (this.activitySystem.state === petActivityState.idle) {
+            this.simulationSystem.tick();
+        }
+    }
+
     async getPossibleActivities() : Promise<Array<ActivityModel>> {
         const possibleActivities = await this.activitySystem.getPossibleActivities();
         return possibleActivities;
     }
 
-    startActivity(activity : ActivityModel, partner ?: PetFV | UserFV) {
+    async startActivity(activity : ActivityModel, partner ?: PetFV | UserFV) {
+        await activity.FV!.start();
         this.activitySystem.startActivity(activity, partner);
     }
 
-    async sendActivityRequest(activityFV : ActivityFV, partner : PetFV) : Promise<{accepted: boolean, message: string}> {
-        const activityModelResponse = await activityFV.getModel();
-        if (!activityModelResponse.accepted || !activityModelResponse.activityModel) {
-            return { accepted: false, message: "Failed to get the activity model from activity FV " + activityFV };
-        }
-
-        this.activitySystem.awaitActivity(activityModelResponse.activityModel, partner);
-        return await this.communicationSystem.sendActivityRequest(activityFV, partner);
+    async deleteActivity(activity : ActivityModel) {
+        await activity.FV!.delete();
     }
 
+    async sendActivityRequest(activity : ActivityModel, partner : PetFV) : Promise<{accepted: boolean, message: string}> {
+        if (!activity.FV) {
+            console.error(`Activity ${activity.name} does not have an associated Federation View (FV).`);
+            return { accepted: false, message: "Activity does not have an associated Federation View (FV)." };
+        }
+
+        this.activitySystem.awaitActivity(activity, partner);
+        return await this.communicationSystem.sendActivityRequest(activity.FV, partner);
+    }
+
+    deleteAwaitingActivity() {
+        this.activitySystem.deleteAwaitingActivity();
+    }
+
+    /** what to do when activity request is recieved */
     async recieveActivityRequest(activityFV : ActivityFV, partnerFV: PetFV | UserFV) : Promise<{ accepted: boolean; message: string; }> {
         const activityModelResponse = await activityFV.getModel();
         if (!activityModelResponse.accepted || !activityModelResponse.activityModel) {
             return { accepted: false, message: "Failed to get the activity model from activity FV " + activityFV };
         }
-        return await this.communicationSystem.receiveActivityRequest(activityFV, partnerFV);
+
+        if (this.activitySystem.state !== petActivityState.idle) {
+            return { accepted: false, message: "not available" };
+        } else {
+            const response = this.decisionSystem.respondToActivityRequest(activityModelResponse.activityModel, partnerFV );
+            return response;
+        }
     }
 
     activityAccepted() {
@@ -144,5 +157,9 @@ export class PetModel {
 
     updateRelationshipWithActivity(activityName: string, newValue: number) {
         this.relationshipSystem.activityRelationshipDict[activityName] = newValue;
+    }
+
+    tryToCallDecisionSystemFunction(functionName: string) {
+        this.decisionSystem.triggerStatThresholdBasedFunction(functionName);
     }
 }

@@ -18,6 +18,33 @@ app.use("/*",
   allowHeaders: ['Content-Type', 'ngrok-skip-browser-warning'],
 }));
 
+// HACK 8 Temporary bandwidth tracking middleware
+
+let totalReceived = 0;
+let totalSent = 0;
+
+app.use("*", async (c, next) => {
+    const contentLength = c.req.header("content-length");
+
+    if (contentLength) {
+        totalReceived += Number(contentLength);
+    }
+
+    await next();
+
+    const response = c.res.clone();
+    const body = await response.arrayBuffer();
+
+    totalSent += body.byteLength;
+});
+
+app.get("/bandwidth", (c) => {
+    return c.json({
+        receivedBytes: totalReceived,
+        sentBytes: totalSent,
+        totalBytes: totalReceived + totalSent,
+    });
+});
 
 const mainSimulation = new Simulation(SERVER_URL);
 

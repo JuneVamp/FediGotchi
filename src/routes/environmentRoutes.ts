@@ -28,17 +28,21 @@ export function createEnvironmentRoutes(environments : Map<string, EnvironmentMo
     router.use("/:environmentID/*", environmentMiddleware)
 
     // returns all environments' views
-    // () -> (allEnvironmentViews)
+    // () -> (accepted, message, allEnvironmentViews)
     router.get("/", (c) => {
         return c.json({
+            accepted: true,
+            message: "All environment views retrieved",
             allEnvironmentViews : Array.from(environments.values()).map(environment => environment.getView())
         })
     })
 
     // return environment's view
-    // () -> (environmentView)
+    // () -> (accepted, message, environmentView)
     router.get("/:environmentID", environmentMiddleware, (c) => {
         return c.json({
+            accepted: true,
+            message: "Environment view retrieved",
             environmentView: (c.get("environment") as EnvironmentModel).getView()
         })
     })
@@ -85,22 +89,26 @@ export function createEnvironmentRoutes(environments : Map<string, EnvironmentMo
     })
 
     // get all pets in an environment
-    // () -> (petsFV)
+    // () -> (accepted, message, petsFV)
     router.get("/:environmentID/pets", (c) => {
         const environment = c.get("environment") as EnvironmentModel;
 
         return c.json({
+            accepted: true,
+            message: "Pets retrieved",
             petsFV: environment.getAllPetsFV()
         })
     })
 
 
     // get all items in an environment
-    // () -> (itemViews)
+    // () -> (accepted, message, itemViews)
     router.get("/:environmentID/items", (c) => {
         const environment = c.get("environment") as EnvironmentModel;
 
         return c.json({
+            accepted: true,
+            message: "Items retrieved",
             itemViews: environment.items.map(item => item.getView())
         })
     })

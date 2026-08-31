@@ -24,13 +24,13 @@ jobs:
         run: npm ci
 
       - name: Build project
-        run: npm run client:build
+        run: npm run build
 
       - name: Upload production-ready build files
         uses: actions/upload-artifact@v7
         with:
           name: production-files
-          path: ./client/dist
+          path: ./dist
 
   deploy:
     name: Deploy
@@ -40,13 +40,13 @@ jobs:
 
     steps:
       - name: Download artifact
-        uses: actions/download-artifact@v7
+        uses: actions/download-artifact@v8
         with:
           name: production-files
-          path: ./client/dist
+          path: ./dist
 
       - name: Deploy to GitHub Pages
         uses: peaceiris/actions-gh-pages@v4
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
-          publish_dir: ./client/dist
+          publish_dir: ./dist

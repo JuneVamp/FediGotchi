@@ -1,8 +1,0 @@
-### get all activities
-GET http://localhost:3251/api/activities
-
-### earthwor
-GET http://localhost:3251/api/pets/alice
-
-### bandwidth
-GET http://localhost:3251/bandwidth

@@ -3,6 +3,7 @@ import { useEffect, useMemo, useState } from 'react';
 type PetView = {
     petView: Pet
 }
+
 type Pet = {
   name: string;
   imageSrc?: string;

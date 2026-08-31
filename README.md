@@ -63,6 +63,6 @@ The server will start on port 3251.
 You can now access your Fediflock instance through your ngrok URL.
 
 
-### Contribution / your own server
+# Contribution / your own server
 
-please refer to the [ wiki ](https://github.com/JuneVamp/FediGotchi) for explaination of the code
+please refer to the [ wiki ](https://github.com/JuneVamp/FediGotchi/wiki) for explaination of the code

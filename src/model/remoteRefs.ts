@@ -160,6 +160,10 @@ export class VPEnvironmentRemoteRef extends VPEntityRemoteRef {
             petServerURL: pet.serverURL
         })
         console.log(`Added pet ${pet.id} to environment ${this.id} on server ${this.serverURL}:`, data)
+        if (!data || !data.success) {
+            console.warn(`Failed to add pet ${pet.id} to environment ${this.id} on server ${this.serverURL}:`, data)
+            return false
+        }
         return data.success;
     }
 

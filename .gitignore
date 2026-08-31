@@ -6,3 +6,4 @@ logs/archive/*.csv
 logs/*
 TODO.md
 client/dist/*
+output1.txt

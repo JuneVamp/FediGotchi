@@ -19,6 +19,9 @@ export enum petState {
 }
 
 export class PetModel {
+    tick() {
+        throw new Error("Method not implemented.");
+    }
     name : string;
     imageSrc ?: string;
     environmentFV : EnvironmentFV;

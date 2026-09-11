@@ -82,6 +82,7 @@ export function createActivityRoutes(activities : Map<string, ActivityModel>) {
             })
         }
         activity.FV = new ActivityFV(body.activityFV.id, body.activityFV.serverURL, activityName);
+        console.log("activity created with id: ", activity.FV.id);
 
 
         activities.set(body.activityFV.id, activity);

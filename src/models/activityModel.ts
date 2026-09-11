@@ -152,6 +152,7 @@ export class ActivityModel {
     }
 
     finished() {
+        console.log(`Activity ${this.FV!.id} is finished`)
         this.status = "finished"
         this.finishedCallbacks.forEach(callback => callback())
     }

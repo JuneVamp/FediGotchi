@@ -6,3 +6,7 @@ GET http://localhost:3251/api/pets/alice
 
 ### bandwidth
 GET http://localhost:3251/bandwidth
+
+
+### environment
+GET http://localhost:3251/api/environments/Park/items

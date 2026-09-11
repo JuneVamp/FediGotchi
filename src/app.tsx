@@ -6,6 +6,8 @@ import { createPetRoutes } from "./routes/petRoutes";
 import { createEnvironmentRoutes } from "./routes/environmentRoutes";
 import { createActivityRoutes } from "./routes/activityRoutes";
 import { serveStatic } from "@hono/node-server/serve-static";
+import { EnvironmentFV } from "./network/environmentFV";
+import { ItemModel } from "./models/itemModel";
 
 type AppEnv = {}
 
@@ -67,6 +69,30 @@ mainSimulation.startSimulationTicker();
 app.route("/api/pets", createPetRoutes(mainSimulation.pets));
 app.route("/api/environments", createEnvironmentRoutes(mainSimulation.environments));
 app.route("/api/activities", createActivityRoutes(mainSimulation.activities));
+
+app.post("/api/add-pet", async (c) => {
+    const body = await c.req.json();
+    const petName = body.petName;
+    const environmentFV = new EnvironmentFV(body.environmentFV.id, body.environmentFV.serverURL);
+    const imageSrc = body.imageSrc;
+    if (!petName || !body.environmentFV || !body.environmentFV.id || !body.environmentFV.serverURL) {
+        return c.json({ accepted: false, message: "Invalid request body" }, 400);
+    }
+    const result = mainSimulation.addNewPet(petName, environmentFV, imageSrc);
+    return c.json(result);
+});
+
+app.post("/api/add-environment", async (c) => {
+    const body = await c.req.json();
+    const environmentName = body.environmentName;
+    const imageSrc = body.imageSrc;
+    const itemList = body.itemList ? body.itemList.map((item: any) => new ItemModel(item.name, item.effect)) : undefined;
+    if (!environmentName) {
+        return c.json({ accepted: false, message: "Invalid request body" }, 400);
+    }
+    const result = mainSimulation.addNewEnvironment(environmentName, imageSrc, itemList);
+    return c.json(result);
+});
 
 app.get("/*", serveStatic({ root: "./public" }));
 

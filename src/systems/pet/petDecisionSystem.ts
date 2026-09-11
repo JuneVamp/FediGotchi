@@ -3,6 +3,7 @@ import { PetModel } from "../../models/petModel";
 import { PetFV } from "../../network/petFV";
 import { UserFV } from "../../network/userFV";
 import { weighted_random } from "../../utils";
+import { petActivityState } from "./petActivitySystem";
 
 export class petDecisionSystem {
     model : PetModel
@@ -104,6 +105,7 @@ export class petDecisionSystem {
     // #region START ACTIVITY
 
     async tryToDoActivity(){
+        this.model.activitySystem.findingNewActivity()
         const possibleActivities = await this.model.getPossibleActivities()
 
         var selectedActivity = this.pickActivityFromList(possibleActivities);
@@ -122,6 +124,7 @@ export class petDecisionSystem {
         if ( !canHavePartner || (!needPartner && !this.wantToDoActivitySolo(selectedActivity))) {
             //HACK 4 fix this to be more organized 
             await activityFV.create();
+            console.log("created" , activityFV.id);
             await activityFV.addPet(this.model.FV);
 
             // console.log("starting activity solo: ", selectedActivity.name);
@@ -144,6 +147,7 @@ export class petDecisionSystem {
 
         // HACK 4 fix this to be more organized
         await activityFV.create();
+        console.log("created" , activityFV.id);
         await activityFV.addPet(this.model.FV);
 
         await this.model.sendActivityRequest(selectedActivity, selectedPartner);
@@ -160,10 +164,11 @@ export class petDecisionSystem {
 
     bored_start_activity(petDecisionSystem : petDecisionSystem) {
         // HACK 2 put in model isntead of here
-        if (this.model.activitySystem.state !== "idle") {
+        if (this.model.activitySystem.state !== petActivityState.idle) {
             // console.warn(`${this.model.name} is not idle and cannot start a new activity.`);
             return;
         }
+        console.log("bored_start_activity triggered for ", this.model.name);
         this.tryToDoActivity();
     }
 

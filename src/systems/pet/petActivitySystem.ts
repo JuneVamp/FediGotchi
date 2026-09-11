@@ -52,6 +52,7 @@ export class petActivityStatistics {
 
 export enum petActivityState {
     idle = "idle",
+    findingNewActivity = "findingNewActivity",
     doingActivity = "doingActivity",
     waitingForActivityResponse = "waitingForActivityResponse",
     reservedForActivity = "reservedForActivity"
@@ -61,6 +62,11 @@ export enum petActivityState {
  * NOTE : this does NOT take care of the simulation of the activity, it only manages the state of the pet and the activity
  */
 export class petActivitySystem {
+    
+    // HACK 2 figure out if the state transiton is valid
+    findingNewActivity() {
+        this.state = petActivityState.findingNewActivity;
+    }
 
     onActivityTick(activityModel: ActivityModel) : { accepted: boolean; message: string; } {
         // TODO 2 I FORGOT What i wanted to do here

@@ -3,6 +3,8 @@ import { EnvironmentModel } from "./models/environmentModel";
 import { ActivityModel } from "./models/activityModel";
 
 import jsonData from "./data/data.json"
+import { EnvironmentFV } from "./network/environmentFV";
+import { ItemModel } from "./models/itemModel";
 
 export class Simulation {
     NUM_INITIAL_PETS = 20;
@@ -58,6 +60,26 @@ export class Simulation {
             this.environments.get(Array.from(this.environments.keys())[envIndex])!.addPet(pet.FV);
         });
     }
+
+    addNewPet(petName: string, environmentFV: EnvironmentFV, imageSrc?: string) : { accepted: boolean; message: string } {
+        if (this.pets.has(petName)) {
+            return { accepted: false, message: `Pet with name ${petName} already exists` };
+        }
+        const newPet = new PetModel(petName, environmentFV, imageSrc);
+        this.pets.set(petName, newPet);
+        environmentFV.addPet(newPet.FV);
+        return { accepted: true, message: `Pet ${petName} added successfully` };
+    }
+
+    addNewEnvironment(environmentName: string, imageSrc?: string, itemList?: ItemModel[]) : { accepted: boolean; message: string } {
+        if (this.environments.has(environmentName)) {
+            return { accepted: false, message: `Environment with name ${environmentName} already exists` };
+        }
+        const newEnvironment = new EnvironmentModel(environmentName, this.serverURL, itemList || [], imageSrc);
+        this.environments.set(environmentName, newEnvironment);
+        return { accepted: true, message: `Environment ${environmentName} added successfully` };
+    }
+
 
     startSimulationTicker() {
         this.simulationTicker = setInterval(() => {

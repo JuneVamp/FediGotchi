@@ -80,7 +80,6 @@ export class Simulation {
         return { accepted: true, message: `Environment ${environmentName} added successfully` };
     }
 
-
     startSimulationTicker() {
         this.simulationTicker = setInterval(() => {
             try {

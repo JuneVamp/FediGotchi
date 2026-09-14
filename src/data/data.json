@@ -1,16 +1,4 @@
 {
-    "ActivityTags" : {
-        "Alone" : {
-            "personalityRelationship" : {
-                "Neuroticism" : -1,
-                "Dominance" : -1,
-                "Impulsiveness" : -1,
-                "Extraversion" : -1,
-                "Agreeableness" : -1
-            }
-        }
-    },
-
     "Activities" : {
         "types" : {
             "master_list" :[

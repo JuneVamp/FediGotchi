@@ -59,10 +59,10 @@ function getAssetUrl(serverUrl: string, imageSrc?: string) {
 
 function App() {
   const [serverUrl, setServerUrl] = useState(defaultServerUrl);
-  const [manualUpdate, setManualUpdate] = useState(false); // State to trigger manual updates
   const [pets, setPets] = useState<Pet[]>([]);
   const [environments, setEnvironments] = useState<Environment[]>([]);
-  const [activeView, setActiveView] = useState<'about' | 'environments' | 'pets' | 'installation'>('about');
+  const [activeView, setActiveView] = useState<'about' | 'environments' | 'pets' | 'pet' | 'installation'>('about');
+  const [selectedPet, setSelectedPet] = useState<Pet | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
@@ -104,6 +104,12 @@ function App() {
       alreadyRan = true;
     };
   }, [serverUrl]);
+
+  const petsById = useMemo(() => new Map(
+    pets
+      .filter((pet) => pet.FV?.id)
+      .map((pet) => [pet.FV?.id, pet]),
+  ), [pets]);
 
 
   const renderAbout = () => (
@@ -152,6 +158,35 @@ function App() {
             )}
             <h3>{environment.name}</h3>
             <p>{environment.items?.length ? environment.items.join(', ') : 'No items listed'}</p>
+            <div className="environment-pets">
+              <span className="environment-pets-label">Pets here</span>
+              <div className="pet-picture-list">
+                {environment.petsFV?.map((petReference) => {
+                  const pet = petReference.id ? petsById.get(petReference.id) : undefined;
+
+                  if (!pet) return null;
+
+                  return (
+                    <button
+                      type="button"
+                      className="pet-picture-button"
+                      key={pet.FV?.id || pet.name}
+                      onClick={() => {
+                        setSelectedPet(pet);
+                        setActiveView('pet');
+                      }}
+                      aria-label={`View ${pet.name}`}
+                      title={`View ${pet.name}`}
+                    >
+                      <img src={getAssetUrl(pet.FV?.serverURL || serverUrl, pet.imageSrc)} alt="" />
+                    </button>
+                  );
+                })}
+                {!environment.petsFV?.some((petReference) => petReference.id && petsById.has(petReference.id)) && (
+                  <span className="empty-pets">No pets listed</span>
+                )}
+              </div>
+            </div>
             <div className="environment-meta">
               <span>{environment.petsFV?.length || 0} pets</span>
               <span>{environment.FV?.serverURL || serverUrl}</span>
@@ -159,6 +194,16 @@ function App() {
           </div>
         ))}
       </div>
+    </section>
+  );
+
+  const renderPet = () => (
+    <section className="content-panel pet-page">
+      <button type="button" className="back-button" onClick={() => setActiveView('environments')}>
+        Back to environments
+      </button>
+      <h2>{selectedPet?.name || 'Pet'}</h2>
+      {selectedPet ? <PetView petInit={selectedPet} /> : <p>This pet is no longer available.</p>}
     </section>
   );
 
@@ -228,6 +273,7 @@ function App() {
           <>
             {activeView === 'pets' && renderPets()}
             {activeView === 'environments' && renderEnvironments()}
+            {activeView === 'pet' && renderPet()}
           </>
         )}
 
@@ -256,6 +302,7 @@ function PetView({ petInit }: { petInit: Pet }) {
         return () => clearInterval(interval);
     }, [petId, serverUrl]);
 
+
     return (
     <div key={pet.FV?.id || pet.name} className="pet-detail-card">
         <div className="pet-detail-header">
@@ -269,7 +316,7 @@ function PetView({ petInit }: { petInit: Pet }) {
         <div className="pet-details">
             <div>
             <label>Current activity</label>
-            <span>{pet.activity?.activity?.name || 'Idle'}</span>
+            <span>{pet.activity?.activity?.name || 'Idle'} {pet.activity?.partner?.id ? "with" : ""} {pet.activity?.partner?.id || ""} </span>
             </div>
             <div>
             <label>Environment</label>

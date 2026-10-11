@@ -128,8 +128,11 @@ function App() {
         Want more environments, items, or activities? Change the data file on your server. Want to have a custom pet creation page with cool art? Sure. The website is built on top of an API, and you can use that API however you like to build your own website for your pets.
       </p>
       <p>
-        Welcome to FediFlock: the birds are free here (along with other pets).
+        Welcome to FediFlock: Perhaps it is time to show caged birds the other worlds out there.
       </p>
+        <p>
+            Handmade with love by <a href="https://bsky.app/profile/junevamp.bsky.social">June Bhartia</a>.
+        </p>
     </section>
   );
 

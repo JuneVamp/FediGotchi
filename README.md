@@ -2,6 +2,8 @@
 
 Fediflock is a federated virtual pet system where pets can exist across different servers and interact with each other.
 
+Check out the [wiki](https://github.com/JuneVamp/FediGotchi/wiki).
+
 ## Setup
 
 ### 1. Clone the repository
@@ -20,7 +22,7 @@ Then from the project root:
 npm install
 ```
 
-### 3. Start an ngrok server
+### 3. (optional to host online) Start an ngrok server
 
 Fediflock requires a publicly accessible server URL for communication between instances.
 
@@ -63,6 +65,5 @@ The server will start on port 3251.
 You can now access your Fediflock instance through your ngrok URL.
 
 
-# Contribution / your own server
-
-please refer to the [ wiki ](https://github.com/JuneVamp/FediGotchi/wiki) for explaination of the code
+# Contributions
+This work was done as part of my thesis which is available [here](https://Junevamp.github.io/assets/pdf/June_M2_Thesis_Virtual_Pets.pdf). I am currently no longer working on this. Feel free to propose contributions or clone it to do whatever you want.

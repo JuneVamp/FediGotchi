@@ -116,20 +116,23 @@ function App() {
     <section className="content-panel about-panel">
       <h2>About FediFlock</h2>
       <p>
-        Hello, welcome to FediFlock, a federated virtual pet framework and implementation. Virtual pets have existed almost as long as we have had the power to create them.
+        Hello, welcome to FediFlock, a federated virtual pet framework and implementation.
       </p>
       <p>
-        This project aims to provide a way for communication between these pets. The end goal is to have users be able to own and interact with these pets in a way that doesn't lock them onto a specific site.
+        Virtual pets have been lonely for very long, lets give them friends and more life. 
       </p>
       <p>
-        We have designed this with the intention of other people creating not only their own pets and interacting with them across multiple servers, but also creating their own server where the pets on that server can communicate and interact with other pets.
+        The project aims to provide developers with a way to connect your virtual pet to other virtual pets : a federated social network for virtual pets. You can add your virtual pet's behaviours and simulation method to the pet models and systems, and run this project on a publicly hosted server, making your pets available to be contacted by other people who have done the same and have your server name.
+      </p>
+      <center> 
+        <hr></hr>
+      <p>
+        This work was done as part of my Masters thesis at Telecom Paris supervised by <a href='https://conclave.cs.tsukuba.ac.jp/'>Prof. Claus Aranha</a>, which you can read <a href='https://Junevamp.github.io/assets/pdf/June_M2_Thesis_Virtual_Pets.pdf'>here</a> and access the project on github <a href='https://github.com/JuneVamp/FediGotchi'>here</a>
       </p>
       <p>
-        Want more environments, items, or activities? Change the data file on your server. Want to have a custom pet creation page with cool art? Sure. The website is built on top of an API, and you can use that API however you like to build your own website for your pets.
+          handmade with {'<'+3} by <a href="https://JuneVamp.github.io">June Bhartia</a>.
       </p>
-      <p>
-        Welcome to FediFlock: the birds are free here (along with other pets).
-      </p>
+      </center>
     </section>
   );
 

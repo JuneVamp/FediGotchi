@@ -138,9 +138,14 @@ button {
   background: var(--global-fill-kidcore-yellow);
   padding: 20px;
   border: 2px solid var(--global-border-kidcore-yellow);
+  
 }
 
 .about-panel{
+    max-width: 900px;
+    margin: auto auto;
+    font: 1em sans-serif;
+    font-size: large;
     border-radius: 30px;
 }
 
@@ -152,11 +157,15 @@ button {
   font-size: clamp(1.8rem, 3vw, 2.5rem);
 }
 
-.about-panel p,
+.about-panel p
+{
+  color: #4a4a4a;
+}
 .environment-card p,
 .pet-detail-card p {
   color: black ;
 }
+
 
 
 .environment-list,
